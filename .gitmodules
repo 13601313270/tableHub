@@ -1,0 +1,15 @@
+[submodule "ace"]
+	path = ace
+	url = https://github.com/ajaxorg/ace-builds.git
+[submodule "kod"]
+	path = kod
+	url = https://github.com/13601313270/kod.git
+[submodule "metaPHP"]
+	path = metaPHP
+	url = https://13601313270@github.com/13601313270/metaPHP.git
+[submodule "phpExcel"]
+	path = phpExcel
+	url = https://github.com/PHPOffice/PHPExcel.git
+[submodule "phpMailer"]
+	path = phpMailer
+	url = https://github.com/PHPMailer/PHPMailer.git
