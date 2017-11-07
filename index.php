@@ -63,7 +63,13 @@ if(!empty($result)){
     unset($result);
     unset($new);
 
-    chdir('./http/');
+    if($_SERVER['SCRIPT_FILENAME']=='../app/action.php'){
+        $_SERVER['SCRIPT_FILENAME'] = str_replace('../app/','',$_SERVER['SCRIPT_FILENAME']);
+        chdir('./app/');
+    }else{
+        chdir('./http/');
+    }
+//    /httpAdmin.html
     if(substr($_SERVER["SCRIPT_FILENAME"],strlen($_SERVER["SCRIPT_FILENAME"])-1,1)=="/"){
         include_once($_SERVER["SCRIPT_FILENAME"]."index.php");
     }else{

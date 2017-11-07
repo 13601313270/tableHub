@@ -53,7 +53,7 @@
             background-color: #c3c3c3;border-right:solid 3px #929292;min-width:30px;
         }
         .tableBody{
-            margin-left:0px;width:100%;height:100%;overflow: scroll;margin-top:0px;
+            margin-left:0px;width:100%;height:100%;overflow: auto;margin-top:0px;
         }
         .tableBody .input-group{
             width:98%;margin-left: 1%;

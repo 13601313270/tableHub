@@ -421,7 +421,7 @@
             }
             var activeType = $('#dataFloat .head').attr('action_type');
             if(activeType=='CHARTS'){
-                $.post('',{
+                $.post('/action/table.html',{
                     function:'updateChartsValue',
                     fileId:fileId,
                     tableNum:$('#dataFloat .head').attr('tableId'),
@@ -463,7 +463,7 @@
                     }
                 });
             }else{
-                $.post('',{
+                $.post('/action/table.html',{
                     function:'updateTdValue',
                     fileId:fileId,
                     tableNum:$('#myTabContent .active').data('tableid'),
@@ -471,7 +471,7 @@
                     xfIndex:xfIndex,
                     value:$('#dataFloat .contentText textarea').val()
                 },function(data){
-                    if(data!=='-1'){
+                    if(data==='1'){
                         var tableNum = $('#myTabContent .active').data('tableid');
                         var pos = $('#dataFloat .head').html();
                         tdData[tableNum].tableData[pos] = {
@@ -550,14 +550,14 @@
                     }
                 }
                 if($(this).attr('oldValue')!=$(this).val()){
-                    $.post('',{
+                    $.post('/action/table.html',{
                         function:'updateTdValue',
                         fileId:fileId,
                         tableNum:$(this).attr('tableid'),
                         pos:$(this).attr('pos'),
                         value:$(this).val()
                     },function(data){
-                        if(data!=='-1'){
+                        if(data==='1'){
                             turnNewTD();
                         }else{
                             alert('样式服务器同步失败');

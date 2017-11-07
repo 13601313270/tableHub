@@ -11,7 +11,7 @@
         display: block;
     }
     #tools .editChange{
-        width: 55px;height: 20px;margin-top:6px;background-size: 100% 100%!important;float: left;
+        width: 55px;height: 20px;margin-top:6px;background-size: 100% 100%!important;float: left;display: none;
     }
     #tools .openEdit{
         border-bottom: 1px solid #ddd;padding-bottom: 0;margin-bottom: 10px;
@@ -150,10 +150,8 @@
 </script>
 <div id="tools">
     <div class="container closeEdit">
-        {if $isMyTable}
         <div class="editChange"></div>
-        {/if}
-        <div class="title">{$title}</div>
+        <div class="title"></div>
         <ul class="nav nav-tabs">
             <li class="active"><a href="#tool1" data-toggle="tab">开始</a></li>
             <li><a href="#tool2" data-toggle="tab">图表</a></li>
@@ -262,7 +260,7 @@
             }
             if(isExist){
                 if(parseInt($(this_).attr('cell_xf'))!==isExistId){
-                    $.post('',{
+                    $.post('/action/table.html',{
                         function:'updateTdXf',
                         fileId:fileId,
                         tableNum:$('#myTabContent .active').data('tableid'),
@@ -278,7 +276,7 @@
                 }
             }
             else{
-                $.post('',{
+                $.post('/action/table.html',{
                     function:'updateTdXf',
                     fileId:fileId,
                     tableNum:$('#myTabContent .active').data('tableid'),
@@ -332,7 +330,7 @@
 
                 var hang = $(this_).attr('hang');
                 var rowspan = $(this_).attr('rowspan');
-                $.post('',{
+                $.post('/action/table.html',{
                     function:'mergeCancel',
                     fileId:fileId,
                     tableNum:$('#myTabContent .active').data('tableid'),
@@ -357,7 +355,7 @@
                 var bottom = $('.editTdbottom').attr('hang');
                 var left = $('.editTdleft').attr('lie');
                 var right = $('.editTdright').attr('lie');
-                $.post('',{
+                $.post('/action/table.html',{
                     function:'mergeAdd',
                     fileId:fileId,
                     tableNum:$('#myTabContent .active').data('tableid'),
@@ -408,7 +406,7 @@
                 $(writeTd).attr('cell_xf',80);
                 if(isExist){
                     if(parseInt($(writeTd).attr('cell_xf'))!==isExistId){
-                        $.post('',{
+                        $.post('/action/table.html',{
                             function:'updateTdXf',
                             fileId:fileId,
                             tableNum:$('#myTabContent .active').data('tableid'),
@@ -425,7 +423,7 @@
                     }
                 }
                 else{
-                    $.post('',{
+                    $.post('/action/table.html',{
                         function:'updateTdXf',
                         fileId:fileId,
                         tableNum:$('#myTabContent .active').data('tableid'),
@@ -486,7 +484,7 @@
         var position = [200,100];
         var size = [300,200];
         var saveVlalue = valueStr;
-        $.post('',{
+        $.post('/action/table.html',{
             function:'insertChartsValue',
             fileId:fileId,
             tableNum:tableNum,
