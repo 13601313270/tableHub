@@ -23,7 +23,7 @@ function VLOOKUP(lookup_value,table_array,col_index_num,range_lookup){
         }
         for(var i=0;i<table_array[0].length;i++){
             if(lookup_value==table_array[0][i]){
-                console.log(col_index_num);
+                //console.log(col_index_num);
                 return table_array[col_index_num-1][i];
             }
         }

@@ -26,10 +26,10 @@
         margin-left: 10px;float: left;margin-top:6px;
     }
     #tools .toolsContent{
-        display: none;padding: 0 5px;
+        display: none;padding: 0 5px;height:34px;overflow: hidden;
     }
     #tools .toolsContent .tab-content{
-        overflow-x: scroll;
+        overflow-x: auto;
     }
     .edit #tools .toolsContent{
         display: block;

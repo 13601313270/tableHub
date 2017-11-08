@@ -17,17 +17,9 @@
     <script type="application/javascript" src="//www.tablehub.cn/js/evalObjAndStr.js"></script>
     <script type="application/javascript" src="//www.tablehub.cn/js/dragging.js"></script>
     <script src="https://cdn.bootcss.com/echarts/2.2.7/echarts.js"></script>
-    {foreach $allFunc as $func}
-        <script type="application/javascript" src="//www.tablehub.cn/js/tablePlugins/{$func}"></script>
-    {/foreach}
-    {foreach $allCharts as $chart}
-        <script type="application/javascript" src="//www.tablehub.cn/js/allCharts/{$chart}"></script>
-    {/foreach}
-    {foreach $allUserFunc as $func}
-        <script type="application/javascript" src="//www.tablehub.cn/userPlugins/{$func}"></script>
-    {/foreach}
+    <script type="application/javascript" src="http://js.tablehub.cn/tablePlugins/all.js"></script>
     <script>
-        var fileId = {$smarty.get.fileId};
+        var fileId = window.location.href.match(/\/table\/(\d+)\.html/)[1];
     </script>
     <style>
         body{
@@ -80,7 +72,7 @@
             position:relative;height: calc(100% - 40px);
         }
         #myTabContent .tab-pane{
-            overflow: scroll;width: 100%;height: 100%;padding-top: 5px;
+            overflow: auto;width: 100%;height: 100%;padding-top: 5px;
         }
     </style>
 </head>
@@ -215,20 +207,8 @@
         text-align: right;
     }
 </style>
-<script>
-    //是否可以编辑
-    {if $isMyTable}
-    var isCanEdit = true;
-    {else}
-    var isCanEdit = false;
-    {/if}
-</script>
 <div id="tablePanel">
-    {if $isMyTable}
-        {include file="table/toos.tpl" isMyTable=true}
-    {else}
-        {include file="table/toos.tpl" isMyTable=false}
-    {/if}
+    {include file="table/toos.tpl"}
     <div id="myTabContentParent">
         <ul class="allTableSelect nav nav-tabs"></ul>
         <div id="myTabContent" class="tab-content"></div>
@@ -495,25 +475,6 @@
                 }
             }
         }
-        if(isCanEdit){
-            $('.allTableSelect').append('<li class="addTable">&#xe641;</li>');
-        }
-        $('.addTable').click(function(){
-            var name = window.prompt('请输入工作表名称');
-            if(name!==''){
-                $.post('',{
-                    function:'tableAdd',
-                    fileId:fileId,
-                    title:name,
-                },function(data){
-                    if(data==-2){
-                        alert('工作表名称已存在');
-                    }else if(data==1){
-                        location.href = location.href;
-                    }
-                });
-            }
-        });
         for(var tableNum=0;tableNum<allFileData.length;tableNum++){
             for(var i in tdData[tableNum].tableData){
                 writeTd(tableNum,i,tdData[tableNum].tableData[i].value,tdData[tableNum].tableData[i].xfIndex);
@@ -532,7 +493,7 @@
                     var tableId = dom.parents('[data-tableid]').data('tableid');
                     var lienum = dom.parent().attr('lienum');
                     var width = dom.parent().width();
-                    $.post('',{
+                    $.post('/action/table.html',{
                         function:'updateWidth',
                         fileId:fileId,
                         tableNum:tableId,
@@ -623,7 +584,7 @@
                     $(inputDom).val('');
                 }
                 if($(this).attr('oldValue')!=$(this).val()){
-                    $.post('',{
+                    $.post('/action/table.html',{
                         function:'updateTdValue',
                         fileId:fileId,
                         tableNum:$(this).attr('tableid'),
@@ -744,21 +705,53 @@
             initFloatDom.call(this);
         }
     });
-</script>
-{if !isset($allFile)}
-    <script>
-        require.config({
-            paths: {
-                echarts: 'https://cdn.bootcss.com/echarts/2.2.7'
+    require.config({
+        paths: {
+            echarts: 'https://cdn.bootcss.com/echarts/2.2.7'
+        }
+    });
+    var echartsObj;
+    require(['echarts','echarts/chart/bar','echarts/chart/line','echarts/chart/pie'],function (ec) {
+        echartsObj = ec;
+        $.post('/action/table.html',{
+            function:'tableInfo',
+            fileId:fileId
+        },function(data){
+            data = JSON.parse(data);
+            console.log(data);
+            rewriteExcel(data.style,data.data);
+            $('#tools .title').html(data.title);
+            if(data.isMyTable){
+                $('#tools .editChange').show();
+                $('.allTableSelect').append('<li class="addTable">&#xe641;</li>');
+                $('.addTable').click(function(){
+                    var name = window.prompt('请输入工作表名称');
+                    if(name!=='' && name!=null){
+                        $.post('/action/table.html',{
+                            function:'tableAdd',
+                            fileId:fileId,
+                            title:name,
+                        },function(data){
+                            if(data==-2){
+                                alert('工作表名称已存在');
+                            }else if(data==1){
+                                location.href = location.href;
+                            }
+                        });
+                    }
+                });
             }
+//                if(data!=='-1'){
+//                    if(getCellTemp($(inputDom).attr('pos'))[0]>alldoms['appMain'+$(inputDom).attr('tableid')].hang){
+//                        alldoms['appMain'+$(inputDom).attr('tableid')].addHang();
+//                    }
+//                    afterUpdate();
+//                }else{
+//                    alert('样式服务器同步失败');
+//                }
         });
-        var echartsObj;
-        require(['echarts','echarts/chart/bar','echarts/chart/line','echarts/chart/pie'],function (ec) {
-            echartsObj = ec;
-            rewriteExcel({$tableStyle},{$tableData});
-        });
-    </script>
-{/if}
+    });
+</script>
 {include file="table/dataFloat.mod.tpl"}
 {include file="table/wrapper.mod.tpl"}
 </body>
