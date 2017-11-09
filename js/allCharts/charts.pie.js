@@ -107,7 +107,7 @@ function PIE(title,XtdLists,valueTdLists){
                 var height = parseInt($this.css('height'));
                 allEcharts[tableId][chartsIndex].top = top;
                 allEcharts[tableId][chartsIndex].left = left;
-                $.post('',{
+                $.post('/action/table.html',{
                     function:'updateChartsPos',
                     fileId:fileId,
                     tableNum:tableId,
@@ -117,8 +117,7 @@ function PIE(title,XtdLists,valueTdLists){
                     width:width,
                     height:height,
                 },function(data){
-                    if(data!=='-1'){
-                    }else{
+                    if(data!=='1'){
                         alert('样式服务器同步失败');
                     }
                 });

@@ -20,6 +20,7 @@
     <script type="application/javascript" src="http://js.tablehub.cn/tablePlugins/all.js"></script>
     <script>
         var fileId = window.location.href.match(/\/table\/(\d+)\.html/)[1];
+        var isCanEdit = false;
     </script>
     <style>
         body{
@@ -724,6 +725,7 @@
             if(data.isMyTable){
                 $('#tools .editChange').show();
                 $('.allTableSelect').append('<li class="addTable">&#xe641;</li>');
+                isCanEdit = true;
                 $('.addTable').click(function(){
                     var name = window.prompt('请输入工作表名称');
                     if(name!=='' && name!=null){
