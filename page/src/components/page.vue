@@ -16,18 +16,18 @@
     import tools from '@/components/tools.vue'
     import ajax from '@/tools/ajax.js'
     import Vue from 'vue'
+    import echarts from 'echarts'
+    echartsObj = echarts;
 
-
-
-    import obj from '@/tools/obj.js'
-    var a = new obj();
-    var b = new obj();
-    b.value = 'i\'m b';
-    console.log("====1======");
-    a.value = b;// = 100;
-    console.log("====2======");
-    b.value = 111;// = 100;
-    console.log("====3======");
+//    import obj from '@/tools/obj.js'
+//    var a = new obj();
+//    var b = new obj();
+//    b.value = 'i\'m b';
+//    console.log("====1======");
+//    a.value = b;// = 100;
+//    console.log("====2======");
+//    b.value = 111;// = 100;
+//    console.log("====3======");
 
 
     function createCss(i,item){
@@ -257,51 +257,45 @@
         },
         created(){
             var this_ = this;
+            ajax({
+                url: 'http://www.tablehub.cn/action/table.html',
+                type: 'POST',
+                'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                data: {
+                    function: 'tableInfo',
+                    fileId: 35,
+                    temp:1,
+                },
+                success: function (data) {
+                    this_.title = data.title;
+                    this_.isMyTable = data.isMyTable;
+                    console.log(data);
 
-//            require(['echarts','echarts/chart/bar','echarts/chart/line','echarts/chart/pie'],function (ec) {
-                ajax({
-                    url: 'http://www.tablehub.cn/action/table.html',
-                    type: 'POST',
-                    'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
-                    data: {
-                        function: 'tableInfo',
-                        fileId: 35,
-                        temp:1,
-                    },
-                    success: function (data) {
-                        this_.title = data.title;
-                        this_.isMyTable = data.isMyTable;
-                        console.log(data);
-                        setTimeout(function(){
-
-                            rewriteExcel(data.style,data.data);
-                            if(data.isMyTable){
-                                $('#tools .editChange').show();
-                                $('.allTableSelect').append('<li class="addTable">&#xe641;</li>');
-                                isCanEdit = true;
-                                $('.addTable').click(function(){
-                                    var name = window.prompt('请输入工作表名称');
-                                    if(name!=='' && name!=null){
-                                        $.post('/action/table.html',{
-                                            function:'tableAdd',
-                                            fileId:fileId,
-                                            title:name,
-                                        },function(data){
-                                            if(data==-2){
-                                                alert('工作表名称已存在');
-                                            }else if(data==1){
-                                                location.href = location.href;
-                                            }
-                                        });
+                    rewriteExcel(data.style,data.data);
+                    if(data.isMyTable){
+                        $('#tools .editChange').show();
+                        $('.allTableSelect').append('<li class="addTable">&#xe641;</li>');
+                        isCanEdit = true;
+                        $('.addTable').click(function(){
+                            var name = window.prompt('请输入工作表名称');
+                            if(name!=='' && name!=null){
+                                $.post('/action/table.html',{
+                                    function:'tableAdd',
+                                    fileId:fileId,
+                                    title:name,
+                                },function(data){
+                                    if(data==-2){
+                                        alert('工作表名称已存在');
+                                    }else if(data==1){
+                                        location.href = location.href;
                                     }
                                 });
                             }
-
-                        },2000);
+                        });
                     }
-                });
-//            });
 
+                }
+            });
         }
     }
 </script>
