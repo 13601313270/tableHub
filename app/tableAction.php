@@ -7,6 +7,15 @@
  */
 include_once('../include.php');
 include_once('../phpExcel/Classes/PHPExcel.php');
+header('Access-Control-Allow-Origin:http://dev.tablehub.cn:8080');
+//header('Access-Control-Allow-Origin: *');
+
+header('Access-Control-Allow-Credentials:true');
+//header('Access-Control-Allow-Methods:OPTIONS, GET, POST'); // 允许option，get，post请求
+//header('Access-Control-Allow-Headers:x-requested-with'); // 允许x-requested-with请求头
+//header('Access-Control-Max-Age:86400'); // 允许访问的有效期
+
+
 $userInfo = user::create()->getBySessionToken($_COOKIE['sessionToken']);
 function getNumByWord($word){
     $word = str_split($word);

@@ -2,27 +2,242 @@
     <div>
         <div id="tablePanel" :class="{edit:isOpenEdit}">
             <tools @stateChange="isOpenEditSet" :title="title" :isMyTable="isMyTable" :isOpenEdit="isOpenEdit"></tools>
-
             <div id="myTabContentParent">
-                <p></p>
-                <p></p>
-                <p></p>
-                <p></p>
-                asdf
-                asfd
-
                 <ul class="allTableSelect nav nav-tabs"></ul>
-
                 <div id="myTabContent" class="tab-content"></div>
             </div>
         </div>
-        <bottom>asfds</bottom>
+        <bottom></bottom>
     </div>
 </template>
 
 <script>
     import bottom from '@/components/bottom.vue'
     import tools from '@/components/tools.vue'
+    import ajax from '@/tools/ajax.js'
+    import Vue from 'vue'
+
+
+
+    import obj from '@/tools/obj.js'
+    var a = new obj();
+    var b = new obj();
+    b.value = 'i\'m b';
+    console.log("====1======");
+    a.value = b;// = 100;
+    console.log("====2======");
+    b.value = 111;// = 100;
+    console.log("====3======");
+
+
+    function createCss(i,item){
+        var strItem = "[cell_xf=\""+i+"\"]{\n";
+        if(item.font){
+            if(item.font.color){
+                strItem+='color:#'+item.font.color.slice(2)+';\n';
+            }
+            if(item.font.bold===true||item.font.bold===1){
+                strItem+='font-weight:bold;\n';
+            }
+            if(item.font.size){
+                strItem+='font-size:'+parseInt(item.font.size*1.2)+'px;\n';
+            }
+            if(item.font.underline==='single'){
+                strItem+='text-decoration:underline;\n';
+            }
+            if(item.font.italic===true||item.font.italic===1){
+                strItem+='font-style: italic;\n';
+            }
+        }
+        if(item.fill && item.fill.fillType!=='none'){
+            if(item.fill.startColor){
+                strItem+='background-color:#'+item.fill.startColor.slice(2)+';\n';
+            }
+        }
+        if(item.alignment){
+            if(item.alignment.horizontal=='left'){
+                strItem+='text-align: left!important;\n';
+            }else if(item.alignment.horizontal=='right'){
+                strItem+='text-align: right!important;\n';
+            }else if(item.alignment.horizontal=='center'){
+                strItem+='text-align: center!important;\n';
+            }else if(item.alignment.horizontal=='general'){
+//                    strItem+='text-align: center;\n';
+            }
+        }
+        strItem += "}\n";
+        return strItem;
+        }
+    function rewriteExcel(styleList,dataList){
+        window.getCellXfCollection = styleList;
+        //单元格样式
+        var nod = document.createElement("style");
+        nod.type="text/css";
+        $(nod).attr('td_css_list',1);
+        var str = "";
+        for(var i=0;i<getCellXfCollection.length;i++){
+            var item = getCellXfCollection[i];
+            str+=createCss(i,item);
+        }
+        if(nod.styleSheet){ //ie下
+            nod.styleSheet.cssText = str;
+        } else {
+            nod.innerHTML = str;
+        }
+        document.getElementsByTagName("head")[0].appendChild(nod);
+        //单元格数据
+        var allFileData =  dataList;
+        function setTdWidth(tableNum,thNum,width){
+            dom('appMain'+tableNum).thead.find('thead th').eq(thNum-1).css({
+                width:width*10
+            });
+            dom('appMain'+tableNum).table.find('tbody tr:eq(0) td').eq(thNum-1).css({
+                width:width*10
+            });
+        }
+        function initMerge(tableNum,mergeData){
+            for(var i in mergeData){
+                var beginAndEnd = i.split(':');
+                var begin = getCellTemp(beginAndEnd[0]);
+                var end = getCellTemp(beginAndEnd[1]);
+
+                dom('appMain'+tableNum).td(beginAndEnd[0]).dom.attr('rowspan',end[0]-begin[0]+1);
+                dom('appMain'+tableNum).td(getCellTemp2(begin[0],begin[1])).dom.attr('colspan',end[1]-begin[1]+1);
+                dom('appMain'+tableNum).td(beginAndEnd[0]).dom.addClass('mergeTd');
+
+                for(var tr=begin[0];tr<=end[0];tr++){
+                    var firstTdWidth = 0;
+                    for(var td=end[1];td>=begin[1];td--){
+                        firstTdWidth+=dom('appMain'+tableNum).thead.find('thead th').eq(td-1).outerWidth();
+                        if(tr==begin[0] && td==begin[1]){
+
+                        }else{
+                            dom('appMain'+tableNum).td(getCellTemp2(tr,td)).dom.hide();
+                        }
+                    }
+                }
+            }
+        }
+        td.config.params.tableId.select = {
+        };
+        for(var tableNum=0;tableNum<allFileData.length;tableNum++){
+            var tableObj = allFileData[tableNum];
+            var tableTitle = tableObj.title;
+            $('.allTableSelect').append('<li class="'+(tableNum==0?'active':'')+'"><a href="#table_'+tableNum+'" data-toggle="tab">'+tableTitle+'</a></li>');
+            td.config.params.tableId.select[tableNum.toString()] = tableTitle;
+            tdData[tableNum] = {
+                tableTitle:tableTitle,
+                tableData:tableObj.tableValue,
+                mergeCells:tableObj.mergeCells,
+            };
+            var tableItemDom = $('<div class="tab-pane fade '+(tableNum==0?'in active':'')+'" data-tableid="'+tableNum+'" id="table_'+tableNum+'"></div>');
+            $('#myTabContent').append(tableItemDom);
+            var tableDom = tableItemDom;
+            //获取宽高
+            var hang = 0;
+            var lie = 0;
+            for(var i in tdData[tableNum].tableData){
+                try{
+                    var tdPos = getCellTemp(i);
+                }catch (e){
+                    continue;
+                }
+                hang = Math.max(hang,tdPos[0]);
+                lie = Math.max(lie,tdPos[1]);
+            }
+            lie = Math.max(lie,6);//至少补充到6列
+
+            alldoms['appMain'+tableNum] = new tableClass(tableNum,hang,lie,tableDom);
+            alldoms['appMain'+tableNum].render();
+            (function(){
+                //单元格列宽
+                var nod = document.createElement("style");
+                nod.type="text/css";
+                $(nod).attr('td_css_list',1);
+                var str = "";
+                var column = tableObj.column;
+                for(var i in column){
+                    var thNum = getCellTemp(i+'1')[1];
+                    var strItem = "#myTabContent>.tab-pane:nth-child("+(tableNum+1)+") [lie=\""+thNum+"\"],#myTabContent>.tab-pane:nth-child("+(tableNum+1)+") [lienum=\""+i+"\"]{\n";
+                    strItem+='width:'+column[i].width*10+'px;\n';
+                    strItem += "}\n";
+                        str += strItem;
+                    }
+                    if(nod.styleSheet){ //ie下
+                        nod.styleSheet.cssText = str;
+                    } else {
+                        nod.innerHTML = str;
+                    }
+                    document.getElementsByTagName("head")[0].appendChild(nod);
+                })();
+
+            var row = tableObj.row;
+            for(var i in row){
+                var height = row[i].height*1.5;
+                $('.tableRow table tr').eq(i-1).find('td').height(height);
+                alldoms['appMain'+tableNum].table.find('tbody tr').eq(i-1).find('td:eq(0)').height(height);
+            }
+            //单元格合并
+            initMerge(tableNum,tdData[tableNum].mergeCells);
+
+            //绘制图表
+            allEcharts[tableNum] = [];
+            if(tableObj.charts!=undefined){
+                for(var chartsId = 0;chartsId<tableObj.charts.length;chartsId++){
+                    var position = tableObj.charts[chartsId].position.split(',');
+                    var size = tableObj.charts[chartsId].size.split(',');
+                    if(tableObj.charts[chartsId].value==null){
+                        continue;
+                    }else{
+                        var chartsItem = getEvalObj(tableNum,tableObj.charts[chartsId].value,true);
+                    }
+                    $('.allCharts:eq('+tableNum+')').append(chartsItem.dom);
+                    chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0],'macarons');
+                    chartsItem.top = parseInt(position[0]);
+                    chartsItem.left = parseInt(position[1]);
+                    chartsItem.width = parseInt(size[0]);
+                    chartsItem.height = parseInt(size[1]);
+                    chartsItem.dom.attr('index',chartsId);
+                    chartsItem.index = chartsId;
+                    readyObj.bind(chartsItem);
+                    allEcharts[tableNum][chartsId] = chartsItem;
+
+                }
+            }
+        }
+        for(var tableNum=0;tableNum<allFileData.length;tableNum++){
+            for(var i in tdData[tableNum].tableData){
+                writeTd(tableNum,i,tdData[tableNum].tableData[i].value,tdData[tableNum].tableData[i].xfIndex);
+            }
+        }
+
+        //修改列宽度
+        $('.table>thead>tr>.lieNum>div').each(function(){
+            $(this).dragging({
+                move: 'x',xLimit:false,yLimit:false,randomPosition: false,onMousemove:function(dom,pos){
+                    var tableId = dom.parents('[data-tableid]').data('tableid');
+                    var thNum = getCellTemp(dom.parent().attr('lienum')+'1')[1];
+                    setTdWidth(tableId,thNum, (pos.left+5)/10);
+//                    initMerge(tableId,tdData[1].mergeCells);
+                },onMouseup:function(dom){
+                    var tableId = dom.parents('[data-tableid]').data('tableid');
+                    var lienum = dom.parent().attr('lienum');
+                    var width = dom.parent().width();
+                    $.post('/action/table.html',{
+                        function:'updateWidth',
+                        fileId:fileId,
+                        tableNum:tableId,
+                        lienum:lienum,
+                        width:(width/10).toFixed(1)
+                    },function(data){
+                        console.log(data);
+                    });
+                }
+            });
+        });
+        //触发表格完成
+        readyObj.set(1);
+    }
     export default {
         name: 'page',
         methods:{
@@ -39,6 +254,54 @@
         },
         components: {
             bottom,tools
+        },
+        created(){
+            var this_ = this;
+
+//            require(['echarts','echarts/chart/bar','echarts/chart/line','echarts/chart/pie'],function (ec) {
+                ajax({
+                    url: 'http://www.tablehub.cn/action/table.html',
+                    type: 'POST',
+                    'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                    data: {
+                        function: 'tableInfo',
+                        fileId: 35,
+                        temp:1,
+                    },
+                    success: function (data) {
+                        this_.title = data.title;
+                        this_.isMyTable = data.isMyTable;
+                        console.log(data);
+                        setTimeout(function(){
+
+                            rewriteExcel(data.style,data.data);
+                            if(data.isMyTable){
+                                $('#tools .editChange').show();
+                                $('.allTableSelect').append('<li class="addTable">&#xe641;</li>');
+                                isCanEdit = true;
+                                $('.addTable').click(function(){
+                                    var name = window.prompt('请输入工作表名称');
+                                    if(name!=='' && name!=null){
+                                        $.post('/action/table.html',{
+                                            function:'tableAdd',
+                                            fileId:fileId,
+                                            title:name,
+                                        },function(data){
+                                            if(data==-2){
+                                                alert('工作表名称已存在');
+                                            }else if(data==1){
+                                                location.href = location.href;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+
+                        },2000);
+                    }
+                });
+//            });
+
         }
     }
 </script>

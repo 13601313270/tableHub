@@ -30,7 +30,9 @@ function PIE(title,XtdLists,valueTdLists){
         });
         var domTemp = this.dom.find('>div');
         if(domTemp.width()!==domTemp.find('>div').width() || domTemp.height()!==domTemp.find('>div').height()){
-            this.myChart.resize();
+            if(this.myChart!=null){
+                this.myChart.resize()
+            }
         }
         if((this.XtdLists instanceof tdList)==false){
             this.myChart.setOption({
