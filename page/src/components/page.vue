@@ -8,12 +8,16 @@
             </div>
         </div>
         <bottom></bottom>
+        <dataFloat></dataFloat>
+        <wrapper></wrapper>
     </div>
 </template>
 
 <script>
     import bottom from '@/components/bottom.vue'
     import tools from '@/components/tools.vue'
+    import dataFloat from '@/components/dataFloat.vue'
+    import wrapper from '@/components/wrapper.vue'
     import ajax from '@/tools/ajax.js'
     import Vue from 'vue'
     import echarts from 'echarts'
@@ -29,6 +33,7 @@
 //    b.value = 111;// = 100;
 //    console.log("====3======");
 
+    
 
     function createCss(i,item){
         var strItem = "[cell_xf=\""+i+"\"]{\n";
@@ -253,7 +258,7 @@
             }
         },
         components: {
-            bottom,tools
+            bottom,tools,dataFloat,wrapper
         },
         created(){
             var this_ = this;
@@ -298,6 +303,94 @@
             });
         }
     }
+    $('body').on('mousedown','.edit #myTabContent td',function(e){
+        e.preventDefault();
+    });
+    $('body').on('mousedown','.edit #myTabContent td',function(e){
+        beginSelect = [$(this).attr('hang'),$(this).attr('lie')];
+        isSelectDoms = true;
+    });
+    $('body').on('mouseenter','.edit #myTabContent td',function(e){
+        if(isSelectDoms){
+            $('body .edit td').removeClass('editTd');
+            $('body .edit td').removeClass('editTdtop');
+            $('body .edit td').removeClass('editTdbottom');
+            $('body .edit td').removeClass('editTdleft');
+            $('body .edit td').removeClass('editTdright');
+            var top = Math.min($(this).attr('hang'),beginSelect[0]);
+            var bottom = Math.max($(this).attr('hang'),beginSelect[0]);
+            var left = Math.min($(this).attr('lie'),beginSelect[1]);
+            var right = Math.max($(this).attr('lie'),beginSelect[1]);
+            var tableid = $('body #myTabContent .active').data('tableid');
+            for(var i=top;i<=bottom;i++){
+                for(var j=left;j<=right;j++){
+                    if(i==top){
+                        dom('appMain'+tableid).td(getCellTemp2(i,j)).dom.addClass('editTdtop');
+                    }
+                    if(i==bottom){
+                        dom('appMain'+tableid).td(getCellTemp2(i,j)).dom.addClass('editTdbottom');
+                    }
+                    if(j==left){
+                        dom('appMain'+tableid).td(getCellTemp2(i,j)).dom.addClass('editTdleft');
+                    }
+                    if(j==right){
+                        dom('appMain'+tableid).td(getCellTemp2(i,j)).dom.addClass('editTdright');
+                    }
+                    dom('appMain'+tableid).td(getCellTemp2(i,j)).dom.addClass('editTd');
+                }
+            }
+            selectTd(top,right,bottom,left);
+        }
+    });
+    $('body').on('mouseup','.edit #myTabContent td',function(e){
+        isSelectDoms = false;
+    });
+
+
+    $('body').click(function(){
+        if($('.floatSingleValueWrite .input input[pos]').length>0){
+            $('.floatSingleValueWrite .input input[pos]').each(function(){
+                var inputDom = this;
+                function afterUpdate(){
+                    writeTd($(inputDom).attr('tableid'),
+                        $(inputDom).attr('pos'),
+                        $(inputDom).val(),
+                        $(inputDom).attr('cell_xf'));
+                    $(inputDom).removeAttr('tableid');
+                    $(inputDom).removeAttr('pos');
+                    $(inputDom).removeAttr('cell_xf');
+                    $(inputDom).parent().hide();
+                    $(inputDom).val('');
+                }
+                if($(this).attr('oldValue')!=$(this).val()){
+                    $.post('http://www.tablehub.cn/action/table.html',{
+                        function:'updateTdValue',
+                        fileId:fileId,
+                        tableNum:$(this).attr('tableid'),
+                        pos:$(this).attr('pos'),
+                        value:$(this).val()
+                    },function(data){
+                        if(data!=='-1'){
+                            if(getCellTemp($(inputDom).attr('pos'))[0]>alldoms['appMain'+$(inputDom).attr('tableid')].hang){
+                                alldoms['appMain'+$(inputDom).attr('tableid')].addHang();
+                            }
+                            afterUpdate();
+                        }else{
+                            alert('样式服务器同步失败');
+                        }
+                    });
+                }else{
+                    afterUpdate();
+                }
+            });
+        }
+    });
+    $('body').on('click','.edit #myTabContent td',function(){
+        if(!$(this).is('.idNum')){
+            setTdSelectState.call(this);
+            selectTd.call(this);
+        }
+    });
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

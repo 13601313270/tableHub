@@ -1,6 +1,6 @@
 <template>
     <div id="tools">
-        <div class="container" :class="{openEdit:isOpenEdit,closeEdit:!isOpenEdit}">
+        <div class="container" :class="{openEdit:isOpenEdit_,closeEdit:!isOpenEdit_}">
             <div class="editChange" v-if="isMyTable" @click="stateChange"></div>
             <div class="title">{{title}}</div>
             <ul class="nav nav-tabs">
@@ -9,7 +9,7 @@
                 <li :class="{active:tabState==3}"><a @click="tabState=3" data-toggle="tab">分析</a></li>
             </ul>
         </div>
-        <div v-if="isOpenEdit" class="toolsContent">
+        <div v-if="isOpenEdit_" class="toolsContent">
             <div class="tab-content">
                 <div class="tab-pane fade" :class="{active:tabState==1,in:tabState==1}" id="tool1" style="width: 812px;">
                     <div class="btn-group">
@@ -88,13 +88,65 @@ export default {
     props: ['title','isMyTable','isOpenEdit'],
     methods:{
         stateChange(){
-            this.isOpenEdit = !this.isOpenEdit;
-            this.$emit('stateChange',this.isOpenEdit);
+            this.isOpenEdit_ = !this.isOpenEdit_;
+            this.$emit('stateChange',this.isOpenEdit_);
+
+
+            var lieAddCount = 2;//增加
+            if($('.editChange').parent().is('.closeEdit')){
+                $('.editChange').parent().attr('class','container openEdit');
+                if(lieAddCount>0){
+                    $('#myTabContent .tab-pane').each(function(){
+                        for(var i=0;i<lieAddCount;i++){
+                            var lieNum = getCellTemp2(0,$(this).find('.tableThead table thead tr th').length+1).match(/([A-Z]*)(\d+)/)[1];
+                            var headTdHtml = '<th class="lieNum" lienum="'+lieNum+'" style="position: relative; overflow: hidden;">'+
+                                lieNum+
+                                '<div style="position: absolute; cursor: ew-resize;"></div>' +
+                                '</th>';
+                            var bodyTheadHtml = '<th class="lieNum" lienum="'+lieNum+'"></th>';
+                            $(this).find('.tableThead table thead tr').append($(headTdHtml));
+                            $(this).find('.tableBody table thead tr').append($(bodyTheadHtml));
+                        }
+                    });
+                    $('#myTabContent .tableBody table tbody tr').each(function(){
+                        for(var i=0;i<lieAddCount;i++){
+                            var newTd = $('<td></td>');
+                            newTd.attr('hang',$(this).index()+1);
+                            newTd.attr('lie',$(this).find('>td').length+1);
+                            $(this).append(newTd);
+                        }
+                    });
+                }
+                $('#tablePanel').addClass('edit');
+            }else{
+                $('.editChange').parent().attr('class','container closeEdit');
+                if(lieAddCount>0){
+                    $('#myTabContent .tableThead table').each(function(){
+                        for(var i=0;i<lieAddCount;i++){
+                            $(this).find('thead tr th:last').remove();
+                        }
+                    });
+                    $('#myTabContent .tableBody table thead tr').each(function(){
+                        for (var i=0;i<lieAddCount;i++){
+                            $(this).find('th:last').remove();
+                        }
+                    });
+                    $('#myTabContent .tableBody table tbody tr').each(function(){
+                        for (var i=0;i<lieAddCount;i++){
+                            $(this).find('td:last').remove();
+                        }
+                    });
+                }
+                $('#tablePanel').removeClass('edit');
+//        location.href = location.href.replace('&edit=true','').replace(/&scrollLeft=(\d+)/,'');
+                $('#dataFloat').hide();
+            }
         }
     },
     data(){
         return {
-            tabState:1
+            tabState:1,
+            isOpenEdit_:this.isOpenEdit
         }
     }
 }
