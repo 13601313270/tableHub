@@ -133,6 +133,8 @@
     </div>
 </template>
 <script>
+    import ajax from '@/tools/ajax.js'
+
     function _initFloatType(evalObj,insertDom,select){
         if(evalObj instanceof __runObj__){
             var type = evalObj.funcName;
@@ -283,57 +285,6 @@
         });
         updateTextareaText();
     }
-    $('#myTabContent').on('click','.active',function(){
-        $('#dataFloat').hide();
-    });
-    $('#dataFloat').dragging({
-        move: 'both',hander: '.head'
-    });
-    $('#dataFloat').on('change','[name=dataType]',function(){
-        var func = $(this).val();
-        if(['','='].indexOf(func)>-1){
-            if(func===''){
-                var evalObj='';
-            }else{
-                var evalObj = {
-                    name:'=',
-                    params:[''],
-                };
-
-            }
-        }else{
-            if(['true','false'].indexOf(func)>-1){
-                evalObj = func=='true';
-            }else{
-                var configResult = {
-                };
-                for(var i in window[func].config.params){
-                    if(window[func].config.params[i].default!==undefined){
-                        configResult[i] = window[func].config.params[i].default;
-                    }else if(window[func].config.params[i] instanceof Array){
-                        configResult[i] = [''];
-                    }else{
-                        configResult[i] = '';
-                    }
-                }
-                configResult = window[func].config.save(configResult);
-                if(func=='td'){
-                    for(var i=0;i<tdData.length;i++){
-                        if(tdData[i].tableTitle==configResult[0]){
-                            configResult[0] = i;
-                        }
-                    }
-                }
-                var applyArgs = [window].concat(configResult || []);
-                var temp = Function.prototype.bind.apply(window[func],applyArgs);
-                evalObj = new temp();
-            }
-        }
-        var dom = $(this).parents('.dataBaseItem').eq(0);
-        var select = $(this).parents('.dataBaseItem').eq(0).data('select');
-        _initFloatType(evalObj,dom,select);
-        updateTextareaText();
-    });
     function updateTextareaText(){
         var evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
         if(typeof evalObj=='object'){
@@ -343,23 +294,6 @@
             $('#dataFloat .contentText textarea').val(evalObj);
         }
     }
-    $('#dataFloat .action .copyTo').click(function(){
-        var cellId = prompt('请输入表格位置');
-        if(cellId!==null){
-            var newPos = getCellTemp(cellId);
-            $('body .edit td').removeClass('editTd');
-            $('body .edit td').removeClass('editTdtop');
-            $('body .edit td').removeClass('editTdbottom');
-            $('body .edit td').removeClass('editTdleft');
-            $('body .edit td').removeClass('editTdright');
-            dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTd');
-            dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdtop');
-            dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdbottom');
-            dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdleft');
-            dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdright');
-            $('#dataFloat>.head').html(cellId);
-        }
-    });
     function getSaveObj(dom){
         if($(dom).is('.dataBaseItemSingle')){
             var temp = $(dom).find('[name=value]').val();
@@ -411,166 +345,6 @@
             return result;
         }
     }
-    $('#dataFloat .action .save').click(function(){
-        var contentDivs = $(this).parents('#dataFloat').find('>.content');
-        var xfIndex = $(this).parents('#dataFloat').attr('xfindex');
-        for(var i=0;i<contentDivs.length;i++){
-            var input = $(contentDivs[i]).find('>div>[name]');
-            if(input.attr('name')=='xfIndex'){
-                xfIndex = input.val();
-            }
-        }
-        alert($('#dataFloat .contentText textarea').val());
-        var activeType = $('#dataFloat .head').attr('action_type');
-        if(activeType=='CHARTS'){
-            $.post('/action/table.html',{
-                function:'updateChartsValue',
-                fileId:fileId,
-                tableNum:$('#dataFloat .head').attr('tableId'),
-                chartsIndex:$('#dataFloat .head').attr('chartsIndex'),
-                value:$('#dataFloat .contentText textarea').val().replace(/^=/,'')
-            },function(data){
-                if(data!=='-1'){
-                    var tableNum = $('#myTabContent .active').data('tableid');
-                    var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
-                    var content = $('#dataFloat .contentText textarea').val().replace(/^=/,'');
-                    var oldObj = allEcharts[tableNum][chartsIndex];
-                    oldObj.myChart.clear();
-
-                    var matchPreg = new RegExp(oldObj.className+'\\\((\\\S+)\\\)');
-                    matchPreg = content.match(matchPreg)[1];
-                    matchPreg = getEvalObj(tableNum,'['+matchPreg+']',true);
-                    var allTemp = ({
-                        'PIE':['title','XtdLists','valueTdLists'],
-                        'BAR':['title','XtdLists','valueTdLists'],
-                        'LINE':['title','XtdLists','valueTdLists'],
-                    })[oldObj.className];
-                    for(var proNum=0;proNum<allTemp.length;proNum++){
-                        var title = allTemp[proNum];
-                        if(oldObj[title] !== matchPreg[proNum]){
-                            if(oldObj[title] instanceof obj){
-                                oldObj[title].unBind(oldObj);
-                            }
-                            oldObj[title] = matchPreg[proNum];
-                            if(matchPreg[proNum] instanceof obj){
-                                oldObj[title].bind(oldObj);
-                            }
-                        }
-                    }
-                    //渲染
-                    oldObj.render();
-                    $('#dataFloat').hide();
-                }else{
-                    alert('样式服务器同步失败');
-                }
-            });
-        }
-        else{
-            $.post('/action/table.html',{
-                function:'updateTdValue',
-                fileId:fileId,
-                tableNum:$('#myTabContent .active').data('tableid'),
-                pos:$('#dataFloat .head').html(),
-                xfIndex:xfIndex,
-                value:$('#dataFloat .contentText textarea').val()
-            },function(data){
-                if(data==='1'){
-                    var tableNum = $('#myTabContent .active').data('tableid');
-                    var pos = $('#dataFloat .head').html();
-                    tdData[tableNum].tableData[pos] = {
-                        value:$('#dataFloat .contentText textarea').val(),
-                        xfIndex:xfIndex
-                    };
-                    writeTd(tableNum,pos,tdData[tableNum].tableData[pos].value,tdData[tableNum].tableData[pos].xfIndex);
-                    $('#dataFloat').hide();
-                    if(getCellTemp(pos)[0]>alldoms['appMain'+tableNum].hang){
-                        alldoms['appMain'+tableNum].addHang();
-                    }
-                }else{
-                    alert('样式服务器同步失败');
-                }
-            });
-        }
-
-    });
-    $('#dataFloat').on('click','.add',function(){
-        if($(this).parents('.dataBaseItem').eq(0).is('.dataBaseItemChild')){
-            $(this).parents('.dataBaseItem').eq(0).removeClass('dataBaseItemChild');
-            $(this).find('i').attr('class','glyphicon glyphicon-chevron-up');
-        }else{
-            $(this).parents('.dataBaseItem').eq(0).addClass('dataBaseItemChild');
-            $(this).find('i').attr('class','glyphicon glyphicon-chevron-down');
-        }
-    });
-    $('#dataFloat').on('click','.addMore',function(){
-        var title = $(this).prev().find('>label').html();
-        var key = $(this).prev().attr('data-name');
-        var dom = $('<div class="form-group" data-name="'+key+'">'+
-            '<label class="control-label">'+title+'</label>'+
-            '<div></div>' +
-            '</div>');
-        _initFloatType( '' ,dom.find('>div') );
-        $('.addMore').before(dom);
-        updateTextareaText();
-    });
-    $('#myTabContent').on('keydown','.floatSingleValueWrite .input input',function(e){
-        if(['Enter'].indexOf(e.key)>-1){    //'ArrowRight',
-            var inputDom = this;
-            var tableId = $(inputDom).attr('tableid');
-            var posId = $(inputDom).attr('pos');
-            console.log(posId);
-            function turnNewTD(){
-                if(getCellTemp(posId)[0]>alldoms['appMain'+tableId].hang){
-                    alldoms['appMain'+tableId].addHang();
-                }
-                writeTd(tableId,
-                    posId,
-                    $(inputDom).val(),
-                    $(inputDom).attr('cell_xf'));
-                $(inputDom).removeAttr('tableid');
-                $(inputDom).removeAttr('pos');
-                $(inputDom).removeAttr('cell_xf');
-                $(inputDom).val('');
-                $(inputDom).parent().hide();
-                console.log(posId);
-                var temp = getCellTemp(posId);
-                if(e.key=='Enter'){
-
-                }else{
-                    if(e.key=='ArrowRight'){
-                        temp[1]++;
-                    }
-                    var rightDom;
-                    if(allTD['td:'+tableId+'!'+getCellTemp2(temp[0],temp[1])]!==undefined){
-                        rightDom = allTD['td:'+tableId+'!'+getCellTemp2(temp[0],temp[1])].dom;
-                        $(rightDom).trigger('dblclick');
-                    }else{
-                        rightDom = new td(tableId,getCellTemp2(temp[0],temp[1]));
-
-                    }
-                    console.log(rightDom);
-                    $(rightDom).trigger('dblclick');
-                }
-            }
-            if($(this).attr('oldValue')!=$(this).val()){
-                $.post('/action/table.html',{
-                    function:'updateTdValue',
-                    fileId:fileId,
-                    tableNum:$(this).attr('tableid'),
-                    pos:$(this).attr('pos'),
-                    value:$(this).val()
-                },function(data){
-                    if(data==='1'){
-                        turnNewTD();
-                    }else{
-                        alert('样式服务器同步失败');
-                    }
-                });
-            }else{
-                turnNewTD();
-            }
-        }
-    });
     function initFloatDom(){
         setTdSelectState.call(this);
         //看看当前单元格是否有合并
@@ -599,71 +373,320 @@
         $('#dataFloat').attr('xfIndex',thisTdData.xfIndex);
         $('#dataFloat').removeClass('floatSingleValue');
     }
-    $('body').on('dblclick','.edit #myTabContent .allCharts>div',function(){
-        var type = $(this).attr('type');
-        var tableId = $('#myTabContent .active').data('tableid');
-        var chartsIndex = $(this).attr('index');
-        $('#dataFloat').show();
-        $('#dataFloat .head').html('图表');
-
-        var allChartsName = [];
-        for(var i=0;i<allChartFunction.length;i++){
-            allChartsName.push(allChartFunction[i].funcName);
-        }
-        if(allEcharts[tableId][chartsIndex] instanceof obj && allChartsName.indexOf(allEcharts[tableId][chartsIndex].className)>-1){
-            $('#dataFloat .head').attr('action_type','CHARTS');
-            $('#dataFloat .head').attr('tableId',tableId);
-            $('#dataFloat .head').attr('chartsIndex',chartsIndex);
-        }
-        initFloatType(allEcharts[tableId][chartsIndex],$('#dataFloat .content'));
-    });
-    $('body').on('dblclick','.edit #myTabContent td',function(){
-        setTdSelectState.call(this);
-        //看看当前单元格是否有合并
-        var activeId = $('#myTabContent .active').data('tableid');
-        var selectPos = getCellTemp2(parseInt($(this).attr('hang')),parseInt($(this).attr('lie')));
-        if(allTD['td:'+activeId+'!'+selectPos]){
-            var tempValue = allTD['td:'+activeId+'!'+selectPos].value_;
-        }else{
-            var tempValue = '';
-        }
-        if(typeof tempValue=='string' || typeof tempValue=='number'){
-            //计算宽度
-            function getTrueWidth(str,xf){
-                var span = $('<span></span>');
-                span.attr('cell_xf',xf);
-                span.html(str);
-                $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
-                return span.width()+8;
-            }
-            //计算位置
-            var tableid = $('body #myTabContent .active').data('tableid');
-            $('.tableBody').eq(tableid).scrollTop();
-            var position = $(this).position();
-            var inputTd = $(this).parents('.tableBody').find('.floatSingleValueWrite .input');
-            inputTd.show();
-            inputTd.find('input').val(tempValue);
-            inputTd.find('input').attr('cell_xf',$(this).attr('cell_xf'));
-            inputTd.find('input').attr('tableId',tableid);
-            inputTd.find('input').attr('pos',getCellTemp2($(this).attr('hang'),$(this).attr('lie')));
-            inputTd.find('input').attr('oldValue',tempValue);
-            inputTd.css('left',position.left-parseInt($(this).parents('.tableBody').css('marginLeft'))+$('.tableBody').eq(tableid).scrollLeft()-1);
-            inputTd.css('top',position.top-parseInt($(this).parents('.tableBody').css('marginTop'))+$('.tableBody').eq(tableid).scrollTop()-2);
-            inputTd.css('height',$(this).outerHeight()+2);
-            inputTd.css('min-width',$(this).outerWidth()+1);
-            inputTd.css('width',getTrueWidth.call(this,tempValue,$(this).attr('cell_xf')));
-            var this_ = this;
-            inputTd.find('input').on('input',function() {
-                inputTd.css('width',getTrueWidth.call(this_,$(this).val(),$(this_).attr('cell_xf')));
-            });
-            inputTd.find('input').click(function(event){
-                event.stopPropagation();
-            });
-            inputTd.find('input').focus();
-        }else{
-            initFloatDom.call(this);
-        }
-    });
     export default {
+        mounted(){
+            $('#dataFloat').dragging({
+                move: 'both',hander: '.head'
+            });
+            $('#myTabContent').on('click','.active',function(){
+                $('#dataFloat').hide();
+            });
+
+            $('#dataFloat').on('change','[name=dataType]',function(){
+                var func = $(this).val();
+                if(['','='].indexOf(func)>-1){
+                    if(func===''){
+                        var evalObj='';
+                    }else{
+                        var evalObj = {
+                            name:'=',
+                            params:[''],
+                        };
+
+                    }
+                }else{
+                    if(['true','false'].indexOf(func)>-1){
+                        evalObj = func=='true';
+                    }else{
+                        var configResult = {
+                        };
+                        for(var i in window[func].config.params){
+                            if(window[func].config.params[i].default!==undefined){
+                                configResult[i] = window[func].config.params[i].default;
+                            }else if(window[func].config.params[i] instanceof Array){
+                                configResult[i] = [''];
+                            }else{
+                                configResult[i] = '';
+                            }
+                        }
+                        configResult = window[func].config.save(configResult);
+                        if(func=='td'){
+                            for(var i=0;i<tdData.length;i++){
+                                if(tdData[i].tableTitle==configResult[0]){
+                                    configResult[0] = i;
+                                }
+                            }
+                        }
+                        var applyArgs = [window].concat(configResult || []);
+                        var temp = Function.prototype.bind.apply(window[func],applyArgs);
+                        evalObj = new temp();
+                    }
+                }
+                var dom = $(this).parents('.dataBaseItem').eq(0);
+                var select = $(this).parents('.dataBaseItem').eq(0).data('select');
+                _initFloatType(evalObj,dom,select);
+                updateTextareaText();
+            });
+            $('#dataFloat .action .copyTo').click(function(){
+                var cellId = prompt('请输入表格位置');
+                if(cellId!==null){
+                    var newPos = getCellTemp(cellId);
+                    $('body .edit td').removeClass('editTd');
+                    $('body .edit td').removeClass('editTdtop');
+                    $('body .edit td').removeClass('editTdbottom');
+                    $('body .edit td').removeClass('editTdleft');
+                    $('body .edit td').removeClass('editTdright');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTd');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdtop');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdbottom');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdleft');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdright');
+                    $('#dataFloat>.head').html(cellId);
+                }
+            });
+            $('#dataFloat .action .save').click(function(){
+                var contentDivs = $(this).parents('#dataFloat').find('>.content');
+                var xfIndex = $(this).parents('#dataFloat').attr('xfindex');
+                for(var i=0;i<contentDivs.length;i++){
+                    var input = $(contentDivs[i]).find('>div>[name]');
+                    if(input.attr('name')=='xfIndex'){
+                        xfIndex = input.val();
+                    }
+                }
+                console.log($('#dataFloat .contentText textarea').val());
+                var activeType = $('#dataFloat .head').attr('action_type');
+                if(activeType=='CHARTS'){
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            function:'updateChartsValue',
+                            fileId:fileId,
+                            tableNum:$('#dataFloat .head').attr('tableId'),
+                            chartsIndex:$('#dataFloat .head').attr('chartsIndex'),
+                            value:$('#dataFloat .contentText textarea').val().replace(/^=/,'')
+                        },
+                        success: function (data) {
+                            if(data=='1'){
+                                var tableNum = $('#myTabContent .active').data('tableid');
+                                var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
+                                var content = $('#dataFloat .contentText textarea').val().replace(/^=/,'');
+                                var oldObj = allEcharts[tableNum][chartsIndex];
+                                oldObj.myChart.clear();
+
+                                var matchPreg = new RegExp(oldObj.className+'\\\((\\\S+)\\\)');
+                                matchPreg = content.match(matchPreg)[1];
+                                matchPreg = getEvalObj(tableNum,'['+matchPreg+']',true);
+                                var allTemp = ({
+                                    'PIE':['title','XtdLists','valueTdLists'],
+                                    'BAR':['title','XtdLists','valueTdLists'],
+                                    'LINE':['title','XtdLists','valueTdLists'],
+                                })[oldObj.className];
+                                for(var proNum=0;proNum<allTemp.length;proNum++){
+                                    var title = allTemp[proNum];
+                                    if(oldObj[title] !== matchPreg[proNum]){
+                                        if(oldObj[title] instanceof obj){
+                                            oldObj[title].unBind(oldObj);
+                                        }
+                                        oldObj[title] = matchPreg[proNum];
+                                        if(matchPreg[proNum] instanceof obj){
+                                            oldObj[title].bind(oldObj);
+                                        }
+                                    }
+                                }
+                                //渲染
+                                oldObj.render();
+                                $('#dataFloat').hide();
+                            }else{
+                                alert('样式服务器同步失败');
+                            }
+                        }
+                    });
+                }
+                else{
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            function:'updateTdValue',
+                            fileId:fileId,
+                            tableNum:$('#myTabContent .active').data('tableid'),
+                            pos:$('#dataFloat .head').html(),
+                            xfIndex:xfIndex,
+                            value:$('#dataFloat .contentText textarea').val()
+                        },
+                        success: function (data) {
+                            if(data=='1'){
+                                var tableNum = $('#myTabContent .active').data('tableid');
+                                var pos = $('#dataFloat .head').html();
+                                tdData[tableNum].tableData[pos] = {
+                                    value:$('#dataFloat .contentText textarea').val(),
+                                    xfIndex:xfIndex
+                                };
+                                writeTd(tableNum,pos,tdData[tableNum].tableData[pos].value,tdData[tableNum].tableData[pos].xfIndex);
+                                $('#dataFloat').hide();
+                                if(getCellTemp(pos)[0]>alldoms['appMain'+tableNum].hang){
+                                    alldoms['appMain'+tableNum].addHang();
+                                }
+                            }else{
+                                alert('样式服务器同步失败');
+                            }
+                        }
+                    });
+                }
+
+            });
+            $('#dataFloat').on('click','.add',function(){
+                if($(this).parents('.dataBaseItem').eq(0).is('.dataBaseItemChild')){
+                    $(this).parents('.dataBaseItem').eq(0).removeClass('dataBaseItemChild');
+                    $(this).find('i').attr('class','glyphicon glyphicon-chevron-up');
+                }else{
+                    $(this).parents('.dataBaseItem').eq(0).addClass('dataBaseItemChild');
+                    $(this).find('i').attr('class','glyphicon glyphicon-chevron-down');
+                }
+            });
+            $('#dataFloat').on('click','.addMore',function(){
+                var title = $(this).prev().find('>label').html();
+                var key = $(this).prev().attr('data-name');
+                var dom = $('<div class="form-group" data-name="'+key+'">'+
+                    '<label class="control-label">'+title+'</label>'+
+                    '<div></div>' +
+                    '</div>');
+                _initFloatType( '' ,dom.find('>div') );
+                $('.addMore').before(dom);
+                updateTextareaText();
+            });
+            $('#myTabContent').on('keydown','.floatSingleValueWrite .input input',function(e){
+                if(['Enter'].indexOf(e.key)>-1){    //'ArrowRight',
+                    var inputDom = this;
+                    var tableId = $(inputDom).attr('tableid');
+                    var posId = $(inputDom).attr('pos');
+                    console.log(posId);
+                    function turnNewTD(){
+                        if(getCellTemp(posId)[0]>alldoms['appMain'+tableId].hang){
+                            alldoms['appMain'+tableId].addHang();
+                        }
+                        writeTd(tableId,
+                            posId,
+                            $(inputDom).val(),
+                            $(inputDom).attr('cell_xf'));
+                        $(inputDom).removeAttr('tableid');
+                        $(inputDom).removeAttr('pos');
+                        $(inputDom).removeAttr('cell_xf');
+                        $(inputDom).val('');
+                        $(inputDom).parent().hide();
+                        console.log(posId);
+                        var temp = getCellTemp(posId);
+                        if(e.key=='Enter'){
+
+                        }else{
+                            if(e.key=='ArrowRight'){
+                                temp[1]++;
+                            }
+                            var rightDom;
+                            if(allTD['td:'+tableId+'!'+getCellTemp2(temp[0],temp[1])]!==undefined){
+                                rightDom = allTD['td:'+tableId+'!'+getCellTemp2(temp[0],temp[1])].dom;
+                                $(rightDom).trigger('dblclick');
+                            }else{
+                                rightDom = new td(tableId,getCellTemp2(temp[0],temp[1]));
+
+                            }
+                            console.log(rightDom);
+                            $(rightDom).trigger('dblclick');
+                        }
+                    }
+                    if($(this).attr('oldValue')!=$(this).val()){
+                        ajax({
+                            url: 'http://www.tablehub.cn/action/table.html',
+                            type: 'POST',
+                            'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                            data: {
+                                function:'updateTdValue',
+                                fileId:fileId,
+                                tableNum:$(this).attr('tableid'),
+                                pos:$(this).attr('pos'),
+                                value:$(this).val()
+                            },
+                            success: function (data) {
+                                if(data=='1'){
+                                    turnNewTD();
+                                }else{
+                                    alert('样式服务器同步失败3');
+                                }
+                            }
+                        });
+                    }else{
+                        turnNewTD();
+                    }
+                }
+            });
+            $('body').on('dblclick','.edit #myTabContent .allCharts>div',function(){
+                var type = $(this).attr('type');
+                var tableId = $('#myTabContent .active').data('tableid');
+                var chartsIndex = $(this).attr('index');
+                $('#dataFloat').show();
+                $('#dataFloat .head').html('图表');
+
+                var allChartsName = [];
+                for(var i=0;i<allChartFunction.length;i++){
+                    allChartsName.push(allChartFunction[i].funcName);
+                }
+                if(allEcharts[tableId][chartsIndex] instanceof obj && allChartsName.indexOf(allEcharts[tableId][chartsIndex].className)>-1){
+                    $('#dataFloat .head').attr('action_type','CHARTS');
+                    $('#dataFloat .head').attr('tableId',tableId);
+                    $('#dataFloat .head').attr('chartsIndex',chartsIndex);
+                }
+                initFloatType(allEcharts[tableId][chartsIndex],$('#dataFloat .content'));
+            });
+            $('body').on('dblclick','.edit #myTabContent td',function(){
+                setTdSelectState.call(this);
+                //看看当前单元格是否有合并
+                var activeId = $('#myTabContent .active').data('tableid');
+                var selectPos = getCellTemp2(parseInt($(this).attr('hang')),parseInt($(this).attr('lie')));
+                if(allTD['td:'+activeId+'!'+selectPos]){
+                    var tempValue = allTD['td:'+activeId+'!'+selectPos].value_;
+                }else{
+                    var tempValue = '';
+                }
+                if(typeof tempValue=='string' || typeof tempValue=='number'){
+                    //计算宽度
+                    function getTrueWidth(str,xf){
+                        var span = $('<span></span>');
+                        span.attr('cell_xf',xf);
+                        span.html(str);
+                        $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
+                        return span.width()+8;
+                    }
+                    //计算位置
+                    var tableid = $('body #myTabContent .active').data('tableid');
+                    $('.tableBody').eq(tableid).scrollTop();
+                    var position = $(this).position();
+                    var inputTd = $(this).parents('.tableBody').find('.floatSingleValueWrite .input');
+                    inputTd.show();
+                    inputTd.find('input').val(tempValue);
+                    inputTd.find('input').attr('cell_xf',$(this).attr('cell_xf'));
+                    inputTd.find('input').attr('tableId',tableid);
+                    inputTd.find('input').attr('pos',getCellTemp2($(this).attr('hang'),$(this).attr('lie')));
+                    inputTd.find('input').attr('oldValue',tempValue);
+                    inputTd.css('left',position.left-parseInt($(this).parents('.tableBody').css('marginLeft'))+$('.tableBody').eq(tableid).scrollLeft()-1);
+                    inputTd.css('top',position.top-parseInt($(this).parents('.tableBody').css('marginTop'))+$('.tableBody').eq(tableid).scrollTop()-2);
+                    inputTd.css('height',$(this).outerHeight()+2);
+                    inputTd.css('min-width',$(this).outerWidth()+1);
+                    inputTd.css('width',getTrueWidth.call(this,tempValue,$(this).attr('cell_xf')));
+                    var this_ = this;
+                    inputTd.find('input').on('input',function() {
+                        inputTd.css('width',getTrueWidth.call(this_,$(this).val(),$(this_).attr('cell_xf')));
+                    });
+                    inputTd.find('input').click(function(event){
+                        event.stopPropagation();
+                    });
+                    inputTd.find('input').focus();
+                }else{
+                    initFloatDom.call(this);
+                }
+            });
+        }
     }
 </script>
