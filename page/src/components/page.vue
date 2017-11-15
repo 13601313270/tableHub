@@ -21,6 +21,8 @@
     import ajax from '@/tools/ajax.js'
     import Vue from 'vue'
     import echarts from 'echarts'
+    import writeTd from '@/tools/writeTd.js';
+    import setTdSelectState from '@/tools/setTdSelectState.js';
     echartsObj = echarts;
 
 //    import obj from '@/tools/obj.js'
@@ -33,8 +35,80 @@
 //    b.value = 111;// = 100;
 //    console.log("====3======");
 
-    
 
+    function selectTd(){
+        if($(this).attr('cell_xf')==undefined){
+            $('.toolsContent [data-name=color]').css('color','');
+            $('.toolsContent [data-name=bold]').removeClass('active');
+            $('.toolsContent [data-name=size]').val('');
+            $('.toolsContent [data-name=underline]').removeClass('active');
+            $('.toolsContent [data-name=italic]').removeClass('active');
+            $('.toolsContent [data-name=fill]').css('backgroundColor','white');
+            $('.toolsContent [data-name=tdMerge]').removeClass('active');
+        }else{
+            var cell_xf = getCellXfCollection[$(this).attr('cell_xf')];
+            if(cell_xf.font){
+                if(cell_xf.font.color){
+                    $('.toolsContent [data-name=color]').css('color','#'+cell_xf.font.color.slice(2));
+                }
+                if(cell_xf.font.bold===1){
+                    $('.toolsContent [data-name=bold]').addClass('active');
+                }else{
+                    $('.toolsContent [data-name=bold]').removeClass('active');
+                }
+                if(cell_xf.font.size){
+                    $('.toolsContent [data-name=size]').val(cell_xf.font.size);
+                }
+                if(cell_xf.font.underline==='single'){
+                    $('.toolsContent [data-name=underline]').addClass('active');
+                }else{
+                    $('.toolsContent [data-name=underline]').removeClass('active');
+                }
+                if(cell_xf.font.italic===1){
+                    $('.toolsContent [data-name=italic]').addClass('active');
+                }else{
+                    $('.toolsContent [data-name=italic]').removeClass('active');
+                }
+            }
+            if(cell_xf.fill && cell_xf.fill.fillType!=='none'){
+                $('.toolsContent [data-name=fill]').css('backgroundColor','#'+cell_xf.fill.startColor.slice(2));
+            }
+            else{
+                $('.toolsContent [data-name=fill]').css('backgroundColor','white');
+            }
+            if(cell_xf.alignment){
+                $('.toolsContent [data-name=horizontal_left]').removeClass('active');
+                $('.toolsContent [data-name=horizontal_center]').removeClass('active');
+                $('.toolsContent [data-name=horizontal_right]').removeClass('active');
+                if(cell_xf.alignment.horizontal=='left'){
+                    $('.toolsContent [data-name=horizontal_left]').addClass('active');
+                }else if(cell_xf.alignment.horizontal=='center'){
+                    $('.toolsContent [data-name=horizontal_center]').addClass('active');
+                }else if(cell_xf.alignment.horizontal=='right'){
+                    $('.toolsContent [data-name=horizontal_right]').addClass('active');
+                }else if(cell_xf.alignment.horizontal=='general'){
+                }
+            }
+        }
+        if(this!==window && !$(this).is('.mergeTd')){
+            $('.toolsContent [data-name=tdMerge]').removeClass('active');
+            $('.toolsContent [data-name=tdMerge]').addClass('disabled');
+        }else{
+            var isHasMerge = false;
+            var activeId = $('#myTabContent .active').data('tableid');
+            for(var i in tdData[activeId].mergeCells){
+                if(i.split(":")[0] == getCellTemp2($(this).attr('hang'),$(this).attr('lie'))){
+                    isHasMerge = true;break;
+                }
+            }
+            if(isHasMerge){
+                $('.toolsContent [data-name=tdMerge]').addClass('active');
+            }else{
+                $('.toolsContent [data-name=tdMerge]').removeClass('active');
+            }
+            $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
+        }
+    }
     function createCss(i,item){
         var strItem = "[cell_xf=\""+i+"\"]{\n";
         if(item.font){
@@ -228,14 +302,20 @@
                     var tableId = dom.parents('[data-tableid]').data('tableid');
                     var lienum = dom.parent().attr('lienum');
                     var width = dom.parent().width();
-                    $.post('/action/table.html',{
-                        function:'updateWidth',
-                        fileId:fileId,
-                        tableNum:tableId,
-                        lienum:lienum,
-                        width:(width/10).toFixed(1)
-                    },function(data){
-                        console.log(data);
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            function:'updateWidth',
+                            fileId:fileId,
+                            tableNum:tableId,
+                            lienum:lienum,
+                            width:(width/10).toFixed(1)
+                        },
+                        success: function (data) {
+                            console.log(data);
+                        }
                     });
                 }
             });
@@ -284,15 +364,21 @@
                         $('.addTable').click(function(){
                             var name = window.prompt('请输入工作表名称');
                             if(name!=='' && name!=null){
-                                $.post('/action/table.html',{
-                                    function:'tableAdd',
-                                    fileId:fileId,
-                                    title:name,
-                                },function(data){
-                                    if(data==-2){
-                                        alert('工作表名称已存在');
-                                    }else if(data==1){
-                                        location.href = location.href;
+                                ajax({
+                                    url: 'http://www.tablehub.cn/action/table.html',
+                                    type: 'POST',
+                                    'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                                    data: {
+                                        function:'tableAdd',
+                                        fileId:fileId,
+                                        title:name,
+                                    },
+                                    success: function (data) {
+                                        if(data==-2){
+                                            alert('工作表名称已存在');
+                                        }else if(data==1){
+                                            location.href = location.href;
+                                        }
                                     }
                                 });
                             }
@@ -363,20 +449,26 @@
                     $(inputDom).val('');
                 }
                 if($(this).attr('oldValue')!=$(this).val()){
-                    $.post('http://www.tablehub.cn/action/table.html',{
-                        function:'updateTdValue',
-                        fileId:fileId,
-                        tableNum:$(this).attr('tableid'),
-                        pos:$(this).attr('pos'),
-                        value:$(this).val()
-                    },function(data){
-                        if(data!=='-1'){
-                            if(getCellTemp($(inputDom).attr('pos'))[0]>alldoms['appMain'+$(inputDom).attr('tableid')].hang){
-                                alldoms['appMain'+$(inputDom).attr('tableid')].addHang();
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            function:'updateTdValue',
+                            fileId:fileId,
+                            tableNum:$(this).attr('tableid'),
+                            pos:$(this).attr('pos'),
+                            value:$(this).val()
+                        },
+                        success: function (data) {
+                            if(data!=='-1'){
+                                if(getCellTemp($(inputDom).attr('pos'))[0]>alldoms['appMain'+$(inputDom).attr('tableid')].hang){
+                                    alldoms['appMain'+$(inputDom).attr('tableid')].addHang();
+                                }
+                                afterUpdate();
+                            }else{
+                                alert('样式服务器同步失败');
                             }
-                            afterUpdate();
-                        }else{
-                            alert('样式服务器同步失败');
                         }
                     });
                 }else{

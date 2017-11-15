@@ -373,6 +373,8 @@
         $('#dataFloat').attr('xfIndex',thisTdData.xfIndex);
         $('#dataFloat').removeClass('floatSingleValue');
     }
+    import writeTd from '@/tools/writeTd.js';
+    import setTdSelectState from '@/tools/setTdSelectState.js';
     export default {
         mounted(){
             $('#dataFloat').dragging({
