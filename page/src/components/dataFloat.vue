@@ -128,13 +128,14 @@
         </div>
         <div class="action">
             <input type="button" class="btn save" value="确定"/>
-            <input type="button" class="btn copyTo" value="复制到"/>
+            <input type="button" class="btn copyTo" value="复制到" @click="copyTo"/>
         </div>
     </div>
 </template>
 <script>
     import ajax from '@/tools/ajax.js'
-
+    import writeTd from '@/tools/writeTd.js';
+    import setTdSelectState from '@/tools/setTdSelectState.js';
     function _initFloatType(evalObj,insertDom,select){
         if(evalObj instanceof __runObj__){
             var type = evalObj.funcName;
@@ -373,9 +374,26 @@
         $('#dataFloat').attr('xfIndex',thisTdData.xfIndex);
         $('#dataFloat').removeClass('floatSingleValue');
     }
-    import writeTd from '@/tools/writeTd.js';
-    import setTdSelectState from '@/tools/setTdSelectState.js';
     export default {
+        methods:{
+            copyTo(){
+                var cellId = prompt('请输入表格位置');
+                if(cellId!==null){
+                    var newPos = getCellTemp(cellId);
+                    $('body .edit td').removeClass('editTd');
+                    $('body .edit td').removeClass('editTdtop');
+                    $('body .edit td').removeClass('editTdbottom');
+                    $('body .edit td').removeClass('editTdleft');
+                    $('body .edit td').removeClass('editTdright');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTd');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdtop');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdbottom');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdleft');
+                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdright');
+                    $('#dataFloat>.head').html(cellId);
+                }
+            }
+        },
         mounted(){
             $('#dataFloat').dragging({
                 move: 'both',hander: '.head'
@@ -428,23 +446,6 @@
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');
                 _initFloatType(evalObj,dom,select);
                 updateTextareaText();
-            });
-            $('#dataFloat .action .copyTo').click(function(){
-                var cellId = prompt('请输入表格位置');
-                if(cellId!==null){
-                    var newPos = getCellTemp(cellId);
-                    $('body .edit td').removeClass('editTd');
-                    $('body .edit td').removeClass('editTdtop');
-                    $('body .edit td').removeClass('editTdbottom');
-                    $('body .edit td').removeClass('editTdleft');
-                    $('body .edit td').removeClass('editTdright');
-                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTd');
-                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdtop');
-                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdbottom');
-                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdleft');
-                    dom('appMain').td(newPos[0],newPos[1]).dom.addClass('editTdright');
-                    $('#dataFloat>.head').html(cellId);
-                }
             });
             $('#dataFloat .action .save').click(function(){
                 var contentDivs = $(this).parents('#dataFloat').find('>.content');
