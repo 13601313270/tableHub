@@ -8,13 +8,65 @@ export default function(config) {
         success: function() {},
         error: function() {}
     },config);
-    function jsonToQuery(json) {
-        var result = [];
-        for(var i in json){
-            result.push(i + '=' + json[i]);
+    function buildParams( prefix, obj, add ) {
+        var name;
+        if ( Array.isArray( obj ) ) {
+            jQuery.each( obj, function( i, v ) {
+                var rbracket = /\[\]$/;
+                if (rbracket.test( prefix ) ) {
+
+                    // Treat each array item as a scalar.
+                    add( prefix, v );
+
+                } else {
+
+                    // Item is non-scalar (array or object), encode its numeric index.
+                    buildParams(
+                        prefix + "[" + ( typeof v === "object" && v != null ? i : "" ) + "]",
+                        v,
+                        add
+                    );
+                }
+            } );
+
+        } else if ( jQuery.type( obj ) === "object" ) {
+
+            // Serialize object item.
+            for ( name in obj ) {
+                buildParams( prefix + "[" + name + "]", obj[ name ], add );
+            }
+
+        } else {
+
+            // Serialize scalar item.
+            add( prefix, obj );
         }
-        return result.join('&');
-    };
+    }
+    function jsonToQuery(obj){
+        var prefix,
+            s = [],
+            add = function( key, value ) {
+                s[ s.length ] = encodeURIComponent( key ) + "=" +
+                    encodeURIComponent( value == null ? "" : value );
+            };
+
+        // If an array was passed in, assume that it is an array of form elements.
+        if ( Array.isArray( obj ) || ( obj.jquery && !jQuery.isPlainObject( obj ) ) ) {
+
+            // Serialize the form elements
+            jQuery.each( obj, function() {
+                add( this.name, this.value );
+            } );
+
+        } else {
+            for ( prefix in obj ) {
+                buildParams( prefix, obj[ prefix ], add );
+            }
+        }
+
+        // Return the resulting serialization
+        return s.join( "&" );
+    }
     if(config.dataType == 'jsonp'){
         var callbackName = config.callbackname || (
             'video_ajax_callback_' + utils.getRandom());
@@ -36,6 +88,8 @@ export default function(config) {
         head.insertBefore(script, head.firstChild);
     } else {
         var xhr = new XMLHttpRequest();
+        console.log(config.data);
+        console.log( jsonToQuery(config.data) );
         if (config.type !== 'POST') {
             config.url += ((config.url.indexOf('?') == -1 ? '?' :
                 '&') + jsonToQuery(config.data));
