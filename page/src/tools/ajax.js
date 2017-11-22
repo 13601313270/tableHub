@@ -88,8 +88,6 @@ export default function(config) {
         head.insertBefore(script, head.firstChild);
     } else {
         var xhr = new XMLHttpRequest();
-        console.log(config.data);
-        console.log( jsonToQuery(config.data) );
         if (config.type !== 'POST') {
             config.url += ((config.url.indexOf('?') == -1 ? '?' :
                 '&') + jsonToQuery(config.data));

@@ -352,7 +352,7 @@
                     dom('appMain'+tableid).td(getCellTemp2(i,j)).dom.addClass('editTd');
                 }
             }
-            selectTd(top,right,bottom,left);
+            selectTd.call(window,top,right,bottom,left);
         }
     });
     $('body').on('mouseup','.edit #myTabContent td',function(e){

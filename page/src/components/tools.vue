@@ -8,7 +8,7 @@
                 <li :class="{active:tabState==2}"><a @click="tabState=2" data-toggle="tab">图表</a></li>
                 <li :class="{active:tabState==3}"><a @click="tabState=3" data-toggle="tab">分析</a></li>
             </ul>
-            <!--<div class="user-info">用户</div>-->
+            <!--<user-state class="user-state"></user-state>-->
         </div>
         <div v-if="isOpenEdit_" class="toolsContent">
             <div class="tab-content">
@@ -16,19 +16,22 @@
                      style="width: 812px;">
                     <div class="btn-group">
                         <button class="btn btn-default" data-name="bold" @click="rewriteStyle">&#xe63f;</button>
-                        <button class="btn btn-default" data-name="italic">&#xe60d;</button>
-                        <button class="btn btn-default" data-name="underline">&#xe614;</button>
+                        <button class="btn btn-default" data-name="italic" @click="rewriteStyle">&#xe60d;</button>
+                        <button class="btn btn-default" data-name="underline" @click="rewriteStyle">&#xe614;</button>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="horizontal_left"><span
+                        <button type="button" class="btn btn-default" data-name="horizontal_left"
+                                @click.self="rewriteStyle"><span
                                 class="glyphicon glyphicon-align-left" aria-hidden="true"></span></button>
-                        <button type="button" class="btn btn-default" data-name="horizontal_center"><span
+                        <button type="button" class="btn btn-default" data-name="horizontal_center"
+                                @click.self="rewriteStyle"><span
                                 class="glyphicon glyphicon-align-center" aria-hidden="true"></span></button>
-                        <button type="button" class="btn btn-default" data-name="horizontal_right"><span
+                        <button type="button" class="btn btn-default" data-name="horizontal_right"
+                                @click.self="rewriteStyle"><span
                                 class="glyphicon glyphicon-align-right" aria-hidden="true"></span></button>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="tdMerge">&#xe60f;</button>
+                        <button type="button" class="btn btn-default" data-name="tdMerge" @click="rewriteStyle">&#xe60f;</button>
                     </div>
                     <div class="btn-group">
                         <div class="input-group" style="width: 110px;">
@@ -46,7 +49,7 @@
                     <div class="btn-group" style="display: none">
                         <div class="input-group disabled" style="width: 150px;">
                             <div class="input-group-addon">输出格式</div>
-                            <select class="form-control disabled"
+                            <select title="格式" class="form-control disabled"
                                     style="appearance: none;-moz-appearance: none;-webkit-appearance: none;background:url(http://ourjs.github.io/static/2015/arrow.png) no-repeat scroll right center rgb(255, 255, 255);">
                                 <option>无</option>
                                 <option>美元</option>
@@ -94,7 +97,8 @@
 
 <script>
     import selectTd from '@/tools/selectTd.js';
-    import ajax from '@/tools/ajax.js'
+    import ajax from '@/tools/ajax.js';
+    import userState from './userState.vue';
 
     export default {
         props: ['title', 'isMyTable', 'isOpenEdit'],
@@ -103,8 +107,7 @@
                 this.isOpenEdit_ = !this.isOpenEdit_;
                 this.$emit('stateChange', this.isOpenEdit_);
 
-
-                var lieAddCount = 2;//增加
+                let lieAddCount = 2;//增加
                 if ($('.editChange').parent().is('.closeEdit')) {
                     $('.editChange').parent().attr('class', 'container openEdit');
                     if (lieAddCount > 0) {
@@ -196,7 +199,7 @@
                 initFloatDom.call($('.editTd')[0]);
             },
             rewriteStyle(event) {
-                var thisDom = event.srcElement;
+                let thisDom = event.srcElement;
                 console.log(thisDom);
                 if ($(thisDom).is('.disabled')) {
                     return;
@@ -207,23 +210,23 @@
                 if ($(thisDom).is('[data-name=fx]')) {
                     return;
                 }
-                var actionType = $(thisDom).data('name');
+                let actionType = $(thisDom).data('name');
                 console.log(actionType);
-                var isActive = $(thisDom).is('.active');
-                var value = $(thisDom).val();
+                let isActive = $(thisDom).is('.active');
+                let value = $(thisDom).val();
 //        console.log(this);
-                var this_ = $('.editTd');
-                if (this_.length == 0) {
+                let this_ = $('.editTd');
+                if (this_.length === 0) {
                     return;
                 }
-                var cell_xf = $(this_).attr('cell_xf');
+                let cell_xf = $(this_).attr('cell_xf');
                 console.log(cell_xf);
-                var pos = getCellTemp2($(this_).attr('hang'), $(this_).attr('lie'));
+                let pos = getCellTemp2($(this_).attr('hang'), $(this_).attr('lie'));
 
                 function run() {
-                    var isExist = false;//是否已经存在一个这样样式的id
-                    var isExistId = -1;
-                    for (var i = 0; i < getCellXfCollection.length; i++) {
+                    let isExist = false;//是否已经存在一个这样样式的id
+                    let isExistId = -1;
+                    for (let i = 0; i < getCellXfCollection.length; i++) {
                         if (JSON.stringify(getCellXfCollection[i]) == JSON.stringify(cell_xf)) {
                             isExistId = i;
                             isExist = true;
@@ -237,7 +240,7 @@
                                 type: 'POST',
                                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                                 data: {
-                                    function: 'updateTdXf',
+                                    'function': 'updateTdXf',
                                     fileId: fileId,
                                     tableNum: $('#myTabContent .active').data('tableid'),
                                     pos: pos,
@@ -259,14 +262,14 @@
                             type: 'POST',
                             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                             data: {
-                                function: 'updateTdXf',
+                                'function': 'updateTdXf',
                                 fileId: fileId,
                                 tableNum: $('#myTabContent .active').data('tableid'),
                                 pos: pos,
                                 value: cell_xf,
                             },
                             success: function(data) {
-                                var cssstr = createCss(data, cell_xf);
+                                let cssstr = createCss(data, cell_xf);
                                 $('style[td_css_list]').append(cssstr);
                                 $(this_).attr('cell_xf', data);
                                 getCellXfCollection[data] = cell_xf;
@@ -279,8 +282,11 @@
                     cell_xf = JSON.parse(JSON.stringify(getCellXfCollection[cell_xf]));//clone成一个新对象
                 } else {
                     cell_xf = {
-                        font: {},
+                        font: {}
                     };
+                }
+                if (cell_xf.alignment === undefined) {
+                    cell_xf.alignment = {};
                 }
                 if (['bold', 'italic'].indexOf(actionType) > -1) {
                     if (isActive) {
@@ -290,7 +296,7 @@
                     }
                     cell_xf.font[actionType] = (!isActive) ? 1 : 0;
                 }
-                else if (actionType == 'underline') {
+                else if (actionType === 'underline') {
                     if (isActive) {
                         $('.toolsContent [data-name=' + actionType + ']').removeClass('active');
                         cell_xf.font[actionType] = 'none';
@@ -312,62 +318,79 @@
                         cell_xf.alignment.horizontal = 'right';
                     }
                 }
-                else if (actionType == 'size') {
+                else if (actionType === 'size') {
                     cell_xf.font.size = parseInt(value);
                 }
-                else if (actionType == 'tdMerge') {
+                else if (actionType === 'tdMerge') {
                     if (isActive) {
                         $('.toolsContent [data-name=' + actionType + ']').removeClass('active');
-                        var lie = $(this_).attr('lie');
-                        var colspan = $(this_).attr('colspan');
+                        let lie = $(this_).attr('lie');
+                        let colspan = $(this_).attr('colspan');
 
-                        var hang = $(this_).attr('hang');
-                        var rowspan = $(this_).attr('rowspan');
-                        $.post('/action/table.html', {
-                            function: 'mergeCancel',
-                            fileId: fileId,
-                            tableNum: $('#myTabContent .active').data('tableid'),
-                            pos: pos
-                        }, function(data) {
-                            if (data !== '-1') {
-                                $(this_).attr('colspan', '');
-                                $(this_).attr('rowspan', '');
-                                var tableDom = alldoms['appMain' + $('body #myTabContent .active').data('tableid')].table;
-                                for (var i = hang; i < hang + rowspan; i++) {
-                                    var hangTr = tableDom.find('tr[hang=' + i + ']');
-                                    for (var j = lie; j < lie + colspan; j++) {
-                                        hangTr.find('[lie=' + j + ']').show();
+                        let hang = $(this_).attr('hang');
+                        let rowspan = $(this_).attr('rowspan');
+                        ajax({
+                            url: 'http://www.tablehub.cn/action/table.html',
+                            type: 'POST',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            data: {
+                                'function': 'mergeCancel',
+                                fileId: fileId,
+                                tableNum: $('#myTabContent .active').data('tableid'),
+                                pos: pos
+                            },
+                            success: function(data) {
+                                if (data !== '-1') {
+                                    $(this_).attr('colspan', '');
+                                    $(this_).attr('rowspan', '');
+                                    $(this_).removeClass('mergeTd');
+                                    let tableDom = alldoms['appMain' + $('body #myTabContent .active').data('tableid')].table;
+                                    for (let i = hang; i < hang + rowspan; i++) {
+                                        let hangTr = tableDom.find('tr[hang=' + i + ']');
+                                        for (let j = lie; j < lie + colspan; j++) {
+                                            hangTr.find('[lie=' + j + ']').show();
+                                        }
                                     }
+                                } else {
+                                    alert('样式服务器同步失败');
                                 }
-                            } else {
-                                alert('样式服务器同步失败');
                             }
                         });
                     } else {
-                        var top = $('.editTdtop').attr('hang');
-                        var bottom = $('.editTdbottom').attr('hang');
-                        var left = $('.editTdleft').attr('lie');
-                        var right = $('.editTdright').attr('lie');
-                        $.post('/action/table.html', {
-                            function: 'mergeAdd',
-                            fileId: fileId,
-                            tableNum: $('#myTabContent .active').data('tableid'),
-                            top: top,
-                            bottom: bottom,
-                            left: left,
-                            right: right,
-                        }, function(data) {
-                            if (data !== '-1') {
-                                $(this_).css('display', 'none');
-                                $(this_).eq(0).show();
-                                $(this_).eq(0).attr('rowspan', bottom - top + 1);
-                                $(this_).eq(0).attr('colspan', right - left + 1);
-                                var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
-                                console.log(mergeStr);
-                                tdData[$('#myTabContent .active').data('tableid')].mergeCells[mergeStr] = mergeStr;
-                                $('.toolsContent [data-name=' + actionType + ']').addClass('active');
-                            } else {
-                                alert('样式服务器同步失败');
+                        let top = $('.editTdtop').attr('hang');
+                        let bottom = $('.editTdbottom').attr('hang');
+                        let left = $('.editTdleft').attr('lie');
+                        let right = $('.editTdright').attr('lie');
+                        ajax({
+                            url: 'http://www.tablehub.cn/action/table.html',
+                            type: 'POST',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            data: {
+                                'function': 'mergeAdd',
+                                fileId: fileId,
+                                tableNum: $('#myTabContent .active').data('tableid'),
+                                top: top,
+                                bottom: bottom,
+                                left: left,
+                                right: right,
+                            },
+                            success: function(data) {
+                                if (data !== '-1') {
+                                    //全部都隐藏
+                                    $(this_).css('display', 'none')
+                                        .removeClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
+                                    //只有第一个显示
+                                    $(this_).eq(0).show()
+                                        .addClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
+                                    $(this_).eq(0).attr('rowspan', bottom - top + 1);
+                                    $(this_).eq(0).attr('colspan', right - left + 1);
+                                    var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
+                                    console.log(mergeStr);
+                                    tdData[$('#myTabContent .active').data('tableid')].mergeCells[mergeStr] = mergeStr;
+                                    $('.toolsContent [data-name=' + actionType + ']').addClass('active');
+                                } else {
+                                    alert('样式服务器同步失败');
+                                }
                             }
                         });
                     }
@@ -377,9 +400,12 @@
                 console.log(cell_xf);
             },
         },
+        components: {
+            'user-state': userState
+        },
         mounted() {
-            $('#tools .toolsContent [data-name]button').click(this.rewriteStyle);
-            $('#tools .toolsContent [data-name=size]').change(this.rewriteStyle);
+//            $('#tools .toolsContent [data-name]button').click(this.rewriteStyle);
+//            $('#tools .toolsContent [data-name=size]').change(this.rewriteStyle);
             $("[data-name=fill],[data-name=color]").spectrum({
                 showPalette: true,
                 hide: function(color) {
@@ -501,8 +527,8 @@
     #tools {
         .openEdit {
             border-bottom: 1px solid #dddddd;
-            padding-bottom: 0 !important;
-            margin-bottom: 10px !important;
+            padding-bottom: 5px !important;
+            margin-bottom: 5px !important;
             .editChange {
                 background: url(https://n4-q.mafengwo.net/s10/M00/18/A2/wKgBZ1jc3R6AYhi_AAB-2Jyz1WU027.png);
             }
@@ -554,6 +580,10 @@
                 float: left;
                 margin-left: 20px;
                 border: none;
+            }
+            .user-state {
+                height: 26px;
+                float: right;
             }
         }
 
