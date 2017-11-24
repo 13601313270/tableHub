@@ -340,20 +340,22 @@
     function rewriteExcel(styleList,dataList){
         window.getCellXfCollection = styleList;
         //单元格样式
-        var nod = document.createElement("style");
-        nod.type="text/css";
-        $(nod).attr('td_css_list',1);
-        var str = "";
-        for(var i=0;i<getCellXfCollection.length;i++){
-            var item = getCellXfCollection[i];
-            str+=createCss(i,item);
+        if(getCellXfCollection!==null && getCellXfCollection.length>0){
+            var nod = document.createElement("style");
+            nod.type="text/css";
+            $(nod).attr('td_css_list',1);
+            var str = "";
+            for(var i=0;i<getCellXfCollection.length;i++){
+                var item = getCellXfCollection[i];
+                str+=createCss(i,item);
+            }
+            if(nod.styleSheet){ //ie下
+                nod.styleSheet.cssText = str;
+            } else {
+                nod.innerHTML = str;
+            }
+            document.getElementsByTagName("head")[0].appendChild(nod);
         }
-        if(nod.styleSheet){ //ie下
-            nod.styleSheet.cssText = str;
-        } else {
-            nod.innerHTML = str;
-        }
-        document.getElementsByTagName("head")[0].appendChild(nod);
         //单元格数据
         var allFileData =  dataList;
         function setTdWidth(tableNum,thNum,width){

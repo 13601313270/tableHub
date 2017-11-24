@@ -99,7 +99,44 @@
     import selectTd from '@/tools/selectTd.js';
     import ajax from '@/tools/ajax.js';
     import userState from './userState.vue';
-
+    function createCss(i,item){
+        var strItem = "[cell_xf=\""+i+"\"]{\n";
+        if(item.font){
+            if(item.font.color){
+                strItem+='color:#'+item.font.color.slice(2)+';\n';
+            }
+            if(item.font.bold===true||item.font.bold===1){
+                strItem+='font-weight:bold;\n';
+            }
+            if(item.font.size){
+                strItem+='font-size:'+parseInt(item.font.size*1.2)+'px;\n';
+            }
+            if(item.font.underline==='single'){
+                strItem+='text-decoration:underline;\n';
+            }
+            if(item.font.italic===true||item.font.italic===1){
+                strItem+='font-style: italic;\n';
+            }
+        }
+        if(item.fill && item.fill.fillType!=='none'){
+            if(item.fill.startColor){
+                strItem+='background-color:#'+item.fill.startColor.slice(2)+';\n';
+            }
+        }
+        if(item.alignment){
+            if(item.alignment.horizontal=='left'){
+                strItem+='text-align: left!important;\n';
+            }else if(item.alignment.horizontal=='right'){
+                strItem+='text-align: right!important;\n';
+            }else if(item.alignment.horizontal=='center'){
+                strItem+='text-align: center!important;\n';
+            }else if(item.alignment.horizontal=='general'){
+//                    strItem+='text-align: center;\n';
+            }
+        }
+        strItem += "}\n";
+        return strItem;
+        }
     export default {
         props: ['title', 'isMyTable', 'isOpenEdit'],
         methods: {

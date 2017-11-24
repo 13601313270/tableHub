@@ -456,7 +456,7 @@ function td(tableId,positionStr){
     };
     this.formatCode = function(value){
         var xfIndex = this.xfIndex;
-        if(xfIndex==undefined){
+        if(xfIndex==undefined || getCellXfCollection[xfIndex]==undefined){
             return ['',value,''];
         }
         if(getCellXfCollection[xfIndex].numberFormat==undefined){
