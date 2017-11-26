@@ -269,7 +269,7 @@
                     let isExist = false;//是否已经存在一个这样样式的id
                     let isExistId = -1;
                     for (let i = 0; i < getCellXfCollection.length; i++) {
-                        if (JSON.stringify(getCellXfCollection[i]) == JSON.stringify(cell_xf)) {
+                        if (JSON.stringify(getCellXfCollection[i]) === JSON.stringify(cell_xf)) {
                             isExistId = i;
                             isExist = true;
                             break;

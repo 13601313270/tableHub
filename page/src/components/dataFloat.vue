@@ -501,7 +501,7 @@
                 var xfIndex = $(this).parents('#dataFloat').attr('xfindex');
                 for (let i = 0; i < contentDivs.length; i++) {
                     let input = $(contentDivs[i]).find('>div>[name]');
-                    if (input.attr('name') == 'xfIndex') {
+                    if (input.attr('name') === 'xfIndex') {
                         xfIndex = input.val();
                     }
                 }
@@ -570,7 +570,7 @@
                             value: $('#dataFloat .contentText textarea').val()
                         },
                         success: function(data) {
-                            if (data === '1') {
+                            if (data === 1) {
                                 let tableNum = $('#myTabContent .active').data('tableid');
                                 let pos = $('#dataFloat .head').html();
                                 tdData[tableNum].tableData[pos] = {
@@ -664,10 +664,10 @@
                                 value: $(this).val()
                             },
                             success: function(data) {
-                                if (data == '1') {
+                                if (data === 1) {
                                     turnNewTD();
                                 } else {
-                                    alert('样式服务器同步失败3');
+                                    alert('样式服务器同步失败');
                                 }
                             }
                         });
