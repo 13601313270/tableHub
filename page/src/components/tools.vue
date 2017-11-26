@@ -3,7 +3,7 @@
         <div class="container" :class="{openEdit:isOpenEdit_,closeEdit:!isOpenEdit_}">
             <div class="editChange" v-if="isMyTable" @click="stateChange"></div>
             <div class="title">{{title}}</div>
-            <ul class="nav nav-tabs">
+            <ul class="nav nav-tabs" v-if="isOpenEdit_">
                 <li :class="{active:tabState==1}"><a @click="tabState=1" data-toggle="tab">开始</a></li>
                 <li :class="{active:tabState==2}"><a @click="tabState=2" data-toggle="tab">图表</a></li>
                 <li :class="{active:tabState==3}"><a @click="tabState=3" data-toggle="tab">分析</a></li>
@@ -31,12 +31,15 @@
                                 class="glyphicon glyphicon-align-right" aria-hidden="true"></span></button>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="tdMerge" @click="rewriteStyle">&#xe60f;</button>
+                        <button type="button" class="btn btn-default" data-name="tdMerge" @click="rewriteStyle">
+                            &#xe60f;
+                        </button>
                     </div>
                     <div class="btn-group">
                         <div class="input-group" style="width: 110px;">
                             <div class="input-group-addon">&#xe715;</div>
-                            <input type="number" class="form-control" data-name="size" placeholder="字号">
+                            <input type="number" @change="rewriteStyle" class="form-control" data-name="size"
+                                   placeholder="字号">
                         </div>
                     </div>
                     <div class="btn-group">
@@ -99,44 +102,46 @@
     import selectTd from '@/tools/selectTd.js';
     import ajax from '@/tools/ajax.js';
     import userState from './userState.vue';
-    function createCss(i,item){
-        var strItem = "[cell_xf=\""+i+"\"]{\n";
-        if(item.font){
-            if(item.font.color){
-                strItem+='color:#'+item.font.color.slice(2)+';\n';
+
+    function createCss(i, item) {
+        var strItem = "[cell_xf=\"" + i + "\"]{\n";
+        if (item.font) {
+            if (item.font.color) {
+                strItem += 'color:#' + item.font.color.slice(2) + ';\n';
             }
-            if(item.font.bold===true||item.font.bold===1){
-                strItem+='font-weight:bold;\n';
+            if (item.font.bold === true || item.font.bold === 1) {
+                strItem += 'font-weight:bold;\n';
             }
-            if(item.font.size){
-                strItem+='font-size:'+parseInt(item.font.size*1.2)+'px;\n';
+            if (item.font.size) {
+                strItem += 'font-size:' + parseInt(item.font.size * 1.2) + 'px;\n';
             }
-            if(item.font.underline==='single'){
-                strItem+='text-decoration:underline;\n';
+            if (item.font.underline === 'single') {
+                strItem += 'text-decoration:underline;\n';
             }
-            if(item.font.italic===true||item.font.italic===1){
-                strItem+='font-style: italic;\n';
-            }
-        }
-        if(item.fill && item.fill.fillType!=='none'){
-            if(item.fill.startColor){
-                strItem+='background-color:#'+item.fill.startColor.slice(2)+';\n';
+            if (item.font.italic === true || item.font.italic === 1) {
+                strItem += 'font-style: italic;\n';
             }
         }
-        if(item.alignment){
-            if(item.alignment.horizontal=='left'){
-                strItem+='text-align: left!important;\n';
-            }else if(item.alignment.horizontal=='right'){
-                strItem+='text-align: right!important;\n';
-            }else if(item.alignment.horizontal=='center'){
-                strItem+='text-align: center!important;\n';
-            }else if(item.alignment.horizontal=='general'){
+        if (item.fill && item.fill.fillType !== 'none') {
+            if (item.fill.startColor) {
+                strItem += 'background-color:#' + item.fill.startColor.slice(2) + ';\n';
+            }
+        }
+        if (item.alignment) {
+            if (item.alignment.horizontal == 'left') {
+                strItem += 'text-align: left!important;\n';
+            } else if (item.alignment.horizontal == 'right') {
+                strItem += 'text-align: right!important;\n';
+            } else if (item.alignment.horizontal == 'center') {
+                strItem += 'text-align: center!important;\n';
+            } else if (item.alignment.horizontal == 'general') {
 //                    strItem+='text-align: center;\n';
             }
         }
         strItem += "}\n";
         return strItem;
-        }
+    }
+
     export default {
         props: ['title', 'isMyTable', 'isOpenEdit'],
         methods: {
@@ -564,7 +569,7 @@
     #tools {
         .openEdit {
             border-bottom: 1px solid #dddddd;
-            padding-bottom: 5px !important;
+            padding-bottom: 0 !important;
             margin-bottom: 5px !important;
             .editChange {
                 background: url(https://n4-q.mafengwo.net/s10/M00/18/A2/wKgBZ1jc3R6AYhi_AAB-2Jyz1WU027.png);
@@ -613,7 +618,6 @@
             }
 
             .nav-tabs {
-                display: none;
                 float: left;
                 margin-left: 20px;
                 border: none;
