@@ -28,7 +28,120 @@
     import echarts from 'echarts'
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
-    import selectTd from '@/tools/selectTd.js';
+    function selectTd(){
+        var propsObj={
+            bold:false,
+            underline:false,
+            italic:false,
+        };
+        var alignment={
+            horizontal:'general'
+        };
+        if ($(this).attr('cell_xf') === undefined) {
+
+
+            $('.toolsContent [data-name=color]').css('color', '');
+            propsObj.bold = false;
+            propsObj.underline = false;
+            propsObj.italic = false;
+            alignment.horizontal = 'general';
+            $('.toolsContent [data-name=size]').val('');
+            $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
+            $('.toolsContent [data-name=tdMerge]').removeClass('active');
+        } else {
+            var cell_xf = getCellXfCollection[$(this).attr('cell_xf')];
+            if (cell_xf.font) {
+                if (cell_xf.font.color) {
+                    $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
+                }
+                propsObj.bold = (cell_xf.font.bold === 1);
+                if (cell_xf.font.size) {
+                    $('.toolsContent [data-name=size]').val(cell_xf.font.size);
+                }
+                if (cell_xf.font.underline === 'single') {
+                    propsObj.underline = true;
+                } else {
+                    propsObj.underline = false;
+                }
+                if (cell_xf.font.italic === 1) {
+                    propsObj.italic = true;
+                } else {
+                    propsObj.italic = false;
+                }
+            }
+            if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
+                $('.toolsContent [data-name=fill]').css('backgroundColor', '#' + cell_xf.fill.startColor.slice(2));
+            }
+            else {
+                $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
+            }
+
+            if (cell_xf.alignment) {
+                if (cell_xf.alignment.horizontal === 'left') {
+                    alignment.horizontal = 'left';
+                } else if (cell_xf.alignment.horizontal === 'center') {
+                    alignment.horizontal = 'center';
+                } else if (cell_xf.alignment.horizontal === 'right') {
+                    alignment.horizontal = 'right';
+                } else if (cell_xf.alignment.horizontal === 'general') {
+                    alignment.horizontal = 'general';
+                }
+            }
+        }
+        if(propsObj.bold===true){
+            $('.toolsContent [data-name=bold]').addClass('active');
+        }else{
+            $('.toolsContent [data-name=bold]').removeClass('active');
+        }
+        if (propsObj.underline === true) {
+            $('.toolsContent [data-name=underline]').addClass('active');
+        } else {
+            $('.toolsContent [data-name=underline]').removeClass('active');
+        }
+        if (propsObj.italic === true) {
+            $('.toolsContent [data-name=italic]').addClass('active');
+        } else {
+            $('.toolsContent [data-name=italic]').removeClass('active');
+        }
+        if (alignment.horizontal === 'left') {
+            $('.toolsContent [data-name=horizontal_left]').addClass('active');
+        }else{
+            $('.toolsContent [data-name=horizontal_left]').removeClass('active');
+        }
+        if (alignment.horizontal === 'center') {
+            $('.toolsContent [data-name=horizontal_center]').addClass('active');
+        }else{
+            $('.toolsContent [data-name=horizontal_center]').removeClass('active');
+        }
+        if (alignment.horizontal === 'right') {
+            $('.toolsContent [data-name=horizontal_right]').addClass('active');
+        }else{
+            $('.toolsContent [data-name=horizontal_right]').removeClass('active');
+        }
+        console.log(this);
+        if (this !== window && !$(this).is('.mergeTd')) {
+            //不能拆分
+            console.log(1);
+            $('.toolsContent [data-name=tdMerge]').removeClass('active');
+            $('.toolsContent [data-name=tdMerge]').addClass('disabled');
+        } else {
+            console.log(2);
+            let isHasMerge = false;
+            let activeId = $('#myTabContent .active').data('tableid');
+            for (let i in tdData[activeId].mergeCells) {
+                if (i.split(":")[0] == getCellTemp2($(this).attr('hang'), $(this).attr('lie'))) {
+                    isHasMerge = true;
+                    break;
+                }
+            }
+            if (isHasMerge) {
+                $('.toolsContent [data-name=tdMerge]').addClass('active');
+            } else {
+                $('.toolsContent [data-name=tdMerge]').removeClass('active');
+            }
+            $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
+        }
+    }
 
     echartsObj = echarts;
 
