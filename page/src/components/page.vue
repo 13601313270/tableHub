@@ -86,6 +86,52 @@
         methods: {
             isOpenEditSet(state) {
                 this.isOpenEdit = state;
+                let lieAddCount = 2;//增加
+                if (this.isOpenEdit) {
+                    if (lieAddCount > 0) {
+                        $('#myTabContent .tab-pane').each(function() {
+                            for (var i = 0; i < lieAddCount; i++) {
+                                var lieNum = getCellTemp2(0, $(this).find('.tableThead table thead tr th').length + 1).match(/([A-Z]*)(\d+)/)[1];
+                                var headTdHtml = '<th class="lieNum" lienum="' + lieNum + '" style="position: relative; overflow: hidden;">' +
+                                    lieNum +
+                                    '<div style="position: absolute; cursor: ew-resize;"></div>' +
+                                    '</th>';
+                                var bodyTheadHtml = '<th class="lieNum" lienum="' + lieNum + '"></th>';
+                                $(this).find('.tableThead table thead tr').append($(headTdHtml));
+                                $(this).find('.tableBody table thead tr').append($(bodyTheadHtml));
+                            }
+                        });
+                        $('#myTabContent .tableBody table tbody tr').each(function() {
+                            for (var i = 0; i < lieAddCount; i++) {
+                                var newTd = $('<td></td>');
+                                newTd.attr('hang', $(this).index() + 1);
+                                newTd.attr('lie', $(this).find('>td').length + 1);
+                                $(this).append(newTd);
+                            }
+                        });
+                    }
+                } else {
+                    if (lieAddCount > 0) {
+                        $('#myTabContent .tableThead table').each(function() {
+                            for (var i = 0; i < lieAddCount; i++) {
+                                $(this).find('thead tr th:last').remove();
+                            }
+                        });
+                        $('#myTabContent .tableBody table thead tr').each(function() {
+                            for (var i = 0; i < lieAddCount; i++) {
+                                $(this).find('th:last').remove();
+                            }
+                        });
+                        $('#myTabContent .tableBody table tbody tr').each(function() {
+                            for (var i = 0; i < lieAddCount; i++) {
+                                $(this).find('td:last').remove();
+                            }
+                        });
+                    }
+                    $('#tablePanel').removeClass('edit');
+//        location.href = location.href.replace('&edit=true','').replace(/&scrollLeft=(\d+)/,'');
+                    $('#dataFloat').hide();
+                }
             },
             rewriteExcel(dataList) {
                 //单元格数据
