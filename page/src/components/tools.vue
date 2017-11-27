@@ -22,13 +22,13 @@
                     <div class="btn-group">
                         <button type="button" class="btn btn-default" data-name="horizontal_left"
                                 @click.self="rewriteStyle"><span
-                                class="glyphicon glyphicon-align-left" aria-hidden="true"></span></button>
+                            class="glyphicon glyphicon-align-left" aria-hidden="true"></span></button>
                         <button type="button" class="btn btn-default" data-name="horizontal_center"
                                 @click.self="rewriteStyle"><span
-                                class="glyphicon glyphicon-align-center" aria-hidden="true"></span></button>
+                            class="glyphicon glyphicon-align-center" aria-hidden="true"></span></button>
                         <button type="button" class="btn btn-default" data-name="horizontal_right"
                                 @click.self="rewriteStyle"><span
-                                class="glyphicon glyphicon-align-right" aria-hidden="true"></span></button>
+                            class="glyphicon glyphicon-align-right" aria-hidden="true"></span></button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default" data-name="tdMerge" @click="rewriteStyle">
@@ -99,7 +99,6 @@
 </template>
 
 <script>
-    import selectTd from '@/tools/selectTd.js';
     import ajax from '@/tools/ajax.js';
     import userState from './userState.vue';
 
