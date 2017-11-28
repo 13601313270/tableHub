@@ -29,22 +29,22 @@
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
     function selectTd(){
-        var propsObj={
-            bold:false,
-            underline:false,
-            italic:false,
-        };
-        var alignment={
-            horizontal:'general'
+        var cellXfInfo = {
+            font:{
+                bold:false,
+                underline:false,
+                italic:false,
+            },
+            alignment:{
+                horizontal:'general'
+            }
         };
         if ($(this).attr('cell_xf') === undefined) {
-
-
             $('.toolsContent [data-name=color]').css('color', '');
-            propsObj.bold = false;
-            propsObj.underline = false;
-            propsObj.italic = false;
-            alignment.horizontal = 'general';
+            cellXfInfo.font.bold = false;
+            cellXfInfo.font.underline = false;
+            cellXfInfo.font.italic = false;
+            cellXfInfo.alignment.horizontal = 'general';
             $('.toolsContent [data-name=size]').val('');
             $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
             $('.toolsContent [data-name=tdMerge]').removeClass('active');
@@ -54,19 +54,19 @@
                 if (cell_xf.font.color) {
                     $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
                 }
-                propsObj.bold = (cell_xf.font.bold === 1);
+                cellXfInfo.font.bold = (cell_xf.font.bold === 1);
                 if (cell_xf.font.size) {
                     $('.toolsContent [data-name=size]').val(cell_xf.font.size);
                 }
                 if (cell_xf.font.underline === 'single') {
-                    propsObj.underline = true;
+                    cellXfInfo.font.underline = true;
                 } else {
-                    propsObj.underline = false;
+                    cellXfInfo.font.underline = false;
                 }
                 if (cell_xf.font.italic === 1) {
-                    propsObj.italic = true;
+                    cellXfInfo.font.italic = true;
                 } else {
-                    propsObj.italic = false;
+                    cellXfInfo.font.italic = false;
                 }
             }
             if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
@@ -78,46 +78,48 @@
 
             if (cell_xf.alignment) {
                 if (cell_xf.alignment.horizontal === 'left') {
-                    alignment.horizontal = 'left';
+                    cellXfInfo.alignment.horizontal = 'left';
                 } else if (cell_xf.alignment.horizontal === 'center') {
-                    alignment.horizontal = 'center';
+                    cellXfInfo.alignment.horizontal = 'center';
                 } else if (cell_xf.alignment.horizontal === 'right') {
-                    alignment.horizontal = 'right';
+                    cellXfInfo.alignment.horizontal = 'right';
                 } else if (cell_xf.alignment.horizontal === 'general') {
-                    alignment.horizontal = 'general';
+                    cellXfInfo.alignment.horizontal = 'general';
                 }
             }
         }
-        if(propsObj.bold===true){
+        if(cellXfInfo.font.bold===true){
             $('.toolsContent [data-name=bold]').addClass('active');
         }else{
             $('.toolsContent [data-name=bold]').removeClass('active');
         }
-        if (propsObj.underline === true) {
+        if (cellXfInfo.font.underline === true) {
             $('.toolsContent [data-name=underline]').addClass('active');
         } else {
             $('.toolsContent [data-name=underline]').removeClass('active');
         }
-        if (propsObj.italic === true) {
+        if (cellXfInfo.font.italic === true) {
             $('.toolsContent [data-name=italic]').addClass('active');
         } else {
             $('.toolsContent [data-name=italic]').removeClass('active');
         }
-        if (alignment.horizontal === 'left') {
+        if (cellXfInfo.alignment.horizontal === 'left') {
             $('.toolsContent [data-name=horizontal_left]').addClass('active');
         }else{
             $('.toolsContent [data-name=horizontal_left]').removeClass('active');
         }
-        if (alignment.horizontal === 'center') {
+        if (cellXfInfo.alignment.horizontal === 'center') {
             $('.toolsContent [data-name=horizontal_center]').addClass('active');
         }else{
             $('.toolsContent [data-name=horizontal_center]').removeClass('active');
         }
-        if (alignment.horizontal === 'right') {
+        if (cellXfInfo.alignment.horizontal === 'right') {
             $('.toolsContent [data-name=horizontal_right]').addClass('active');
         }else{
             $('.toolsContent [data-name=horizontal_right]').removeClass('active');
         }
+    }
+    function selectTd2(){
         console.log(this);
         if (this !== window && !$(this).is('.mergeTd')) {
             //不能拆分
@@ -520,6 +522,7 @@
                 }
             }
             selectTd.call(window, top, right, bottom, left);
+            selectTd2.call(window, top, right, bottom, left);
         }
     });
     $('body').on('mouseup', '.edit #myTabContent td', function(e) {
@@ -577,6 +580,7 @@
         if (!$(this).is('.idNum')) {
             setTdSelectState.call(this);
             selectTd.call(this);
+            selectTd2.call(this);
         }
     });
 </script>
