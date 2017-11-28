@@ -28,7 +28,7 @@
     import echarts from 'echarts'
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
-    function selectTd(){
+    function selectTd(cellXf_){
         var cellXfInfo = {
             font:{
                 bold:false,
@@ -39,7 +39,7 @@
                 horizontal:'general'
             }
         };
-        if ($(this).attr('cell_xf') === undefined) {
+        if (cellXf_ === undefined) {
             $('.toolsContent [data-name=color]').css('color', '');
             cellXfInfo.font.bold = false;
             cellXfInfo.font.underline = false;
@@ -49,7 +49,7 @@
             $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
             $('.toolsContent [data-name=tdMerge]').removeClass('active');
         } else {
-            var cell_xf = getCellXfCollection[$(this).attr('cell_xf')];
+            var cell_xf = getCellXfCollection[cellXf_];
             if (cell_xf.font) {
                 if (cell_xf.font.color) {
                     $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
@@ -521,7 +521,7 @@
                     dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTd');
                 }
             }
-            selectTd.call(window, top, right, bottom, left);
+            selectTd(undefined);
             selectTd2.call(window, top, right, bottom, left);
         }
     });
@@ -579,8 +579,9 @@
     $('body').on('click', '.edit #myTabContent td', function() {
         if (!$(this).is('.idNum')) {
             setTdSelectState.call(this);
-            selectTd.call(this);
+            selectTd($(this).attr('cell_xf'));
             selectTd2.call(this);
+
         }
     });
 </script>
