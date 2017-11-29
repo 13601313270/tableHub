@@ -1,6 +1,7 @@
 <template>
     <div>
-        <div id="tablePanel" :class="{edit:isOpenEdit}">
+        <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
+             @mousedown="mousedown_temp($event)" @mouseenter="mouseenter_temp($event)">
             <tools @stateChange="isOpenEditSet" :title="title" :isMyTable="isMyTable" :isOpenEdit="isOpenEdit"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
@@ -28,15 +29,16 @@
     import echarts from 'echarts'
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
-    function selectTd(cellXf_){
+
+    function selectTd(cellXf_) {
         var cellXfInfo = {
-            font:{
-                bold:false,
-                underline:false,
-                italic:false,
+            font: {
+                bold: false,
+                underline: false,
+                italic: false,
             },
-            alignment:{
-                horizontal:'general'
+            alignment: {
+                horizontal: 'general'
             }
         };
         if (cellXf_ === undefined) {
@@ -88,9 +90,9 @@
                 }
             }
         }
-        if(cellXfInfo.font.bold===true){
+        if (cellXfInfo.font.bold === true) {
             $('.toolsContent [data-name=bold]').addClass('active');
-        }else{
+        } else {
             $('.toolsContent [data-name=bold]').removeClass('active');
         }
         if (cellXfInfo.font.underline === true) {
@@ -105,22 +107,22 @@
         }
         if (cellXfInfo.alignment.horizontal === 'left') {
             $('.toolsContent [data-name=horizontal_left]').addClass('active');
-        }else{
+        } else {
             $('.toolsContent [data-name=horizontal_left]').removeClass('active');
         }
         if (cellXfInfo.alignment.horizontal === 'center') {
             $('.toolsContent [data-name=horizontal_center]').addClass('active');
-        }else{
+        } else {
             $('.toolsContent [data-name=horizontal_center]').removeClass('active');
         }
         if (cellXfInfo.alignment.horizontal === 'right') {
             $('.toolsContent [data-name=horizontal_right]').addClass('active');
-        }else{
+        } else {
             $('.toolsContent [data-name=horizontal_right]').removeClass('active');
         }
     }
-    function selectTd2(){
-        console.log(this);
+
+    function selectTd2() {
         if (this !== window && !$(this).is('.mergeTd')) {
             //不能拆分
             console.log(1);
@@ -251,6 +253,7 @@
             rewriteExcel(dataList) {
                 //单元格数据
                 var allFileData = dataList;
+
                 function initMerge(tableNum, mergeData) {
                     for (let i in mergeData) {
                         let beginAndEnd = i.split(':');
@@ -388,6 +391,50 @@
                         }
                     });
                 }
+            },
+            selectTd_temp(event) {
+                if ($(event.target).is('.edit #myTabContent td')) {
+                    var eventDom = event.target;
+                } else {
+                    var eventDom = $(event.target).parents('.edit #myTabContent td');
+                    if (eventDom.length === 0) {
+                        return
+                    } else {
+                        eventDom = eventDom[0]
+                    }
+                }
+                if (!$(eventDom).is('.idNum')) {
+                    setTdSelectState.call(eventDom);
+                    selectTd($(eventDom).attr('cell_xf'));
+                    selectTd2.call(eventDom);
+                }
+            },
+            mousedown_temp(event) {
+                if ($(event.target).is('.edit #myTabContent td')) {
+                    var eventDom = event.target;
+                } else {
+                    var eventDom = $(event.target).parents('.edit #myTabContent td');
+                    if (eventDom.length === 0) {
+                        return
+                    } else {
+                        eventDom = eventDom[0]
+                    }
+                }
+                beginSelect = [$(eventDom).attr('hang'), $(eventDom).attr('lie')];
+                isSelectDoms = true;
+                event.preventDefault();
+            },
+            mouseenter_temp(event){
+                if ($(event.target).is('.edit #myTabContent td')) {
+                    var eventDom = event.target;
+                } else {
+                    var eventDom = $(event.target).parents('.edit #myTabContent td');
+                    if (eventDom.length === 0) {
+                        return
+                    } else {
+                        eventDom = eventDom[0]
+                    }
+                }
             }
         },
         data: function() {
@@ -485,24 +532,18 @@
             });
         }
     }
-    $('body').on('mousedown', '.edit #myTabContent td', function(e) {
-        e.preventDefault();
-    });
-    $('body').on('mousedown', '.edit #myTabContent td', function(e) {
-        beginSelect = [$(this).attr('hang'), $(this).attr('lie')];
-        isSelectDoms = true;
-    });
     $('body').on('mouseenter', '.edit #myTabContent td', function(e) {
+        var eventDom = this;
         if (isSelectDoms) {
             $('body .edit td').removeClass('editTd');
             $('body .edit td').removeClass('editTdtop');
             $('body .edit td').removeClass('editTdbottom');
             $('body .edit td').removeClass('editTdleft');
             $('body .edit td').removeClass('editTdright');
-            var top = Math.min($(this).attr('hang'), beginSelect[0]);
-            var bottom = Math.max($(this).attr('hang'), beginSelect[0]);
-            var left = Math.min($(this).attr('lie'), beginSelect[1]);
-            var right = Math.max($(this).attr('lie'), beginSelect[1]);
+            var top = Math.min($(eventDom).attr('hang'), beginSelect[0]);
+            var bottom = Math.max($(eventDom).attr('hang'), beginSelect[0]);
+            var left = Math.min($(eventDom).attr('lie'), beginSelect[1]);
+            var right = Math.max($(eventDom).attr('lie'), beginSelect[1]);
             var tableid = $('body #myTabContent .active').data('tableid');
             for (let i = top; i <= bottom; i++) {
                 for (let j = left; j <= right; j++) {
@@ -576,14 +617,7 @@
             });
         }
     });
-    $('body').on('click', '.edit #myTabContent td', function() {
-        if (!$(this).is('.idNum')) {
-            setTdSelectState.call(this);
-            selectTd($(this).attr('cell_xf'));
-            selectTd2.call(this);
 
-        }
-    });
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
