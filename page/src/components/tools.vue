@@ -4,7 +4,9 @@
             <div class="editChange" v-if="isMyTable" @click="stateChange"></div>
             <div class="title">{{title}}</div>
             <ul class="nav nav-tabs" v-if="isOpenEdit_">
-                <li :class="{active:tabState==1}"><a @click="tabState=1" data-toggle="tab">开始</a></li>
+                <li :class="{active:tabState==1}"><a @click="tabState=1"
+                                                     data-toggle="tab">开始{{this.cellXfInfo.alignment.horizontal}}</a>
+                </li>
                 <li :class="{active:tabState==2}"><a @click="tabState=2" data-toggle="tab">图表</a></li>
                 <li :class="{active:tabState==3}"><a @click="tabState=3" data-toggle="tab">分析</a></li>
             </ul>
@@ -29,18 +31,20 @@
                         <button type="button" class="btn btn-default"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'left'}"
                                 data-name="horizontal_left"
-                                @click.self="rewriteStyle"><span
-                            class="glyphicon glyphicon-align-left" aria-hidden="true"></span></button>
+                                @click.self="rewriteStyle">
+                            <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                        </button>
                         <button type="button" class="btn btn-default"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'center'}"
                                 data-name="horizontal_center"
-                                @click.self="rewriteStyle"><span
-                            class="glyphicon glyphicon-align-center"
-                            :class="{active:this.cellXfInfo.alignment.horizontal === 'right'}"
-                            aria-hidden="true"></span></button>
+                                @click.self="rewriteStyle">
+                            <span class="glyphicon glyphicon-align-center" aria-hidden="true"></span>
+                        </button>
                         <button type="button" class="btn btn-default" data-name="horizontal_right"
-                                @click.self="rewriteStyle"><span
-                            class="glyphicon glyphicon-align-right" aria-hidden="true"></span></button>
+                                :class="{active:this.cellXfInfo.alignment.horizontal === 'right'}"
+                                @click.self="rewriteStyle">
+                            <span class="glyphicon glyphicon-align-right" aria-hidden="true"></span>
+                        </button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default" data-name="tdMerge" @click="rewriteStyle">

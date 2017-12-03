@@ -2,8 +2,7 @@
     <div>
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
-            <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable"
-                   :isOpenEdit="isOpenEdit"></tools>
+            <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable" :isOpenEdit="isOpenEdit"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
                     <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum==key}">
@@ -349,6 +348,8 @@
                         } else if (cell_xf.alignment.horizontal === 'general') {
                             this.cellXfInfo.alignment.horizontal = 'general';
                         }
+                    }else{
+                        this.cellXfInfo.alignment.horizontal = 'general';
                     }
                 }
             },
@@ -447,7 +448,7 @@
                 isOpenEdit: false,
                 tableNum: 0,//表序列
                 allTableTitle: [],
-                cellXfInfo: {
+                cellXfInfo:{
                     font: {
                         bold: false,
                         underline: false,
