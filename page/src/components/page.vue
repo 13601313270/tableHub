@@ -2,7 +2,8 @@
     <div>
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
-            <tools @stateChange="isOpenEditSet" :title="title" :isMyTable="isMyTable" :isOpenEdit="isOpenEdit"></tools>
+            <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable"
+                   :isOpenEdit="isOpenEdit"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
                     <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum==key}">
@@ -301,22 +302,12 @@
                 }
             },
             selectTd(cellXf_) {
-                var cellXfInfo = {
-                    font: {
-                        bold: false,
-                        underline: false,
-                        italic: false,
-                    },
-                    alignment: {
-                        horizontal: 'general'
-                    }
-                };
                 if (cellXf_ === undefined) {
                     $('.toolsContent [data-name=color]').css('color', '');
-                    cellXfInfo.font.bold = false;
-                    cellXfInfo.font.underline = false;
-                    cellXfInfo.font.italic = false;
-                    cellXfInfo.alignment.horizontal = 'general';
+                    this.cellXfInfo.font.bold = false;
+                    this.cellXfInfo.font.underline = false;
+                    this.cellXfInfo.font.italic = false;
+                    this.cellXfInfo.alignment.horizontal = 'general';
                     $('.toolsContent [data-name=size]').val('');
                     $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
                     $('.toolsContent [data-name=tdMerge]').removeClass('active');
@@ -326,19 +317,19 @@
                         if (cell_xf.font.color) {
                             $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
                         }
-                        cellXfInfo.font.bold = (cell_xf.font.bold === 1);
+                        this.cellXfInfo.font.bold = (cell_xf.font.bold === 1);
                         if (cell_xf.font.size) {
                             $('.toolsContent [data-name=size]').val(cell_xf.font.size);
                         }
                         if (cell_xf.font.underline === 'single') {
-                            cellXfInfo.font.underline = true;
+                            this.cellXfInfo.font.underline = true;
                         } else {
-                            cellXfInfo.font.underline = false;
+                            this.cellXfInfo.font.underline = false;
                         }
                         if (cell_xf.font.italic === 1) {
-                            cellXfInfo.font.italic = true;
+                            this.cellXfInfo.font.italic = true;
                         } else {
-                            cellXfInfo.font.italic = false;
+                            this.cellXfInfo.font.italic = false;
                         }
                     }
                     if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
@@ -350,45 +341,15 @@
 
                     if (cell_xf.alignment) {
                         if (cell_xf.alignment.horizontal === 'left') {
-                            cellXfInfo.alignment.horizontal = 'left';
+                            this.cellXfInfo.alignment.horizontal = 'left';
                         } else if (cell_xf.alignment.horizontal === 'center') {
-                            cellXfInfo.alignment.horizontal = 'center';
+                            this.cellXfInfo.alignment.horizontal = 'center';
                         } else if (cell_xf.alignment.horizontal === 'right') {
-                            cellXfInfo.alignment.horizontal = 'right';
+                            this.cellXfInfo.alignment.horizontal = 'right';
                         } else if (cell_xf.alignment.horizontal === 'general') {
-                            cellXfInfo.alignment.horizontal = 'general';
+                            this.cellXfInfo.alignment.horizontal = 'general';
                         }
                     }
-                }
-                if (cellXfInfo.font.bold === true) {
-                    $('.toolsContent [data-name=bold]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=bold]').removeClass('active');
-                }
-                if (cellXfInfo.font.underline === true) {
-                    $('.toolsContent [data-name=underline]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=underline]').removeClass('active');
-                }
-                if (cellXfInfo.font.italic === true) {
-                    $('.toolsContent [data-name=italic]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=italic]').removeClass('active');
-                }
-                if (cellXfInfo.alignment.horizontal === 'left') {
-                    $('.toolsContent [data-name=horizontal_left]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=horizontal_left]').removeClass('active');
-                }
-                if (cellXfInfo.alignment.horizontal === 'center') {
-                    $('.toolsContent [data-name=horizontal_center]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=horizontal_center]').removeClass('active');
-                }
-                if (cellXfInfo.alignment.horizontal === 'right') {
-                    $('.toolsContent [data-name=horizontal_right]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=horizontal_right]').removeClass('active');
                 }
             },
             selectTd_temp(event) {
@@ -486,6 +447,16 @@
                 isOpenEdit: false,
                 tableNum: 0,//表序列
                 allTableTitle: [],
+                cellXfInfo: {
+                    font: {
+                        bold: false,
+                        underline: false,
+                        italic: false,
+                    },
+                    alignment: {
+                        horizontal: 'general'
+                    }
+                },
             }
         },
         components: {

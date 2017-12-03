@@ -15,17 +15,29 @@
                 <div class="tab-pane fade" :class="{active:tabState==1,in:tabState==1}" id="tool1"
                      style="width: 812px;">
                     <div class="btn-group">
-                        <button class="btn btn-default" data-name="bold" @click="rewriteStyle">&#xe63f;</button>
-                        <button class="btn btn-default" data-name="italic" @click="rewriteStyle">&#xe60d;</button>
-                        <button class="btn btn-default" data-name="underline" @click="rewriteStyle">&#xe614;</button>
+                        <button class="btn btn-default" :class="{active:this.cellXfInfo.font.bold}" data-name="bold"
+                                @click="rewriteStyle">&#xe63f;
+                        </button>
+                        <button class="btn btn-default" :class="{active:this.cellXfInfo.font.italic}" data-name="italic"
+                                @click="rewriteStyle">&#xe60d;
+                        </button>
+                        <button class="btn btn-default" :class="{active:this.cellXfInfo.font.underline}"
+                                data-name="underline" @click="rewriteStyle">&#xe614;
+                        </button>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="horizontal_left"
+                        <button type="button" class="btn btn-default"
+                                :class="{active:this.cellXfInfo.alignment.horizontal === 'left'}"
+                                data-name="horizontal_left"
                                 @click.self="rewriteStyle"><span
                             class="glyphicon glyphicon-align-left" aria-hidden="true"></span></button>
-                        <button type="button" class="btn btn-default" data-name="horizontal_center"
+                        <button type="button" class="btn btn-default"
+                                :class="{active:this.cellXfInfo.alignment.horizontal === 'center'}"
+                                data-name="horizontal_center"
                                 @click.self="rewriteStyle"><span
-                            class="glyphicon glyphicon-align-center" aria-hidden="true"></span></button>
+                            class="glyphicon glyphicon-align-center"
+                            :class="{active:this.cellXfInfo.alignment.horizontal === 'right'}"
+                            aria-hidden="true"></span></button>
                         <button type="button" class="btn btn-default" data-name="horizontal_right"
                                 @click.self="rewriteStyle"><span
                             class="glyphicon glyphicon-align-right" aria-hidden="true"></span></button>
@@ -142,7 +154,7 @@
     }
 
     export default {
-        props: ['title', 'isMyTable', 'isOpenEdit'],
+        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo'],
         methods: {
             stateChange() {
                 this.isOpenEdit_ = !this.isOpenEdit_;
