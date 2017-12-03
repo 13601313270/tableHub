@@ -1,7 +1,7 @@
 <template>
     <div>
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
-             @mousedown="mousedown_temp($event)" @mouseenter="mouseenter_temp($event)">
+             @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
             <tools @stateChange="isOpenEditSet" :title="title" :isMyTable="isMyTable" :isOpenEdit="isOpenEdit"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
@@ -29,98 +29,6 @@
     import echarts from 'echarts'
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
-
-    function selectTd(cellXf_) {
-        var cellXfInfo = {
-            font: {
-                bold: false,
-                underline: false,
-                italic: false,
-            },
-            alignment: {
-                horizontal: 'general'
-            }
-        };
-        if (cellXf_ === undefined) {
-            $('.toolsContent [data-name=color]').css('color', '');
-            cellXfInfo.font.bold = false;
-            cellXfInfo.font.underline = false;
-            cellXfInfo.font.italic = false;
-            cellXfInfo.alignment.horizontal = 'general';
-            $('.toolsContent [data-name=size]').val('');
-            $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
-            $('.toolsContent [data-name=tdMerge]').removeClass('active');
-        } else {
-            var cell_xf = getCellXfCollection[cellXf_];
-            if (cell_xf.font) {
-                if (cell_xf.font.color) {
-                    $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
-                }
-                cellXfInfo.font.bold = (cell_xf.font.bold === 1);
-                if (cell_xf.font.size) {
-                    $('.toolsContent [data-name=size]').val(cell_xf.font.size);
-                }
-                if (cell_xf.font.underline === 'single') {
-                    cellXfInfo.font.underline = true;
-                } else {
-                    cellXfInfo.font.underline = false;
-                }
-                if (cell_xf.font.italic === 1) {
-                    cellXfInfo.font.italic = true;
-                } else {
-                    cellXfInfo.font.italic = false;
-                }
-            }
-            if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
-                $('.toolsContent [data-name=fill]').css('backgroundColor', '#' + cell_xf.fill.startColor.slice(2));
-            }
-            else {
-                $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
-            }
-
-            if (cell_xf.alignment) {
-                if (cell_xf.alignment.horizontal === 'left') {
-                    cellXfInfo.alignment.horizontal = 'left';
-                } else if (cell_xf.alignment.horizontal === 'center') {
-                    cellXfInfo.alignment.horizontal = 'center';
-                } else if (cell_xf.alignment.horizontal === 'right') {
-                    cellXfInfo.alignment.horizontal = 'right';
-                } else if (cell_xf.alignment.horizontal === 'general') {
-                    cellXfInfo.alignment.horizontal = 'general';
-                }
-            }
-        }
-        if (cellXfInfo.font.bold === true) {
-            $('.toolsContent [data-name=bold]').addClass('active');
-        } else {
-            $('.toolsContent [data-name=bold]').removeClass('active');
-        }
-        if (cellXfInfo.font.underline === true) {
-            $('.toolsContent [data-name=underline]').addClass('active');
-        } else {
-            $('.toolsContent [data-name=underline]').removeClass('active');
-        }
-        if (cellXfInfo.font.italic === true) {
-            $('.toolsContent [data-name=italic]').addClass('active');
-        } else {
-            $('.toolsContent [data-name=italic]').removeClass('active');
-        }
-        if (cellXfInfo.alignment.horizontal === 'left') {
-            $('.toolsContent [data-name=horizontal_left]').addClass('active');
-        } else {
-            $('.toolsContent [data-name=horizontal_left]').removeClass('active');
-        }
-        if (cellXfInfo.alignment.horizontal === 'center') {
-            $('.toolsContent [data-name=horizontal_center]').addClass('active');
-        } else {
-            $('.toolsContent [data-name=horizontal_center]').removeClass('active');
-        }
-        if (cellXfInfo.alignment.horizontal === 'right') {
-            $('.toolsContent [data-name=horizontal_right]').addClass('active');
-        } else {
-            $('.toolsContent [data-name=horizontal_right]').removeClass('active');
-        }
-    }
 
     function selectTd2() {
         if (this !== window && !$(this).is('.mergeTd')) {
@@ -392,6 +300,97 @@
                     });
                 }
             },
+            selectTd(cellXf_) {
+                var cellXfInfo = {
+                    font: {
+                        bold: false,
+                        underline: false,
+                        italic: false,
+                    },
+                    alignment: {
+                        horizontal: 'general'
+                    }
+                };
+                if (cellXf_ === undefined) {
+                    $('.toolsContent [data-name=color]').css('color', '');
+                    cellXfInfo.font.bold = false;
+                    cellXfInfo.font.underline = false;
+                    cellXfInfo.font.italic = false;
+                    cellXfInfo.alignment.horizontal = 'general';
+                    $('.toolsContent [data-name=size]').val('');
+                    $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
+                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                } else {
+                    var cell_xf = getCellXfCollection[cellXf_];
+                    if (cell_xf.font) {
+                        if (cell_xf.font.color) {
+                            $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
+                        }
+                        cellXfInfo.font.bold = (cell_xf.font.bold === 1);
+                        if (cell_xf.font.size) {
+                            $('.toolsContent [data-name=size]').val(cell_xf.font.size);
+                        }
+                        if (cell_xf.font.underline === 'single') {
+                            cellXfInfo.font.underline = true;
+                        } else {
+                            cellXfInfo.font.underline = false;
+                        }
+                        if (cell_xf.font.italic === 1) {
+                            cellXfInfo.font.italic = true;
+                        } else {
+                            cellXfInfo.font.italic = false;
+                        }
+                    }
+                    if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
+                        $('.toolsContent [data-name=fill]').css('backgroundColor', '#' + cell_xf.fill.startColor.slice(2));
+                    }
+                    else {
+                        $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
+                    }
+
+                    if (cell_xf.alignment) {
+                        if (cell_xf.alignment.horizontal === 'left') {
+                            cellXfInfo.alignment.horizontal = 'left';
+                        } else if (cell_xf.alignment.horizontal === 'center') {
+                            cellXfInfo.alignment.horizontal = 'center';
+                        } else if (cell_xf.alignment.horizontal === 'right') {
+                            cellXfInfo.alignment.horizontal = 'right';
+                        } else if (cell_xf.alignment.horizontal === 'general') {
+                            cellXfInfo.alignment.horizontal = 'general';
+                        }
+                    }
+                }
+                if (cellXfInfo.font.bold === true) {
+                    $('.toolsContent [data-name=bold]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=bold]').removeClass('active');
+                }
+                if (cellXfInfo.font.underline === true) {
+                    $('.toolsContent [data-name=underline]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=underline]').removeClass('active');
+                }
+                if (cellXfInfo.font.italic === true) {
+                    $('.toolsContent [data-name=italic]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=italic]').removeClass('active');
+                }
+                if (cellXfInfo.alignment.horizontal === 'left') {
+                    $('.toolsContent [data-name=horizontal_left]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=horizontal_left]').removeClass('active');
+                }
+                if (cellXfInfo.alignment.horizontal === 'center') {
+                    $('.toolsContent [data-name=horizontal_center]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=horizontal_center]').removeClass('active');
+                }
+                if (cellXfInfo.alignment.horizontal === 'right') {
+                    $('.toolsContent [data-name=horizontal_right]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=horizontal_right]').removeClass('active');
+                }
+            },
             selectTd_temp(event) {
                 if ($(event.target).is('.edit #myTabContent td')) {
                     var eventDom = event.target;
@@ -405,7 +404,7 @@
                 }
                 if (!$(eventDom).is('.idNum')) {
                     setTdSelectState.call(eventDom);
-                    selectTd($(eventDom).attr('cell_xf'));
+                    this.selectTd($(eventDom).attr('cell_xf'));
                     selectTd2.call(eventDom);
                 }
             },
@@ -424,17 +423,60 @@
                 isSelectDoms = true;
                 event.preventDefault();
             },
-            mouseenter_temp(event){
-                if ($(event.target).is('.edit #myTabContent td')) {
-                    var eventDom = event.target;
-                } else {
-                    var eventDom = $(event.target).parents('.edit #myTabContent td');
-                    if (eventDom.length === 0) {
-                        return
+
+            lastEnterTd: '',//用于记录最后一次出发的dom
+            mouseenter_temp(event) {
+                if (isSelectDoms) {
+                    if ($(event.target).is('.edit #myTabContent td')) {
+                        var eventDom = event.target;
                     } else {
-                        eventDom = eventDom[0]
+                        var eventDom = $(event.target).parents('.edit #myTabContent td');
+                        if (eventDom.length === 0) {
+                            return
+                        } else {
+                            eventDom = eventDom[0]
+                        }
                     }
+                    // 防止重复出发
+                    if (this.lastEnterTd === eventDom) {
+                        return;
+                    }
+                    this.lastEnterTd = eventDom;
+
+
+                    $('body .edit td').removeClass('editTd');
+                    $('body .edit td').removeClass('editTdtop');
+                    $('body .edit td').removeClass('editTdbottom');
+                    $('body .edit td').removeClass('editTdleft');
+                    $('body .edit td').removeClass('editTdright');
+                    var top = Math.min($(eventDom).attr('hang'), beginSelect[0]);
+                    var bottom = Math.max($(eventDom).attr('hang'), beginSelect[0]);
+                    var left = Math.min($(eventDom).attr('lie'), beginSelect[1]);
+                    var right = Math.max($(eventDom).attr('lie'), beginSelect[1]);
+                    var tableid = $('body #myTabContent .active').data('tableid');
+                    for (let i = top; i <= bottom; i++) {
+                        for (let j = left; j <= right; j++) {
+                            if (i === top) {
+                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdtop');
+                            }
+                            if (i === bottom) {
+                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdbottom');
+                            }
+                            if (j === left) {
+                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdleft');
+                            }
+                            if (j === right) {
+                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdright');
+                            }
+                            dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTd');
+                        }
+                    }
+                    this.selectTd(undefined);
+                    selectTd2.call(window, top, right, bottom, left);
                 }
+            },
+            mouseup_temp() {
+                isSelectDoms = false;
             }
         },
         data: function() {
@@ -532,45 +574,6 @@
             });
         }
     }
-    $('body').on('mouseenter', '.edit #myTabContent td', function(e) {
-        var eventDom = this;
-        if (isSelectDoms) {
-            $('body .edit td').removeClass('editTd');
-            $('body .edit td').removeClass('editTdtop');
-            $('body .edit td').removeClass('editTdbottom');
-            $('body .edit td').removeClass('editTdleft');
-            $('body .edit td').removeClass('editTdright');
-            var top = Math.min($(eventDom).attr('hang'), beginSelect[0]);
-            var bottom = Math.max($(eventDom).attr('hang'), beginSelect[0]);
-            var left = Math.min($(eventDom).attr('lie'), beginSelect[1]);
-            var right = Math.max($(eventDom).attr('lie'), beginSelect[1]);
-            var tableid = $('body #myTabContent .active').data('tableid');
-            for (let i = top; i <= bottom; i++) {
-                for (let j = left; j <= right; j++) {
-                    if (i === top) {
-                        dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdtop');
-                    }
-                    if (i === bottom) {
-                        dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdbottom');
-                    }
-                    if (j === left) {
-                        dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdleft');
-                    }
-                    if (j === right) {
-                        dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdright');
-                    }
-                    dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTd');
-                }
-            }
-            selectTd(undefined);
-            selectTd2.call(window, top, right, bottom, left);
-        }
-    });
-    $('body').on('mouseup', '.edit #myTabContent td', function(e) {
-        isSelectDoms = false;
-    });
-
-
     $('body').click(function() {
         if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
             $('.floatSingleValueWrite .input input[pos]').each(function() {

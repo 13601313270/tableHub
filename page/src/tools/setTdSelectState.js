@@ -1,5 +1,5 @@
-export default function(){
-    $('body .edit td').removeClass('editTd');
+export default function() {
+    $("body .edit td").removeClass('editTd');
     $('body .edit td').removeClass('editTdtop');
     $('body .edit td').removeClass('editTdbottom');
     $('body .edit td').removeClass('editTdleft');
