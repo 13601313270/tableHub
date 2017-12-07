@@ -171,30 +171,36 @@
                 var position = [200, 100];
                 var size = [300, 200];
                 var saveVlalue = valueStr;
-                $.post('/action/table.html', {
-                    function: 'insertChartsValue',
-                    fileId: fileId,
-                    tableNum: tableNum,
-                    chartsIndex: chartsId,
-                    value: saveVlalue,
-                    position: position,
-                    size: size
-                }, function(data) {
-                    if (data !== '-1') {
-                        var chartsItem = getEvalObj(tableNum, saveVlalue, true);
-                        $('.allCharts:eq(0)').append(chartsItem.dom);
-                        chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
-                        chartsItem.top = parseInt(position[0]);
-                        chartsItem.left = parseInt(position[1]);
-                        chartsItem.width = parseInt(size[0]);
-                        chartsItem.height = parseInt(size[1]);
-                        chartsItem.dom.attr('index', chartsId);
-                        chartsItem.index = chartsId;
-                        allEcharts[tableNum][chartsId] = chartsItem;
-                        allEcharts[tableNum][chartsId].render();
-                        allEcharts[tableNum][chartsId].myChart.resize();
-                    } else {
-                        alert('样式服务器同步失败');
+                ajax({
+                    url: 'http://www.tablehub.cn/action/table.html',
+                    type: 'POST',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    data: {
+                        function: 'insertChartsValue',
+                        fileId: fileId,
+                        tableNum: tableNum,
+                        chartsIndex: chartsId,
+                        value: saveVlalue,
+                        position: position,
+                        size: size
+                    },
+                    success: function(data) {
+                        if (data !== '-1') {
+                            var chartsItem = getEvalObj(tableNum, saveVlalue, true);
+                            $('.allCharts:eq(0)').append(chartsItem.dom);
+                            chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                            chartsItem.top = parseInt(position[0]);
+                            chartsItem.left = parseInt(position[1]);
+                            chartsItem.width = parseInt(size[0]);
+                            chartsItem.height = parseInt(size[1]);
+                            chartsItem.dom.attr('index', chartsId);
+                            chartsItem.index = chartsId;
+                            allEcharts[tableNum][chartsId] = chartsItem;
+                            allEcharts[tableNum][chartsId].render();
+                            allEcharts[tableNum][chartsId].myChart.resize();
+                        } else {
+                            alert('样式服务器同步失败');
+                        }
                     }
                 });
             },
@@ -460,7 +466,7 @@
                                 pos: pos,
                                 value: cell_xf,
                             }, function(data) {
-                                var cssstr = createCss(data, cell_xf);
+                                let cssstr = createCss(data, cell_xf);
                                 $('style[td_css_list]').append(cssstr);
                                 $(writeTd).attr('cell_xf', data);
                                 getCellXfCollection[data] = cell_xf;
@@ -469,7 +475,7 @@
                         }
                     }
 
-                    if (cell_xf == undefined) {
+                    if (cell_xf === undefined) {
                         cell_xf = 0;
                     }
                     cell_xf = JSON.parse(JSON.stringify(getCellXfCollection[cell_xf]));//clone成一个新对象

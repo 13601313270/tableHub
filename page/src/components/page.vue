@@ -2,7 +2,8 @@
     <div>
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
-            <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable" :isOpenEdit="isOpenEdit"></tools>
+            <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable"
+                   :isOpenEdit="isOpenEdit"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
                     <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum==key}">
@@ -253,22 +254,19 @@
                         for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
                             let position = tableObj.charts[chartsId].position.split(',');
                             let size = tableObj.charts[chartsId].size.split(',');
-                            if (tableObj.charts[chartsId].value === null) {
-                                continue;
-                            } else {
+                            if (tableObj.charts[chartsId].value !== null) {
                                 let chartsItem = getEvalObj(tableNum, tableObj.charts[chartsId].value, true);
+                                $('.allCharts:eq(' + tableNum + ')').append(chartsItem.dom);
+                                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                                chartsItem.top = parseInt(position[0]);
+                                chartsItem.left = parseInt(position[1]);
+                                chartsItem.width = parseInt(size[0]);
+                                chartsItem.height = parseInt(size[1]);
+                                chartsItem.dom.attr('index', chartsId);
+                                chartsItem.index = chartsId;
+                                readyObj.bind(chartsItem);
+                                allEcharts[tableNum][chartsId] = chartsItem;
                             }
-                            $('.allCharts:eq(' + tableNum + ')').append(chartsItem.dom);
-                            chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
-                            chartsItem.top = parseInt(position[0]);
-                            chartsItem.left = parseInt(position[1]);
-                            chartsItem.width = parseInt(size[0]);
-                            chartsItem.height = parseInt(size[1]);
-                            chartsItem.dom.attr('index', chartsId);
-                            chartsItem.index = chartsId;
-                            readyObj.bind(chartsItem);
-                            allEcharts[tableNum][chartsId] = chartsItem;
-
                         }
                     }
                 }
@@ -348,7 +346,7 @@
                         } else if (cell_xf.alignment.horizontal === 'general') {
                             this.cellXfInfo.alignment.horizontal = 'general';
                         }
-                    }else{
+                    } else {
                         this.cellXfInfo.alignment.horizontal = 'general';
                     }
                 }
@@ -448,7 +446,7 @@
                 isOpenEdit: false,
                 tableNum: 0,//表序列
                 allTableTitle: [],
-                cellXfInfo:{
+                cellXfInfo: {
                     font: {
                         bold: false,
                         underline: false,
