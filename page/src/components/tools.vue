@@ -5,7 +5,7 @@
             <div class="title">{{title}}</div>
             <ul class="nav nav-tabs" v-if="isOpenEdit_">
                 <li :class="{active:tabState==1}"><a @click="tabState=1"
-                                                     data-toggle="tab">开始{{this.cellXfInfo.alignment.horizontal}}</a>
+                                                     data-toggle="tab">开始</a>
                 </li>
                 <li :class="{active:tabState==2}"><a @click="tabState=2" data-toggle="tab">图表</a></li>
                 <li :class="{active:tabState==3}"><a @click="tabState=3" data-toggle="tab">分析</a></li>
