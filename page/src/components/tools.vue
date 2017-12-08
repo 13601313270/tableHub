@@ -158,7 +158,7 @@
     }
 
     export default {
-        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo'],
+        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId'],
         methods: {
             stateChange() {
                 this.isOpenEdit_ = !this.isOpenEdit_;

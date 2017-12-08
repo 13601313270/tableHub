@@ -3,7 +3,7 @@
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
             <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable"
-                   :isOpenEdit="isOpenEdit"></tools>
+                   :isOpenEdit="isOpenEdit" :fileId="fileId"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
                     <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum==key}">
@@ -15,7 +15,7 @@
             </div>
         </div>
         <bottom></bottom>
-        <dataFloat></dataFloat>
+        <dataFloat :fileId="this.fileId"></dataFloat>
         <wrapper></wrapper>
     </div>
 </template>
@@ -285,7 +285,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         data: {
                             function: 'tableAdd',
-                            fileId: fileId,
+                            fileId: this.fileId,
                             title: name,
                         },
                         success: function(data) {
@@ -441,21 +441,26 @@
         },
         data: function() {
             return {
-                title: '标题222',
+                title: '',
                 isMyTable: true,
                 isOpenEdit: false,
                 tableNum: 0,//表序列
                 allTableTitle: [],
+                fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
                 cellXfInfo: {
                     font: {
                         bold: false,
-                        underline: false,
-                        italic: false,
-                    },
+                        underline:
+                            false,
+                        italic:
+                            false,
+                    }
+                    ,
                     alignment: {
                         horizontal: 'general'
                     }
-                },
+                }
+                ,
             }
         },
         components: {
@@ -469,7 +474,7 @@
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 data: {
                     function: 'tableInfo',
-                    fileId: 35,
+                    fileId: this.fileId,
                     temp: 1,
                 },
                 success: function(data) {
@@ -526,7 +531,7 @@
                                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                                     data: {
                                         function: 'updateWidth',
-                                        fileId: fileId,
+                                        fileId: this.fileId,
                                         tableNum: tableId,
                                         lienum: lienum,
                                         width: (width / 10).toFixed(1)
@@ -568,7 +573,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         data: {
                             function: 'updateTdValue',
-                            fileId: fileId,
+                            fileId: this.fileId,
                             tableNum: $(this).attr('tableid'),
                             pos: $(this).attr('pos'),
                             value: $(this).val()

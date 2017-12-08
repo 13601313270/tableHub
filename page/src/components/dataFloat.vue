@@ -444,6 +444,7 @@
                 }
             }
         },
+        props: ['fileId'],
         mounted() {
             $('#dataFloat').dragging({
                 move: 'both', hander: '.head'
@@ -514,7 +515,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         data: {
                             'function': 'updateChartsValue',
-                            fileId: fileId,
+                            fileId: this.fileId,
                             tableNum: $('#dataFloat .head').attr('tableId'),
                             chartsIndex: $('#dataFloat .head').attr('chartsIndex'),
                             value: $('#dataFloat .contentText textarea').val().replace(/^=/, '')
@@ -563,7 +564,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         data: {
                             'function': 'updateTdValue',
-                            fileId: fileId,
+                            fileId: this.fileId,
                             tableNum: $('#myTabContent .active').data('tableid'),
                             pos: $('#dataFloat .head').html(),
                             xfIndex: xfIndex,
@@ -658,7 +659,7 @@
                             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                             data: {
                                 function: 'updateTdValue',
-                                fileId: fileId,
+                                fileId: this.fileId,
                                 tableNum: $(this).attr('tableid'),
                                 pos: $(this).attr('pos'),
                                 value: $(this).val()
