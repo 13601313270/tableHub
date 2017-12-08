@@ -474,7 +474,7 @@
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 data: {
                     function: 'tableInfo',
-                    fileId: this.fileId,
+                    fileId: this_.fileId,
                     temp: 1,
                 },
                 success: function(data) {
@@ -531,7 +531,7 @@
                                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                                     data: {
                                         function: 'updateWidth',
-                                        fileId: this.fileId,
+                                        fileId: this_.fileId,
                                         tableNum: tableId,
                                         lienum: lienum,
                                         width: (width / 10).toFixed(1)
@@ -573,7 +573,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         data: {
                             function: 'updateTdValue',
-                            fileId: this.fileId,
+                            fileId: fileId,
                             tableNum: $(this).attr('tableid'),
                             pos: $(this).attr('pos'),
                             value: $(this).val()

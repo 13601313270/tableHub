@@ -177,7 +177,7 @@
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     data: {
                         function: 'insertChartsValue',
-                        fileId: fileId,
+                        fileId: this.fileId,
                         tableNum: tableNum,
                         chartsIndex: chartsId,
                         value: saveVlalue,
@@ -212,6 +212,7 @@
                 initFloatDom.call($('.editTd')[0]);
             },
             rewriteStyle(event) {
+                var self = this;
                 let thisDom = event.srcElement;
                 console.log(thisDom);
                 if ($(thisDom).is('.disabled')) {
@@ -254,7 +255,7 @@
                                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                                 data: {
                                     'function': 'updateTdXf',
-                                    fileId: fileId,
+                                    fileId: self.fileId,
                                     tableNum: $('#myTabContent .active').data('tableid'),
                                     pos: pos,
                                     xfIndex: isExistId,
@@ -276,7 +277,7 @@
                             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                             data: {
                                 'function': 'updateTdXf',
-                                fileId: fileId,
+                                fileId: self.fileId,
                                 tableNum: $('#myTabContent .active').data('tableid'),
                                 pos: pos,
                                 value: cell_xf,
@@ -348,7 +349,7 @@
                             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                             data: {
                                 'function': 'mergeCancel',
-                                fileId: fileId,
+                                fileId: self.fileId,
                                 tableNum: $('#myTabContent .active').data('tableid'),
                                 pos: pos
                             },
@@ -380,7 +381,7 @@
                             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                             data: {
                                 'function': 'mergeAdd',
-                                fileId: fileId,
+                                fileId: self.fileId,
                                 tableNum: $('#myTabContent .active').data('tableid'),
                                 top: top,
                                 bottom: bottom,
@@ -417,6 +418,7 @@
             'user-state': userState
         },
         mounted() {
+            var self = this;
 //            $('#tools .toolsContent [data-name]button').click(this.rewriteStyle);
 //            $('#tools .toolsContent [data-name=size]').change(this.rewriteStyle);
             $("[data-name=fill],[data-name=color]").spectrum({
@@ -444,7 +446,7 @@
                             if (parseInt($(writeTd).attr('cell_xf')) !== isExistId) {
                                 $.post('/action/table.html', {
                                     function: 'updateTdXf',
-                                    fileId: fileId,
+                                    fileId: self.fileId,
                                     tableNum: $('#myTabContent .active').data('tableid'),
                                     pos: pos,
                                     xfIndex: isExistId,
@@ -461,7 +463,7 @@
                         else {
                             $.post('/action/table.html', {
                                 function: 'updateTdXf',
-                                fileId: fileId,
+                                fileId: self.fileId,
                                 tableNum: $('#myTabContent .active').data('tableid'),
                                 pos: pos,
                                 value: cell_xf,
