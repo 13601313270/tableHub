@@ -6,11 +6,15 @@ import Page from '@/components/page'
 Vue.use(Router)
 
 export default new Router({
-  routes: [
-    {
-      path: '/',
-      name: 'Hello',
-      component: Page
-    }
-  ]
+    routes: [
+        {
+            path: '/',
+            name: 'Hello',
+            component: Page
+        }, {
+            path: '/table/35.html',
+            name: 'Hello',
+            component: Page
+        }
+    ]
 })

@@ -77,7 +77,7 @@
             margin-left: 80px;
             width: calc(100% - 80px);
             height: calc(100% - 39px);
-            overflow: scroll;
+            overflow: auto;
             margin-top: 39px;
             cursor: cell;
         }
@@ -87,7 +87,7 @@
             position: absolute;
             left: 0;
             width: 80px;
-            top: 39px;
+            top: 43px;
             height: calc(100% - 39px);
             overflow: hidden;
         }
@@ -222,8 +222,12 @@
             height: 20px;
         }
 
+        .tableBody thead [lienum] {
+            padding: 0;
+        }
+
         .tableBody .table {
-            margin-top: -16px;
+            margin-top: -1px;
         }
 
         .tableBody .table > thead > tr > th {

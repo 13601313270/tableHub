@@ -201,7 +201,12 @@ elseif($_POST['function']==='updateWidth'){
     $result = excel::create()->update('id='.intval($_POST['fileId']),array(
         'data'=>json_encode($tableInfo['data'])
     ));
-    var_dump($result);exit;
+    if($result){
+        echo '1';
+    }else{
+        echo '-1';
+    }
+    exit;
 }
 elseif($_POST['function']==='updateTdXf'){
     $insertStr = $_POST['value'];

@@ -9,9 +9,13 @@
                     <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum==key}">
                         <a :href="'#table_'+key" data-toggle="tab">{{item}}</a>
                     </li>
-                    <li v-if="isMyTable" @click="addTable" class="addTable">&#xe641;</li>
+                    <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
-                <div id="myTabContent" class="tab-content"></div>
+                <div id="myTabContent" class="tab-content">
+                    <div v-for="(item,key) in allFileData" class="tab-pane fade" :class="{in:key==0,active:key==0}"
+                         :data-tableid="key"
+                         :id="'table_' + key"></div>
+                </div>
             </div>
         </div>
         <bottom></bottom>
@@ -34,11 +38,9 @@
     function selectTd2() {
         if (this !== window && !$(this).is('.mergeTd')) {
             //不能拆分
-            console.log(1);
             $('.toolsContent [data-name=tdMerge]').removeClass('active');
             $('.toolsContent [data-name=tdMerge]').addClass('disabled');
         } else {
-            console.log(2);
             let isHasMerge = false;
             let activeId = $('#myTabContent .active').data('tableid');
             for (let i in tdData[activeId].mergeCells) {
@@ -155,13 +157,13 @@
                         });
                     }
                     $('#tablePanel').removeClass('edit');
-//        location.href = location.href.replace('&edit=true','').replace(/&scrollLeft=(\d+)/,'');
                     $('#dataFloat').hide();
                 }
             },
             rewriteExcel(dataList) {
+                var this_ = this;
                 //单元格数据
-                var allFileData = dataList;
+                this.allFileData = dataList;
 
                 function initMerge(tableNum, mergeData) {
                     for (let i in mergeData) {
@@ -187,94 +189,147 @@
                     }
                 }
 
-                td.config.params.tableId.select = {};
-                for (let tableNum = 0; tableNum < allFileData.length; tableNum++) {
-                    var tableObj = allFileData[tableNum];
-                    var tableTitle = tableObj.title;
-                    this.allTableTitle.push(tableTitle);
-                    td.config.params.tableId.select[tableNum.toString()] = tableTitle;
-                    tdData[tableNum] = {
-                        tableTitle: tableTitle,
-                        tableData: tableObj.tableValue,
-                        mergeCells: tableObj.mergeCells,
-                    };
-                    var tableItemDom = $('<div class="tab-pane fade ' + (tableNum === 0 ? 'in active' : '') + '" data-tableid="' + tableNum + '" id="table_' + tableNum + '"></div>');
-                    $('#myTabContent').append(tableItemDom);
-                    var tableDom = tableItemDom;
-                    //获取宽高
-                    var hang = 0;
-                    var lie = 0;
-                    for (let i in tdData[tableNum].tableData) {
-                        try {
-                            var tdPos = getCellTemp(i);
-                        } catch (e) {
-                            continue;
-                        }
-                        hang = Math.max(hang, tdPos[0]);
-                        lie = Math.max(lie, tdPos[1]);
-                    }
-                    lie = Math.max(lie, 6);//至少补充到6列
+                setTimeout(() => {//vue执行较为延时
+                    td.config.params.tableId.select = {};
+                    for (let tableNum = 0; tableNum < this.allFileData.length; tableNum++) {
+                        var tableObj = this.allFileData[tableNum];
+                        var tableTitle = tableObj.title;
+                        this.allTableTitle.push(tableTitle);
+                        td.config.params.tableId.select[tableNum.toString()] = tableTitle;
+                        tdData[tableNum] = {
+                            tableTitle: tableTitle,
+                            tableData: tableObj.tableValue,
+                            mergeCells: tableObj.mergeCells,
+                        };
 
-                    alldoms['appMain' + tableNum] = new tableClass(tableNum, hang, lie, tableDom);
-                    alldoms['appMain' + tableNum].render();
-                    (function() {
-                        //单元格列宽
-                        var nod = document.createElement("style");
-                        nod.type = "text/css";
-                        $(nod).attr('td_css_list', 1);
-                        var str = "";
-                        var column = tableObj.column;
-                        for (let i in column) {
-                            var thNum = getCellTemp(i + '1')[1];
-                            var strItem = "#myTabContent>.tab-pane:nth-child(" + (tableNum + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (tableNum + 1) + ") [lienum=\"" + i + "\"]{\n";
-                            strItem += 'width:' + column[i].width * 10 + 'px;\n';
-                            strItem += "}\n";
-                            str += strItem;
-                        }
-                        if (nod.styleSheet) { //ie下
-                            nod.styleSheet.cssText = str;
-                        } else {
-                            nod.innerHTML = str;
-                        }
-                        document.getElementsByTagName("head")[0].appendChild(nod);
-                    })();
+//                    var tableItemDom = $('<div class="tab-pane fade ' + (tableNum === 0 ? 'in active' : '') + '" data-tableid="' + tableNum + '" id="table_' + tableNum + '"></div>');
+//                    var tableItemDom = $('<div class="tab-pane fade" data-tableid="' + tableNum + '" id="table_' + tableNum + '"></div>');
+//                    $('#myTabContent').append(tableItemDom);
 
-                    var row = tableObj.row;
-                    for (let i in row) {
-                        var height = row[i].height * 1.5;
-                        $('.tableRow table tr').eq(i - 1).find('td').height(height);
-                        alldoms['appMain' + tableNum].table.find('tbody tr').eq(i - 1).find('td:eq(0)').height(height);
-                    }
-                    //单元格合并
-                    initMerge(tableNum, tdData[tableNum].mergeCells);
 
-                    //绘制图表
-                    allEcharts[tableNum] = [];
-                    if (tableObj.charts !== undefined) {
-                        for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
-                            let position = tableObj.charts[chartsId].position.split(',');
-                            let size = tableObj.charts[chartsId].size.split(',');
-                            if (tableObj.charts[chartsId].value !== null) {
-                                let chartsItem = getEvalObj(tableNum, tableObj.charts[chartsId].value, true);
-                                $('.allCharts:eq(' + tableNum + ')').append(chartsItem.dom);
-                                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
-                                chartsItem.top = parseInt(position[0]);
-                                chartsItem.left = parseInt(position[1]);
-                                chartsItem.width = parseInt(size[0]);
-                                chartsItem.height = parseInt(size[1]);
-                                chartsItem.dom.attr('index', chartsId);
-                                chartsItem.index = chartsId;
-                                readyObj.bind(chartsItem);
-                                allEcharts[tableNum][chartsId] = chartsItem;
+                        var tableDom = $('#myTabContent').find('#table_' + tableNum);
+                        //获取宽高
+                        var hang = 0;
+                        var lie = 0;
+                        for (let i in tdData[tableNum].tableData) {
+                            try {
+                                var tdPos = getCellTemp(i);
+                            } catch (e) {
+                                continue;
+                            }
+                            hang = Math.max(hang, tdPos[0]);
+                            lie = Math.max(lie, tdPos[1]);
+                        }
+                        lie = Math.max(lie, 6);//至少补充到6列
+
+                        alldoms['appMain' + tableNum] = new tableClass(tableNum, hang, lie, tableDom);
+                        alldoms['appMain' + tableNum].render();
+                        (function() {
+                            //单元格列宽
+                            var nod = document.createElement("style");
+                            nod.type = "text/css";
+                            $(nod).attr('td_css_list', 1);
+                            var str = "";
+                            var column = tableObj.column;
+                            for (let i in column) {
+                                var thNum = getCellTemp(i + '1')[1];
+                                var strItem = "#myTabContent>.tab-pane:nth-child(" + (tableNum + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (tableNum + 1) + ") [lienum=\"" + i + "\"]{\n";
+                                strItem += 'width:' + column[i].width * 10 + 'px;\n';
+                                strItem += "}\n";
+                                str += strItem;
+                            }
+                            if (nod.styleSheet) { //ie下
+                                nod.styleSheet.cssText = str;
+                            } else {
+                                nod.innerHTML = str;
+                            }
+                            document.getElementsByTagName("head")[0].appendChild(nod);
+                        })();
+
+                        var row = tableObj.row;
+                        for (let i in row) {
+                            var height = row[i].height * 1.5;
+                            $('.tableRow table tr').eq(i - 1).find('td').height(height);
+                            alldoms['appMain' + tableNum].table.find('tbody tr').eq(i - 1).find('td:eq(0)').height(height);
+                        }
+                        //单元格合并
+                        initMerge(tableNum, tdData[tableNum].mergeCells);
+
+                        //绘制图表
+                        allEcharts[tableNum] = [];
+                        if (tableObj.charts !== undefined) {
+                            for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
+                                let position = tableObj.charts[chartsId].position.split(',');
+                                let size = tableObj.charts[chartsId].size.split(',');
+                                if (tableObj.charts[chartsId].value !== null) {
+                                    let chartsItem = getEvalObj(tableNum, tableObj.charts[chartsId].value, true);
+                                    $('.allCharts:eq(' + tableNum + ')').append(chartsItem.dom);
+                                    chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                                    chartsItem.top = parseInt(position[0]);
+                                    chartsItem.left = parseInt(position[1]);
+                                    chartsItem.width = parseInt(size[0]);
+                                    chartsItem.height = parseInt(size[1]);
+                                    chartsItem.dom.attr('index', chartsId);
+                                    chartsItem.index = chartsId;
+                                    readyObj.bind(chartsItem);
+                                    allEcharts[tableNum][chartsId] = chartsItem;
+                                }
                             }
                         }
                     }
-                }
-                for (let tableNum = 0; tableNum < allFileData.length; tableNum++) {
-                    for (let i in tdData[tableNum].tableData) {
-                        writeTd(tableNum, i, tdData[tableNum].tableData[i].value, tdData[tableNum].tableData[i].xfIndex);
+                    for (let tableNum = 0; tableNum < this.allFileData.length; tableNum++) {
+                        for (let i in tdData[tableNum].tableData) {
+                            writeTd(tableNum, i, tdData[tableNum].tableData[i].value, tdData[tableNum].tableData[i].xfIndex);
+                        }
                     }
-                }
+                    //修改列宽度
+                    $('.table>thead>tr>.lieNum>div').each(function() {
+                        function setTdWidth(tableNum, thNum, width) {
+                            dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
+                                width: width * 10
+                            });
+                            dom('appMain' + tableNum).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
+                                width: width * 10
+                            });
+                        }
+
+                        $(this).dragging({
+                            move: 'x',
+                            xLimit: false,
+                            yLimit: false,
+                            randomPosition: false,
+                            onMousemove: function(dom, pos) {
+                                var tableId = dom.parents('[data-tableid]').data('tableid');
+                                var thNum = getCellTemp(dom.parent().attr('lienum') + '1')[1];
+                                setTdWidth(tableId, thNum, (pos.left + 5) / 10);
+//                    initMerge(tableId,tdData[1].mergeCells);
+                            },
+                            onMouseup: function(dom) {
+                                var tableId = dom.parents('[data-tableid]').data('tableid');
+                                var lienum = dom.parent().attr('lienum');
+                                var width = dom.parent().width();
+                                ajax({
+                                    url: 'http://www.tablehub.cn/action/table.html',
+                                    type: 'POST',
+                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                    data: {
+                                        function: 'updateWidth',
+                                        fileId: this_.fileId,
+                                        tableNum: tableId,
+                                        lienum: lienum,
+                                        width: (width / 10).toFixed(1)
+                                    },
+                                    success: function(data) {
+                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
+                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width+2);//2是边框的宽度
+
+
+                                    }
+                                });
+                            }
+                        });
+                    });
+                }, 300);
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
@@ -447,6 +502,7 @@
                 tableNum: 0,//表序列
                 allTableTitle: [],
                 fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
+                allFileData: [],
                 cellXfInfo: {
                     font: {
                         bold: false,
@@ -499,102 +555,58 @@
                         document.getElementsByTagName("head")[0].appendChild(nod);
                     }
                     this_.rewriteExcel(data.data);
-                    //修改列宽度
-                    $('.table>thead>tr>.lieNum>div').each(function() {
-                        function setTdWidth(tableNum, thNum, width) {
-                            dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
-                                width: width * 10
-                            });
-                            dom('appMain' + tableNum).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
-                                width: width * 10
-                            });
-                        }
-
-                        $(this).dragging({
-                            move: 'x',
-                            xLimit: false,
-                            yLimit: false,
-                            randomPosition: false,
-                            onMousemove: function(dom, pos) {
-                                var tableId = dom.parents('[data-tableid]').data('tableid');
-                                var thNum = getCellTemp(dom.parent().attr('lienum') + '1')[1];
-                                setTdWidth(tableId, thNum, (pos.left + 5) / 10);
-//                    initMerge(tableId,tdData[1].mergeCells);
-                            },
-                            onMouseup: function(dom) {
-                                var tableId = dom.parents('[data-tableid]').data('tableid');
-                                var lienum = dom.parent().attr('lienum');
-                                var width = dom.parent().width();
-                                ajax({
-                                    url: 'http://www.tablehub.cn/action/table.html',
-                                    type: 'POST',
-                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                                    data: {
-                                        function: 'updateWidth',
-                                        fileId: this_.fileId,
-                                        tableNum: tableId,
-                                        lienum: lienum,
-                                        width: (width / 10).toFixed(1)
-                                    },
-                                    success: function(data) {
-                                        console.log(data);
-                                    }
-                                });
-                            }
-                        });
-                    });
                     //触发表格完成
                     readyObj.set(1);
                 }
             });
-        }
-    }
-    $('body').click(function() {
-        if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
-            $('.floatSingleValueWrite .input input[pos]').each(function() {
-                var inputDom = this;
+            $('body').click(function() {
+                if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
+                    $('.floatSingleValueWrite .input input[pos]').each(function() {
+                        var inputDom = this;
 
-                function afterUpdate() {
-                    writeTd($(inputDom).attr('tableid'),
-                        $(inputDom).attr('pos'),
-                        $(inputDom).val(),
-                        $(inputDom).attr('cell_xf'));
-                    $(inputDom).removeAttr('tableid');
-                    $(inputDom).removeAttr('pos');
-                    $(inputDom).removeAttr('cell_xf');
-                    $(inputDom).parent().hide();
-                    $(inputDom).val('');
-                }
+                        function afterUpdate() {
+                            writeTd($(inputDom).attr('tableid'),
+                                $(inputDom).attr('pos'),
+                                $(inputDom).val(),
+                                $(inputDom).attr('cell_xf'));
+                            $(inputDom).removeAttr('tableid');
+                            $(inputDom).removeAttr('pos');
+                            $(inputDom).removeAttr('cell_xf');
+                            $(inputDom).parent().hide();
+                            $(inputDom).val('');
+                        }
 
-                if ($(this).attr('oldValue') !== $(this).val()) {
-                    ajax({
-                        url: 'http://www.tablehub.cn/action/table.html',
-                        type: 'POST',
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        data: {
-                            function: 'updateTdValue',
-                            fileId: fileId,
-                            tableNum: $(this).attr('tableid'),
-                            pos: $(this).attr('pos'),
-                            value: $(this).val()
-                        },
-                        success: function(data) {
-                            if (data !== '-1') {
-                                if (getCellTemp($(inputDom).attr('pos'))[0] > alldoms['appMain' + $(inputDom).attr('tableid')].hang) {
-                                    alldoms['appMain' + $(inputDom).attr('tableid')].addHang();
+                        if ($(this).attr('oldValue') !== $(this).val()) {
+                            ajax({
+                                url: 'http://www.tablehub.cn/action/table.html',
+                                type: 'POST',
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                data: {
+                                    function: 'updateTdValue',
+                                    fileId: this_.fileId,
+                                    tableNum: $(this).attr('tableid'),
+                                    pos: $(this).attr('pos'),
+                                    value: $(this).val()
+                                },
+                                success: function(data) {
+                                    if (data !== '-1') {
+                                        if (getCellTemp($(inputDom).attr('pos'))[0] > alldoms['appMain' + $(inputDom).attr('tableid')].hang) {
+                                            alldoms['appMain' + $(inputDom).attr('tableid')].addHang();
+                                        }
+                                        afterUpdate();
+                                    } else {
+                                        alert('样式服务器同步失败');
+                                    }
                                 }
-                                afterUpdate();
-                            } else {
-                                alert('样式服务器同步失败');
-                            }
+                            });
+                        } else {
+                            afterUpdate();
                         }
                     });
-                } else {
-                    afterUpdate();
                 }
             });
         }
-    });
+    }
 
 </script>
 
@@ -785,6 +797,10 @@
 
     .tableBody thead {
         height: 20px;
+    }
+
+    .tableBody thead [lienum] {
+        padding: 0;
     }
 
     .tableBody .table {
