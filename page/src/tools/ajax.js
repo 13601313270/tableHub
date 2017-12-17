@@ -2,6 +2,8 @@ export default function(config) {
     config = Object.assign({
         type: 'GET',
         data: {},
+        url: 'http://www.tablehub.cn/action/table.html',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         callbackname: '',
         charset: 'utf-8',
         dataType: '', // [jsonp]

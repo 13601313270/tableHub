@@ -143,13 +143,13 @@
             }
         }
         if (item.alignment) {
-            if (item.alignment.horizontal == 'left') {
+            if (item.alignment.horizontal === 'left') {
                 strItem += 'text-align: left!important;\n';
-            } else if (item.alignment.horizontal == 'right') {
+            } else if (item.alignment.horizontal === 'right') {
                 strItem += 'text-align: right!important;\n';
-            } else if (item.alignment.horizontal == 'center') {
+            } else if (item.alignment.horizontal === 'center') {
                 strItem += 'text-align: center!important;\n';
-            } else if (item.alignment.horizontal == 'general') {
+            } else if (item.alignment.horizontal === 'general') {
 //                    strItem+='text-align: center;\n';
             }
         }
@@ -609,22 +609,6 @@
 
     .nav-tabs {
         border-bottom: 1px solid #d4d4d4;
-    }
-
-    .edit #myTabContentParent .tab-pane {
-        padding-top: 1px;
-    }
-
-    #myTabContentParent {
-        position: fixed;
-        top: 45px;
-        left: 0;
-        right: 0;
-        bottom: 20px;
-    }
-
-    .edit #myTabContentParent {
-        top: 90px;
     }
 
     .tableRow td {

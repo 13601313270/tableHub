@@ -45,15 +45,6 @@
             table-layout: fixed;
         }
 
-        .table > thead > tr > th {
-            width: 100px;
-        }
-
-        .table > tbody > tr > td {
-            width: 100px;
-            overflow: hidden;
-        }
-
         .idNum {
             background-color: #c3c3c3;
             border-right: solid 3px #929292;
@@ -87,7 +78,7 @@
             position: absolute;
             left: 0;
             width: 80px;
-            top: 43px;
+            top: 38px;
             height: calc(100% - 39px);
             overflow: hidden;
         }
@@ -184,13 +175,29 @@
             height: 37px;
         }
 
+        .table > thead > tr > th {
+            width: 100px;
+        }
+
         .table > tbody > tr > td {
+            position: relative;
+            width: 100px;
+            overflow: hidden;
             min-width: 60px;
             border: 1px solid #ddd;
             white-space: nowrap;
             vertical-align: middle;
             padding: 0;
             height: 37px;
+        }
+
+        .tableRow .table > tbody > tr > td > div {
+            cursor: ns-resize!important;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 5px;
+            width: 100%;
         }
 
         .tableThead > thead th {

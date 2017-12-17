@@ -244,14 +244,15 @@
                                 nod.innerHTML = str;
                             }
                             document.getElementsByTagName("head")[0].appendChild(nod);
+
+                            //设置列高
+                            var row = tableObj.row;
+                            for (let i in row) {
+                                $('.tableRow table tr').eq(i - 1).find('td').height(row[i].height);
+                                alldoms['appMain' + tableNum].table.find('tbody tr').eq(i - 1).height(row[i].height);
+                            }
                         })();
 
-                        var row = tableObj.row;
-                        for (let i in row) {
-                            var height = row[i].height * 1.5;
-                            $('.tableRow table tr').eq(i - 1).find('td').height(height);
-                            alldoms['appMain' + tableNum].table.find('tbody tr').eq(i - 1).find('td:eq(0)').height(height);
-                        }
                         //单元格合并
                         initMerge(tableNum, tdData[tableNum].mergeCells);
 
@@ -283,7 +284,7 @@
                         }
                     }
                     //修改列宽度
-                    $('.table>thead>tr>.lieNum>div').each(function() {
+                    $('.tableThead>.table>thead>tr>.lieNum>div').each(function() {
                         function setTdWidth(tableNum, thNum, width) {
                             dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
                                 width: width * 10
@@ -302,28 +303,70 @@
                                 var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var thNum = getCellTemp(dom.parent().attr('lienum') + '1')[1];
                                 setTdWidth(tableId, thNum, (pos.left + 5) / 10);
-//                    initMerge(tableId,tdData[1].mergeCells);
                             },
                             onMouseup: function(dom) {
                                 var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var lienum = dom.parent().attr('lienum');
                                 var width = dom.parent().width();
                                 ajax({
-                                    url: 'http://www.tablehub.cn/action/table.html',
                                     type: 'POST',
-                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                                     data: {
-                                        function: 'updateWidth',
-                                        fileId: this_.fileId,
-                                        tableNum: tableId,
-                                        lienum: lienum,
-                                        width: (width / 10).toFixed(1)
+                                        'function': 'updateWidth',
+                                        'fileId': this_.fileId,
+                                        'tableNum': tableId,
+                                        'lienum': lienum,
+                                        'width': (width / 10).toFixed(1)
                                     },
                                     success: function(data) {
                                         $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
-                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width+2);//2是边框的宽度
+                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
+                                    }
+                                });
+                            }
+                        });
+                    });
+                    //修改列高度
+                    $('.tableRow>.table>tbody>tr>.idNum>div').each(function() {
+                        function setTdHeight(tableNum, thNum, height) {
+                            dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
+                                height: height * 10
+                            });
+                            dom('appMain' + tableNum).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
+                                height: height * 10
+                            });
+                        }
 
+                        $(this).dragging({
+                            move: 'y',
+                            xLimit: false,
+                            yLimit: false,
+                            randomPosition: false,
+                            onMousemove: function(dom_, pos) {
+                                var tableId = dom_.parents('[data-tableid]').data('tableid');
+                                var thNum = dom_.parent().data('num');
+                                var height = (pos.top + 5);
+                                dom_.parent().css('height', height);
+                                dom('appMain' + tableId).table.find('tbody tr').eq(thNum - 1).css({
+                                    height: height
+                                });
+                            },
+                            onMouseup: function(dom) {
+                                var tableId = dom.parents('[data-tableid]').data('tableid');
+                                var hangnum = dom.parent().data('num');
+                                var height = dom.parent().height();
+                                ajax({
+                                    type: 'POST',
+                                    data: {
+                                        'function': 'updateHeight',
+                                        'fileId': this_.fileId,
+                                        'tableNum': tableId,
+                                        'row': hangnum,
 
+                                        'height': parseInt(height)
+                                    },
+                                    success: function(data) {
+//                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
+//                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                     }
                                 });
                             }
@@ -665,7 +708,7 @@
         position: absolute;
         left: 0;
         width: 80px;
-        top: 39px;
+        top: 37px;
         height: calc(100% - 39px);
         overflow: hidden;
     }
@@ -696,6 +739,22 @@
         width: 100%;
         height: 100%;
         padding-top: 5px;
+    }
+
+    .edit #myTabContentParent .tab-pane {
+        padding-top: 1px;
+    }
+
+    #myTabContentParent {
+        position: fixed;
+        top: 45px;
+        left: 0;
+        right: 0;
+        bottom: 20px;
+    }
+
+    .edit #myTabContentParent {
+        top: 90px;
     }
 
     .trMain {

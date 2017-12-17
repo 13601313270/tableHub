@@ -12,7 +12,7 @@ export default new Router({
             name: 'Hello',
             component: Page
         }, {
-            path: '/table/35.html',
+            path: '/table/36.html',
             name: 'Hello',
             component: Page
         }

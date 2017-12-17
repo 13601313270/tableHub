@@ -147,6 +147,7 @@
 
     .floatSingleValueWrite .input {
         position: absolute;
+        z-index: 2;
         display: none;
         background-color: rgb(255, 255, 255);
         box-shadow: 0 0 30px rgba(0, 0, 0, 0.63);
@@ -727,10 +728,10 @@
                     inputTd.find('input').attr('pos', getCellTemp2($(this).attr('hang'), $(this).attr('lie')));
                     inputTd.find('input').attr('oldValue', tempValue);
                     inputTd.css('left', position.left - parseInt($(this).parents('.tableBody').css('marginLeft')) + $('.tableBody').eq(tableid).scrollLeft() - 1);
-                    inputTd.css('top', position.top - parseInt($(this).parents('.tableBody').css('marginTop')) + $('.tableBody').eq(tableid).scrollTop() - 2);
+                    inputTd.css('top', position.top - parseInt($(this).parents('.tableBody').css('marginTop')) + $('.tableBody').eq(tableid).scrollTop());
                     inputTd.css('height', $(this).outerHeight() + 2);
                     inputTd.css('min-width', $(this).outerWidth() + 1);
-                    inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')));
+                    inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
                     var this_ = this;
                     inputTd.find('input').on('input', function() {
                         inputTd.css('width', getTrueWidth.call(this_, $(this).val(), $(this_).attr('cell_xf')));

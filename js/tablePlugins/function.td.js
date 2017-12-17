@@ -20,6 +20,7 @@ function tableClass(tableId, hang, lie, dom) {
         }
     };
 
+    //添加表格行头
     (function() {
         var tr = $('<tr></tr>');
         var tbodyThead = $('<tr></tr>');
@@ -27,7 +28,6 @@ function tableClass(tableId, hang, lie, dom) {
             tr.append($('<th class="lieNum" lieNum="' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '">' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '<div></div></th>'));
             tbodyThead.append($('<th class="lieNum" lieNum="' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '"></th>'));
         }
-
         this.thead.find('thead').append(tr);
         var tttt = $('<div class="tableThead" style="position:absolute;left:80px;width: calc(100% - 80px);overflow: hidden"></div>');
         tttt.append(this.thead);
@@ -35,16 +35,16 @@ function tableClass(tableId, hang, lie, dom) {
         this.table.find('thead').append(tbodyThead);
     }).call(this);
     this.row = $('<table class="table"><tbody></tbody></table>');
-
+    //添加表格列头
     (function() {
         for (var i = 0; i < hang + this.addMoreHang; i++) {
             var tr = $('<tr></tr>');
-            tr.append($('<td class="idNum" style="width: 80px;">' + (i + 1) + '</td>'));
+            tr.append($('<td class="idNum" data-num="'+(i+1)+'" style="width: 80px;">' + (i + 1) + '<div></div></td>'));
             this.row.find('tbody').append(tr);
         }
-        var tttt = $('<div class="tableRow"></div>');
-        tttt.append(this.row);
-        $(dom).append(tttt);
+        var tdTitle = $('<div class="tableRow"></div>');
+        tdTitle.append(this.row);
+        $(dom).append(tdTitle);
     }).call(this);
     var tbody = $('<tbody></tbody>');
     this.table.append(tbody);
