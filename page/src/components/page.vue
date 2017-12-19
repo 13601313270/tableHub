@@ -117,7 +117,7 @@
                 let lieAddCount = 2;//增加
                 if (this.isOpenEdit) {
                     if (lieAddCount > 0) {
-                        $('#myTabContent .tab-pane').each(function() {
+                        $('#myTabContent .tab-pane').each(function () {
                             for (var i = 0; i < lieAddCount; i++) {
                                 var lieNum = getCellTemp2(0, $(this).find('.tableThead table thead tr th').length + 1).match(/([A-Z]*)(\d+)/)[1];
                                 var headTdHtml = '<th class="lieNum" lienum="' + lieNum + '" style="position: relative; overflow: hidden;">' +
@@ -129,7 +129,7 @@
                                 $(this).find('.tableBody table thead tr').append($(bodyTheadHtml));
                             }
                         });
-                        $('#myTabContent .tableBody table tbody tr').each(function() {
+                        $('#myTabContent .tableBody table tbody tr').each(function () {
                             for (var i = 0; i < lieAddCount; i++) {
                                 var newTd = $('<td></td>');
                                 newTd.attr('hang', $(this).index() + 1);
@@ -140,17 +140,17 @@
                     }
                 } else {
                     if (lieAddCount > 0) {
-                        $('#myTabContent .tableThead table').each(function() {
+                        $('#myTabContent .tableThead table').each(function () {
                             for (var i = 0; i < lieAddCount; i++) {
                                 $(this).find('thead tr th:last').remove();
                             }
                         });
-                        $('#myTabContent .tableBody table thead tr').each(function() {
+                        $('#myTabContent .tableBody table thead tr').each(function () {
                             for (var i = 0; i < lieAddCount; i++) {
                                 $(this).find('th:last').remove();
                             }
                         });
-                        $('#myTabContent .tableBody table tbody tr').each(function() {
+                        $('#myTabContent .tableBody table tbody tr').each(function () {
                             for (var i = 0; i < lieAddCount; i++) {
                                 $(this).find('td:last').remove();
                             }
@@ -224,7 +224,7 @@
 
                         alldoms['appMain' + tableNum] = new tableClass(tableNum, hang, lie, tableDom);
                         alldoms['appMain' + tableNum].render();
-                        (function() {
+                        (function () {
                             //单元格列宽
                             var nod = document.createElement("style");
                             nod.type = "text/css";
@@ -248,7 +248,7 @@
                             //设置列高
                             var row = tableObj.row;
                             for (let i in row) {
-                                $('.tableRow table tr').eq(i - 1).find('td').height(row[i].height);
+                                $('.tableRow table').eq(tableNum).find('tr').eq(i - 1).find('td').height(row[i].height - 2);//2是边框
                                 alldoms['appMain' + tableNum].table.find('tbody tr').eq(i - 1).height(row[i].height);
                             }
                         })();
@@ -284,7 +284,7 @@
                         }
                     }
                     //修改列宽度
-                    $('.tableThead>.table>thead>tr>.lieNum>div').each(function() {
+                    $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
                         function setTdWidth(tableNum, thNum, width) {
                             dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
                                 width: width * 10
@@ -299,12 +299,12 @@
                             xLimit: false,
                             yLimit: false,
                             randomPosition: false,
-                            onMousemove: function(dom, pos) {
+                            onMousemove: function (dom, pos) {
                                 var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var thNum = getCellTemp(dom.parent().attr('lienum') + '1')[1];
                                 setTdWidth(tableId, thNum, (pos.left + 5) / 10);
                             },
-                            onMouseup: function(dom) {
+                            onMouseup: function (dom) {
                                 var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var lienum = dom.parent().attr('lienum');
                                 var width = dom.parent().width();
@@ -317,7 +317,7 @@
                                         'lienum': lienum,
                                         'width': (width / 10).toFixed(1)
                                     },
-                                    success: function(data) {
+                                    success: function (data) {
                                         $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
                                         $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                     }
@@ -326,7 +326,7 @@
                         });
                     });
                     //修改列高度
-                    $('.tableRow>.table>tbody>tr>.idNum>div').each(function() {
+                    $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
                         function setTdHeight(tableNum, thNum, height) {
                             dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
                                 height: height * 10
@@ -341,7 +341,7 @@
                             xLimit: false,
                             yLimit: false,
                             randomPosition: false,
-                            onMousemove: function(dom_, pos) {
+                            onMousemove: function (dom_, pos) {
                                 var tableId = dom_.parents('[data-tableid]').data('tableid');
                                 var thNum = dom_.parent().data('num');
                                 var height = (pos.top + 5);
@@ -350,7 +350,7 @@
                                     height: height
                                 });
                             },
-                            onMouseup: function(dom) {
+                            onMouseup: function (dom) {
                                 var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var hangnum = dom.parent().data('num');
                                 var height = dom.parent().height();
@@ -364,7 +364,7 @@
 
                                         'height': parseInt(height)
                                     },
-                                    success: function(data) {
+                                    success: function (data) {
 //                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
 //                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                     }
@@ -386,7 +386,7 @@
                             fileId: this.fileId,
                             title: name,
                         },
-                        success: function(data) {
+                        success: function (data) {
                             if (data === -2) {
                                 alert('工作表名称已存在');
                             } else if (data === 1) {
@@ -537,7 +537,7 @@
                 isSelectDoms = false;
             }
         },
-        data: function() {
+        data: function () {
             return {
                 title: '',
                 isMyTable: true,
@@ -576,7 +576,7 @@
                     fileId: this_.fileId,
                     temp: 1,
                 },
-                success: function(data) {
+                success: function (data) {
                     this_.title = data.title;
                     this_.isMyTable = data.isMyTable;
                     var dataList = data.data;
@@ -602,9 +602,9 @@
                     readyObj.set(1);
                 }
             });
-            $('body').click(function() {
+            $('body').click(function () {
                 if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
-                    $('.floatSingleValueWrite .input input[pos]').each(function() {
+                    $('.floatSingleValueWrite .input input[pos]').each(function () {
                         var inputDom = this;
 
                         function afterUpdate() {
@@ -631,7 +631,7 @@
                                     pos: $(this).attr('pos'),
                                     value: $(this).val()
                                 },
-                                success: function(data) {
+                                success: function (data) {
                                     if (data !== '-1') {
                                         if (getCellTemp($(inputDom).attr('pos'))[0] > alldoms['appMain' + $(inputDom).attr('tableid')].hang) {
                                             alldoms['appMain' + $(inputDom).attr('tableid')].addHang();

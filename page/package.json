@@ -14,8 +14,13 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
+    "css-loader": "^0.28.7",
+    "echarts": "^3.8.5",
+    "less": "^2.7.3",
+    "less-loader": "^4.0.5",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vue-style-loader": "^3.0.3"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

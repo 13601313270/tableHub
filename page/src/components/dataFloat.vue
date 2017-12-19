@@ -730,7 +730,7 @@
                     inputTd.css('left', position.left - parseInt($(this).parents('.tableBody').css('marginLeft')) + $('.tableBody').eq(tableid).scrollLeft() - 1);
                     inputTd.css('top', position.top - parseInt($(this).parents('.tableBody').css('marginTop')) + $('.tableBody').eq(tableid).scrollTop());
                     inputTd.css('height', $(this).outerHeight() + 2);
-                    inputTd.css('min-width', $(this).outerWidth() + 1);
+                    inputTd.css('min-width', $(this).outerWidth() + 3);
                     inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
                     var this_ = this;
                     inputTd.find('input').on('input', function() {
