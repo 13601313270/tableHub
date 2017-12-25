@@ -3,23 +3,26 @@
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
             <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable"
-                   :isOpenEdit="isOpenEdit" :fileId="fileId"></tools>
+                   :isOpenEdit="isOpenEdit" :fileId="fileId" :table-num="this.tableNum"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
-                    <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum==key}">
-                        <a :href="'#table_'+key" data-toggle="tab">{{item}}</a>
+                    <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum===key}"
+                        style="cursor: pointer"
+                        @click="tableNum = key">
+                        <a>{{item}}</a>
                     </li>
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
                 <div id="myTabContent" class="tab-content">
-                    <div v-for="(item,key) in allFileData" class="tab-pane fade" :class="{in:key==0,active:key==0}"
+                    <div v-for="(item,key) in allFileData" class="tab-pane fade"
+                         :class="{active:key===tableNum,in:key===tableNum}"
                          :data-tableid="key"
                          :id="'table_' + key"></div>
                 </div>
             </div>
         </div>
         <bottom></bottom>
-        <dataFloat :fileId="this.fileId"></dataFloat>
+        <dataFloat :fileId="this.fileId" :table-num="this.tableNum"></dataFloat>
         <wrapper></wrapper>
     </div>
 </template>
@@ -181,16 +184,15 @@
         //}
     }
 
-    function selectTd2() {
-        if (this !== window && !$(this).is('.mergeTd')) {
+    function selectTd2(temp,activeId) {
+        if (temp !== window && !$(temp).is('.mergeTd')) {
             //不能拆分
             $('.toolsContent [data-name=tdMerge]').removeClass('active');
             $('.toolsContent [data-name=tdMerge]').addClass('disabled');
         } else {
             let isHasMerge = false;
-            let activeId = $('#myTabContent .active').data('tableid');
             for (let i in tdData[activeId].mergeCells) {
-                if (i.split(":")[0] == getCellTemp2($(this).attr('hang'), $(this).attr('lie'))) {
+                if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
                     isHasMerge = true;
                     break;
                 }
@@ -311,24 +313,24 @@
                 //单元格数据
                 this.allFileData = dataList;
 
-                function initMerge(tableNum, mergeData) {
+                function initMerge(table_Num, mergeData) {
                     for (let i in mergeData) {
                         let beginAndEnd = i.split(':');
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
 
-                        dom('appMain' + tableNum).td(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
-                        dom('appMain' + tableNum).td(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
-                        dom('appMain' + tableNum).td(beginAndEnd[0]).dom.addClass('mergeTd');
+                        dom('appMain' + table_Num).td(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
+                        dom('appMain' + table_Num).td(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
+                        dom('appMain' + table_Num).td(beginAndEnd[0]).dom.addClass('mergeTd');
 
                         for (let tr = begin[0]; tr <= end[0]; tr++) {
                             let firstTdWidth = 0;
                             for (let td = end[1]; td >= begin[1]; td--) {
-                                firstTdWidth += dom('appMain' + tableNum).thead.find('thead th').eq(td - 1).outerWidth();
+                                firstTdWidth += dom('appMain' + table_Num).thead.find('thead th').eq(td - 1).outerWidth();
                                 if (tr === begin[0] && td === begin[1]) {
 
                                 } else {
-                                    dom('appMain' + tableNum).td(getCellTemp2(tr, td)).dom.hide();
+                                    dom('appMain' + table_Num).td(getCellTemp2(tr, td)).dom.hide();
                                 }
                             }
                         }
@@ -337,27 +339,27 @@
 
                 setTimeout(() => {//vue执行较为延时
                     td.config.params.tableId.select = {};
-                    for (let tableNum = 0; tableNum < this.allFileData.length; tableNum++) {
-                        var tableObj = this.allFileData[tableNum];
+                    for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
+                        var tableObj = this.allFileData[table_Num];
                         var tableTitle = tableObj.title;
                         this.allTableTitle.push(tableTitle);
-                        td.config.params.tableId.select[tableNum.toString()] = tableTitle;
-                        tdData[tableNum] = {
+                        td.config.params.tableId.select[table_Num.toString()] = tableTitle;
+                        tdData[table_Num] = {
                             tableTitle: tableTitle,
                             tableData: tableObj.tableValue,
                             mergeCells: tableObj.mergeCells,
                         };
 
-//                    var tableItemDom = $('<div class="tab-pane fade ' + (tableNum === 0 ? 'in active' : '') + '" data-tableid="' + tableNum + '" id="table_' + tableNum + '"></div>');
-//                    var tableItemDom = $('<div class="tab-pane fade" data-tableid="' + tableNum + '" id="table_' + tableNum + '"></div>');
+//                    var tableItemDom = $('<div class="tab-pane fade ' + (table_Num === 0 ? 'in active' : '') + '" data-tableid="' + table_Num + '" id="table_' + table_Num + '"></div>');
+//                    var tableItemDom = $('<div class="tab-pane fade" data-tableid="' + table_Num + '" id="table_' + table_Num + '"></div>');
 //                    $('#myTabContent').append(tableItemDom);
 
 
-                        var tableDom = $('#myTabContent').find('#table_' + tableNum);
+                        var tableDom = $('#myTabContent').find('#table_' + table_Num);
                         //获取宽高
                         var hang = 0;
                         var lie = 0;
-                        for (let i in tdData[tableNum].tableData) {
+                        for (let i in tdData[table_Num].tableData) {
                             try {
                                 var tdPos = getCellTemp(i);
                             } catch (e) {
@@ -368,8 +370,8 @@
                         }
                         lie = Math.max(lie, 6);//至少补充到6列
 
-                        alldoms['appMain' + tableNum] = new tableClass(tableNum, hang, lie, tableDom);
-                        alldoms['appMain' + tableNum].render();
+                        alldoms['appMain' + table_Num] = new tableClass(table_Num, hang, lie, tableDom);
+                        alldoms['appMain' + table_Num].render();
                         (function () {
                             //单元格列宽
                             var nod = document.createElement("style");
@@ -379,7 +381,7 @@
                             var column = tableObj.column;
                             for (let i in column) {
                                 var thNum = getCellTemp(i + '1')[1];
-                                var strItem = "#myTabContent>.tab-pane:nth-child(" + (tableNum + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (tableNum + 1) + ") [lienum=\"" + i + "\"]{\n";
+                                var strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lienum=\"" + i + "\"]{\n";
                                 strItem += 'width:' + column[i].width * 10 + 'px;\n';
                                 strItem += "}\n";
                                 str += strItem;
@@ -394,23 +396,23 @@
                             //设置列高
                             var row = tableObj.row;
                             for (let i in row) {
-                                $('.tableRow table').eq(tableNum).find('tr').eq(i - 1).find('td').height(row[i].height - 2);//2是边框
-                                alldoms['appMain' + tableNum].table.find('tbody tr').eq(i - 1).height(row[i].height);
+                                $('.tableRow table').eq(table_Num).find('tr').eq(i - 1).find('td').height(row[i].height - 2);//2是边框
+                                alldoms['appMain' + table_Num].table.find('tbody tr').eq(i - 1).height(row[i].height);
                             }
                         })();
 
                         //单元格合并
-                        initMerge(tableNum, tdData[tableNum].mergeCells);
+                        initMerge(table_Num, tdData[table_Num].mergeCells);
 
                         //绘制图表
-                        allEcharts[tableNum] = [];
+                        allEcharts[table_Num] = [];
                         if (tableObj.charts !== undefined) {
                             for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
                                 let position = tableObj.charts[chartsId].position.split(',');
                                 let size = tableObj.charts[chartsId].size.split(',');
                                 if (tableObj.charts[chartsId].value !== null) {
-                                    let chartsItem = getEvalObj(tableNum, tableObj.charts[chartsId].value, true);
-                                    $('.allCharts:eq(' + tableNum + ')').append(chartsItem.dom);
+                                    let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
+                                    $('.allCharts:eq(' + table_Num + ')').append(chartsItem.dom);
                                     chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
                                     chartsItem.top = parseInt(position[0]);
                                     chartsItem.left = parseInt(position[1]);
@@ -419,23 +421,23 @@
                                     chartsItem.dom.attr('index', chartsId);
                                     chartsItem.index = chartsId;
                                     readyObj.bind(chartsItem);
-                                    allEcharts[tableNum][chartsId] = chartsItem;
+                                    allEcharts[table_Num][chartsId] = chartsItem;
                                 }
                             }
                         }
                     }
-                    for (let tableNum = 0; tableNum < this.allFileData.length; tableNum++) {
-                        for (let i in tdData[tableNum].tableData) {
-                            writeTd(tableNum, i, tdData[tableNum].tableData[i].value, tdData[tableNum].tableData[i].xfIndex);
+                    for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
+                        for (let i in tdData[table_Num].tableData) {
+                            writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                         }
                     }
                     //修改列宽度
                     $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
-                        function setTdWidth(tableNum, thNum, width) {
-                            dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
+                        function setTdWidth(table_Num, thNum, width) {
+                            dom('appMain' + table_Num).thead.find('thead th').eq(thNum - 1).css({
                                 width: width * 10
                             });
-                            dom('appMain' + tableNum).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
+                            dom('appMain' + table_Num).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
                                 width: width * 10
                             });
                         }
@@ -446,12 +448,10 @@
                             yLimit: false,
                             randomPosition: false,
                             onMousemove: function (dom, pos) {
-                                var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var thNum = getCellTemp(dom.parent().attr('lienum') + '1')[1];
-                                setTdWidth(tableId, thNum, (pos.left + 5) / 10);
+                                setTdWidth(this_.tableNum, thNum, (pos.left + 5) / 10);
                             },
                             onMouseup: function (dom) {
-                                var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var lienum = dom.parent().attr('lienum');
                                 var width = dom.parent().width();
                                 ajax({
@@ -459,13 +459,13 @@
                                     data: {
                                         'function': 'updateWidth',
                                         'fileId': this_.fileId,
-                                        'tableNum': tableId,
+                                        'tableNum': this_.tableNum,
                                         'lienum': lienum,
                                         'width': (width / 10).toFixed(1)
                                     },
                                     success: function (data) {
-                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
-                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
+                                        $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
+                                        $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                     }
                                 });
                             }
@@ -473,11 +473,11 @@
                     });
                     //修改列高度
                     $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
-                        function setTdHeight(tableNum, thNum, height) {
-                            dom('appMain' + tableNum).thead.find('thead th').eq(thNum - 1).css({
+                        function setTdHeight(table_Num, thNum, height) {
+                            dom('appMain' + table_Num).thead.find('thead th').eq(thNum - 1).css({
                                 height: height * 10
                             });
-                            dom('appMain' + tableNum).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
+                            dom('appMain' + table_Num).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
                                 height: height * 10
                             });
                         }
@@ -488,16 +488,14 @@
                             yLimit: false,
                             randomPosition: false,
                             onMousemove: function (dom_, pos) {
-                                var tableId = dom_.parents('[data-tableid]').data('tableid');
                                 var thNum = dom_.parent().data('num');
                                 var height = (pos.top + 5);
                                 dom_.parent().css('height', height);
-                                dom('appMain' + tableId).table.find('tbody tr').eq(thNum - 1).css({
+                                dom('appMain' + this_.tableNum).table.find('tbody tr').eq(thNum - 1).css({
                                     height: height
                                 });
                             },
                             onMouseup: function (dom) {
-                                var tableId = dom.parents('[data-tableid]').data('tableid');
                                 var hangnum = dom.parent().data('num');
                                 var height = dom.parent().height();
                                 ajax({
@@ -505,14 +503,12 @@
                                     data: {
                                         'function': 'updateHeight',
                                         'fileId': this_.fileId,
-                                        'tableNum': tableId,
+                                        'tableNum': this_.tableNum,
                                         'row': hangnum,
 
                                         'height': parseInt(height)
                                     },
                                     success: function (data) {
-//                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
-//                                        $('#myTabContent>.tab-pane:nth-child(' + (tableId + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                     }
                                 });
                             }
@@ -609,7 +605,7 @@
                 if (!$(eventDom).is('.idNum')) {
                     setTdSelectState.call(eventDom);
                     this.selectTd($(eventDom).attr('cell_xf'));
-                    selectTd2.call(eventDom);
+                    selectTd2(eventDom,this.tableNum);
                 }
             },
             mousedown_temp(event) {
@@ -657,7 +653,7 @@
                     var bottom = Math.max($(eventDom).attr('hang'), beginSelect[0]);
                     var left = Math.min($(eventDom).attr('lie'), beginSelect[1]);
                     var right = Math.max($(eventDom).attr('lie'), beginSelect[1]);
-                    var tableid = $('body #myTabContent .active').data('tableid');
+                    var tableid = this.tableNum;
                     for (let i = top; i <= bottom; i++) {
                         for (let j = left; j <= right; j++) {
                             if (i === top) {
@@ -676,7 +672,7 @@
                         }
                     }
                     this.selectTd(undefined);
-                    selectTd2.call(window, top, right, bottom, left);
+                    selectTd2(window,this.tableNum);
                 }
             },
             mouseup_temp() {

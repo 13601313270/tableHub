@@ -270,7 +270,7 @@
             }
         }
         insertDom.append(allFuncDom);
-        (function() {
+        (function () {
             if (isWriteSingle) {
                 insertDom.find('[name=value]').val(getStrByEvalObj($('#myTabContent .active').data('tableid'), evalObj));
             } else {
@@ -316,7 +316,7 @@
 
     function initFloatType(tempValue, insertDom, select) {
         _initFloatType(tempValue, $('#dataFloat .content'));
-        $('#dataFloat .contentText textarea').keyup(function() {
+        $('#dataFloat .contentText textarea').keyup(function () {
             tempValue = $(this).val();
             if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
                 let temp = tempValue.match(/=(.+)$/);
@@ -326,11 +326,11 @@
                 _initFloatType(tempValue, $('#dataFloat .content'));
             }
         });
-        $('#dataFloat>.content').on('keyup', 'input', function(e) {
+        $('#dataFloat>.content').on('keyup', 'input', function (e) {
             updateTextareaText();
         });
 
-        $('#dataFloat>.content').on('change', '[name=value]', function() {
+        $('#dataFloat>.content').on('change', '[name=value]', function () {
             updateTextareaText();
         });
         updateTextareaText();
@@ -376,10 +376,10 @@
                 name: '',
                 params: {}
             };
-            $(dom).find('>.addMore').each(function() {
+            $(dom).find('>.addMore').each(function () {
                 result.params[$(this).data('name')] = [];
             });
-            $(dom).find('>.form-group').each(function(i) {
+            $(dom).find('>.form-group').each(function (i) {
                 if (i === 0) {
                     result['name'] = $(this).find('[name=dataType]').val();
                 } else {
@@ -397,7 +397,7 @@
         }
     }
 
-    window.initFloatDom = function() {
+    window.initFloatDom = function () {
         setTdSelectState.call(this);
         //看看当前单元格是否有合并
         var activeId = $('#myTabContent .active').data('tableid');
@@ -445,17 +445,17 @@
                 }
             }
         },
-        props: ['fileId'],
+        props: ['fileId', 'table-num'],
         mounted() {
             var self = this;
             $('#dataFloat').dragging({
                 move: 'both', hander: '.head'
             });
-            $('#myTabContent').on('click', '.active', function() {
+            $('#myTabContent').on('click', '.active', function () {
                 $('#dataFloat').hide();
             });
 
-            $('#dataFloat').on('change', '[name=dataType]', function() {
+            $('#dataFloat').on('change', '[name=dataType]', function () {
                 var func = $(this).val();
                 if (['', '='].indexOf(func) > -1) {
                     if (func === '') {
@@ -499,7 +499,7 @@
                 _initFloatType(evalObj, dom, select);
                 updateTextareaText();
             });
-            $('#dataFloat .action .save').click(function() {
+            $('#dataFloat .action .save').click(function () {
                 var contentDivs = $(this).parents('#dataFloat').find('>.content');
                 var xfIndex = $(this).parents('#dataFloat').attr('xfindex');
                 for (let i = 0; i < contentDivs.length; i++) {
@@ -522,7 +522,7 @@
                             chartsIndex: $('#dataFloat .head').attr('chartsIndex'),
                             value: $('#dataFloat .contentText textarea').val().replace(/^=/, '')
                         },
-                        success: function(data) {
+                        success: function (data) {
                             if (data === '1') {
                                 var tableNum = $('#myTabContent .active').data('tableid');
                                 var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
@@ -572,7 +572,7 @@
                             xfIndex: xfIndex,
                             value: $('#dataFloat .contentText textarea').val()
                         },
-                        success: function(data) {
+                        success: function (data) {
                             if (data === 1) {
                                 let tableNum = $('#myTabContent .active').data('tableid');
                                 let pos = $('#dataFloat .head').html();
@@ -593,7 +593,7 @@
                 }
 
             });
-            $('#dataFloat').on('click', '.add', function() {
+            $('#dataFloat').on('click', '.add', function () {
                 if ($(this).parents('.dataBaseItem').eq(0).is('.dataBaseItemChild')) {
                     $(this).parents('.dataBaseItem').eq(0).removeClass('dataBaseItemChild');
                     $(this).find('i').attr('class', 'glyphicon glyphicon-chevron-up');
@@ -602,7 +602,7 @@
                     $(this).find('i').attr('class', 'glyphicon glyphicon-chevron-down');
                 }
             });
-            $('#dataFloat').on('click', '.addMore', function() {
+            $('#dataFloat').on('click', '.addMore', function () {
                 let title = $(this).prev().find('>label').html();
                 let key = $(this).prev().attr('data-name');
                 let dom = $('<div class="form-group" data-name="' + key + '">' +
@@ -613,7 +613,7 @@
                 $('.addMore').before(dom);
                 updateTextareaText();
             });
-            $('#myTabContent').on('keydown', '.floatSingleValueWrite .input input', function(e) {
+            $('#myTabContent').on('keydown', '.floatSingleValueWrite .input input', function (e) {
                 if (['Enter'].indexOf(e.key) > -1) {    //'ArrowRight',
                     let inputDom = this;
                     let tableId = $(inputDom).attr('tableid');
@@ -666,7 +666,7 @@
                                 pos: $(this).attr('pos'),
                                 value: $(this).val()
                             },
-                            success: function(data) {
+                            success: function (data) {
                                 if (data === 1) {
                                     turnNewTD();
                                 } else {
@@ -679,7 +679,7 @@
                     }
                 }
             });
-            $('body').on('dblclick', '.edit #myTabContent .allCharts>div', function() {
+            $('body').on('dblclick', '.edit #myTabContent .allCharts>div', function () {
                 let tableId = $('#myTabContent .active').data('tableid');
                 let chartsIndex = $(this).attr('index');
                 $('#dataFloat').show();
@@ -696,7 +696,7 @@
                 }
                 initFloatType(allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
             });
-            $('body').on('dblclick', '.edit #myTabContent td', function() {
+            $('body').on('dblclick', '.edit #myTabContent td', function () {
                 setTdSelectState.call(this);
                 //看看当前单元格是否有合并
                 var activeId = $('#myTabContent .active').data('tableid');
@@ -717,7 +717,8 @@
                     }
 
                     //计算位置
-                    var tableid = $('body #myTabContent .active').data('tableid');
+                    var tableid = self.tableNum;
+
                     $('.tableBody').eq(tableid).scrollTop();
                     var position = $(this).position();
                     var inputTd = $(this).parents('.tableBody').find('.floatSingleValueWrite .input');
@@ -733,10 +734,10 @@
                     inputTd.css('min-width', $(this).outerWidth() + 3);
                     inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
                     var this_ = this;
-                    inputTd.find('input').on('input', function() {
+                    inputTd.find('input').on('input', function () {
                         inputTd.css('width', getTrueWidth.call(this_, $(this).val(), $(this_).attr('cell_xf')));
                     });
-                    inputTd.find('input').click(function(event) {
+                    inputTd.find('input').click(function (event) {
                         event.stopPropagation();
                     });
                     inputTd.find('input').focus();

@@ -158,7 +158,7 @@
     }
 
     export default {
-        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId'],
+        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num'],
         methods: {
             stateChange() {
                 this.isOpenEdit_ = !this.isOpenEdit_;
@@ -166,7 +166,7 @@
             },
             insertCharts(valueStr) {
                 valueStr += '("标题","","")';
-                var tableNum = parseInt($('#myTabContent>.tab-pane.active').attr('data-tableid'));
+                var tableNum = this.tableNum;
                 var chartsId = allEcharts[tableNum].length;
                 var position = [200, 100];
                 var size = [300, 200];
@@ -184,7 +184,7 @@
                         position: position,
                         size: size
                     },
-                    success: function(data) {
+                    success: function (data) {
                         if (data !== '-1') {
                             var chartsItem = getEvalObj(tableNum, saveVlalue, true);
                             $('.allCharts:eq(0)').append(chartsItem.dom);
@@ -256,11 +256,11 @@
                                 data: {
                                     'function': 'updateTdXf',
                                     fileId: self.fileId,
-                                    tableNum: $('#myTabContent .active').data('tableid'),
+                                    tableNum: self.tableNum,
                                     pos: pos,
                                     xfIndex: isExistId,
                                 },
-                                success: function(data) {
+                                success: function (data) {
                                     if (data !== '-1') {
                                         $(this_).attr('cell_xf', data);
                                     } else {
@@ -278,11 +278,11 @@
                             data: {
                                 'function': 'updateTdXf',
                                 fileId: self.fileId,
-                                tableNum: $('#myTabContent .active').data('tableid'),
+                                tableNum: self.tableNum,
                                 pos: pos,
                                 value: cell_xf,
                             },
-                            success: function(data) {
+                            success: function (data) {
                                 let cssstr = createCss(data, cell_xf);
                                 $('style[td_css_list]').append(cssstr);
                                 $(this_).attr('cell_xf', data);
@@ -343,6 +343,7 @@
 
                         let hang = $(this_).attr('hang');
                         let rowspan = $(this_).attr('rowspan');
+
                         ajax({
                             url: 'http://www.tablehub.cn/action/table.html',
                             type: 'POST',
@@ -350,15 +351,16 @@
                             data: {
                                 'function': 'mergeCancel',
                                 fileId: self.fileId,
-                                tableNum: $('#myTabContent .active').data('tableid'),
+                                tableNum: self.tableNum,
                                 pos: pos
                             },
-                            success: function(data) {
+                            success: function (data) {
                                 if (data !== '-1') {
                                     $(this_).attr('colspan', '');
                                     $(this_).attr('rowspan', '');
                                     $(this_).removeClass('mergeTd');
-                                    let tableDom = alldoms['appMain' + $('body #myTabContent .active').data('tableid')].table;
+
+                                    let tableDom = alldoms['appMain' + self.tableNum].table;
                                     for (let i = hang; i < hang + rowspan; i++) {
                                         let hangTr = tableDom.find('tr[hang=' + i + ']');
                                         for (let j = lie; j < lie + colspan; j++) {
@@ -382,13 +384,13 @@
                             data: {
                                 'function': 'mergeAdd',
                                 fileId: self.fileId,
-                                tableNum: $('#myTabContent .active').data('tableid'),
+                                tableNum: self.tableNum,
                                 top: top,
                                 bottom: bottom,
                                 left: left,
                                 right: right,
                             },
-                            success: function(data) {
+                            success: function (data) {
                                 if (data !== '-1') {
                                     //全部都隐藏
                                     $(this_).css('display', 'none')
@@ -399,8 +401,7 @@
                                     $(this_).eq(0).attr('rowspan', bottom - top + 1);
                                     $(this_).eq(0).attr('colspan', right - left + 1);
                                     var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
-                                    console.log(mergeStr);
-                                    tdData[$('#myTabContent .active').data('tableid')].mergeCells[mergeStr] = mergeStr;
+                                    tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;
                                     $('.toolsContent [data-name=' + actionType + ']').addClass('active');
                                 } else {
                                     alert('样式服务器同步失败');
@@ -423,7 +424,7 @@
 //            $('#tools .toolsContent [data-name=size]').change(this.rewriteStyle);
             $("[data-name=fill],[data-name=color]").spectrum({
                 showPalette: true,
-                hide: function(color) {
+                hide: function (color) {
                     var writeTd = $('.editTd');
                     if (writeTd.length == 0) {
                         return;
@@ -447,10 +448,10 @@
                                 $.post('/action/table.html', {
                                     function: 'updateTdXf',
                                     fileId: self.fileId,
-                                    tableNum: $('#myTabContent .active').data('tableid'),
+                                    tableNum: self.tableNum,
                                     pos: pos,
                                     xfIndex: isExistId,
-                                }, function(data) {
+                                }, function (data) {
                                     if (data !== '-1') {
                                         $(writeTd).attr('cell_xf', data);
                                         callBack(data);
@@ -464,10 +465,10 @@
                             $.post('/action/table.html', {
                                 function: 'updateTdXf',
                                 fileId: self.fileId,
-                                tableNum: $('#myTabContent .active').data('tableid'),
+                                tableNum: self.tableNum,
                                 pos: pos,
                                 value: cell_xf,
-                            }, function(data) {
+                            }, function (data) {
                                 let cssstr = createCss(data, cell_xf);
                                 $('style[td_css_list]').append(cssstr);
                                 $(writeTd).attr('cell_xf', data);
@@ -486,14 +487,14 @@
                         console.log(cell_xf);
                         cell_xf.fill.startColor = 'FF' + color.toHexString().substr(1);
                         cell_xf.fill.fillType = 'solid';
-                        run(function() {
+                        run(function () {
                             console.log(button);
                             console.log(color.toHexString());
                             button.css('background-color', color.toHexString());
                         });
                     } else {
                         cell_xf.font.color = 'FF' + color.toHexString().substr(1);
-                        run(function() {
+                        run(function () {
                             button.css('color', color.toHexString());
 //                    $(writeTd).css('backgroundColor','');
                         });
