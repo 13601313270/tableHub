@@ -184,7 +184,7 @@
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
-    function _initFloatType(evalObj, insertDom, select) {
+    function _initFloatType(tableid, evalObj, insertDom, select) {
         if (evalObj instanceof __runObj__) {
             var type = evalObj.funcName;
             if (type === '') {
@@ -238,7 +238,7 @@
                 }
                 domStr += '</div>';
                 var allFuncDom = $(domStr);
-            } else if (evalObj === true || evalObj === false || window[type].config.params == undefined) {
+            } else if (evalObj === true || evalObj === false || window[type].config.params === undefined) {
                 insertDom.addClass('dataBaseItem dataBaseItemNoParam');
                 //调用无参数函数
                 var allFuncDom = $('<div class="form-group">' +
@@ -272,7 +272,7 @@
         insertDom.append(allFuncDom);
         (function () {
             if (isWriteSingle) {
-                insertDom.find('[name=value]').val(getStrByEvalObj($('#myTabContent .active').data('tableid'), evalObj));
+                insertDom.find('[name=value]').val(getStrByEvalObj(tableid, evalObj));
             } else {
                 for (let i in config) {
                     if (config[i] instanceof Array) {
@@ -289,7 +289,7 @@
                                     };
                                 }
                                 //如果配置中这个类型的dataType是个对象,则进行递归
-                                _initFloatType(evalObj[i][j], dom.find('>div'), config[i][0].select);
+                                _initFloatType(tableid, evalObj[i][j], dom.find('>div'), config[i][0].select);
                                 insertDom.append(dom);
                             }
                         }
@@ -306,7 +306,7 @@
                             };
                         }
                         //如果配置中这个类型的dataType是个对象,则进行递归
-                        _initFloatType(evalObj[i], dom.find('>div'), config[i].select);
+                        _initFloatType(tableid, evalObj[i], dom.find('>div'), config[i].select);
                         insertDom.append(dom);
                     }
                 }
@@ -314,32 +314,32 @@
         })();
     }
 
-    function initFloatType(tempValue, insertDom, select) {
-        _initFloatType(tempValue, $('#dataFloat .content'));
+    function initFloatType2(tableNum, tempValue, insertDom, select) {
+        _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
         $('#dataFloat .contentText textarea').keyup(function () {
             tempValue = $(this).val();
             if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
                 let temp = tempValue.match(/=(.+)$/);
-                let evalObj = getEvalObj($('#myTabContent .active').data('tableid'), temp[1], false);
-                _initFloatType(evalObj, $('#dataFloat .content'));
+                let evalObj = getEvalObj(tableNum, temp[1], false);
+                _initFloatType(tableNum, evalObj, $('#dataFloat .content'));
             } else {
-                _initFloatType(tempValue, $('#dataFloat .content'));
+                _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
             }
         });
         $('#dataFloat>.content').on('keyup', 'input', function (e) {
-            updateTextareaText();
+            updateTextareaText(tableNum);
         });
 
         $('#dataFloat>.content').on('change', '[name=value]', function () {
-            updateTextareaText();
+            updateTextareaText(tableNum);
         });
-        updateTextareaText();
+        updateTextareaText(tableNum);
     }
 
-    function updateTextareaText() {
+    function updateTextareaText(tableId) {
         let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
         if (typeof evalObj === 'object') {
-            let saveStr = getStrByEvalObj(tdData[$('#myTabContent .active').data('tableid')].tableTitle, evalObj);
+            let saveStr = getStrByEvalObj(tdData[tableId].tableTitle, evalObj);
             $('#dataFloat .contentText textarea').val('=' + saveStr);
         } else {
             $('#dataFloat .contentText textarea').val(evalObj);
@@ -397,10 +397,9 @@
         }
     }
 
-    window.initFloatDom = function () {
+    window.initFloatDom = function (activeId) {
         setTdSelectState.call(this);
         //看看当前单元格是否有合并
-        var activeId = $('#myTabContent .active').data('tableid');
         $('.table tbody .idNum').removeClass('idNumOn');
         $('.table tbody .idNum').eq(parseInt($(this).attr('hang')) - 1).addClass('idNumOn');
         $('.table thead .lieNum').removeClass('lieNumOn');
@@ -421,7 +420,7 @@
         } else {
             var tempValue = '';
         }
-        initFloatType(tempValue, $('#dataFloat .content'));
+        initFloatType2(activeId, tempValue, $('#dataFloat .content'));
         $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
         $('#dataFloat').removeClass('floatSingleValue');
     }
@@ -496,8 +495,8 @@
                 }
                 var dom = $(this).parents('.dataBaseItem').eq(0);
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');
-                _initFloatType(evalObj, dom, select);
-                updateTextareaText();
+                _initFloatType(self.tableNum, evalObj, dom, select);
+                updateTextareaText(self.tableNum);
             });
             $('#dataFloat .action .save').click(function () {
                 var contentDivs = $(this).parents('#dataFloat').find('>.content');
@@ -518,21 +517,20 @@
                         data: {
                             'function': 'updateChartsValue',
                             fileId: self.fileId,
-                            tableNum: $('#dataFloat .head').attr('tableId'),
+                            tableNum: self.tableNum,
                             chartsIndex: $('#dataFloat .head').attr('chartsIndex'),
                             value: $('#dataFloat .contentText textarea').val().replace(/^=/, '')
                         },
                         success: function (data) {
-                            if (data === '1') {
-                                var tableNum = $('#myTabContent .active').data('tableid');
+                            if (data === 1) {
                                 var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
                                 var content = $('#dataFloat .contentText textarea').val().replace(/^=/, '');
-                                var oldObj = allEcharts[tableNum][chartsIndex];
+                                var oldObj = allEcharts[self.tableNum][chartsIndex];
                                 oldObj.myChart.clear();
 
                                 var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
                                 matchPreg = content.match(matchPreg)[1];
-                                matchPreg = getEvalObj(tableNum, '[' + matchPreg + ']', true);
+                                matchPreg = getEvalObj(self.tableNum, '[' + matchPreg + ']', true);
                                 var allTemp = ({
                                     'PIE': ['title', 'XtdLists', 'valueTdLists'],
                                     'BAR': ['title', 'XtdLists', 'valueTdLists'],
@@ -567,14 +565,14 @@
                         data: {
                             'function': 'updateTdValue',
                             fileId: self.fileId,
-                            tableNum: $('#myTabContent .active').data('tableid'),
+                            tableNum: self.tableNum,
                             pos: $('#dataFloat .head').html(),
                             xfIndex: xfIndex,
                             value: $('#dataFloat .contentText textarea').val()
                         },
                         success: function (data) {
                             if (data === 1) {
-                                let tableNum = $('#myTabContent .active').data('tableid');
+                                let tableNum = self.tableNum;
                                 let pos = $('#dataFloat .head').html();
                                 tdData[tableNum].tableData[pos] = {
                                     value: $('#dataFloat .contentText textarea').val(),
@@ -609,9 +607,9 @@
                     '<label class="control-label">' + title + '</label>' +
                     '<div></div>' +
                     '</div>');
-                _initFloatType('', dom.find('>div'));
+                _initFloatType(self.tableNum, '', dom.find('>div'));
                 $('.addMore').before(dom);
-                updateTextareaText();
+                updateTextareaText(self.tableNum);
             });
             $('#myTabContent').on('keydown', '.floatSingleValueWrite .input input', function (e) {
                 if (['Enter'].indexOf(e.key) > -1) {    //'ArrowRight',
@@ -680,7 +678,7 @@
                 }
             });
             $('body').on('dblclick', '.edit #myTabContent .allCharts>div', function () {
-                let tableId = $('#myTabContent .active').data('tableid');
+                let tableId = self.tableNum;
                 let chartsIndex = $(this).attr('index');
                 $('#dataFloat').show();
                 $('#dataFloat .head').html('图表');
@@ -694,12 +692,12 @@
                     $('#dataFloat .head').attr('tableId', tableId);
                     $('#dataFloat .head').attr('chartsIndex', chartsIndex);
                 }
-                initFloatType(allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
+                initFloatType2(self.tableNum, allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
             });
             $('body').on('dblclick', '.edit #myTabContent td', function () {
                 setTdSelectState.call(this);
                 //看看当前单元格是否有合并
-                var activeId = $('#myTabContent .active').data('tableid');
+                var activeId = self.tableNum;
                 var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
                 if (allTD['td:' + activeId + '!' + selectPos]) {
                     var tempValue = allTD['td:' + activeId + '!' + selectPos].value_;
@@ -742,7 +740,7 @@
                     });
                     inputTd.find('input').focus();
                 } else {
-                    initFloatDom.call(this);
+                    initFloatDom.call(this, self.tableNum);
                 }
             });
         }

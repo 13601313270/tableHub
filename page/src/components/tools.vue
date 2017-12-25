@@ -209,7 +209,7 @@
                 if (this_.length !== 1) {
                     return;
                 }
-                initFloatDom.call($('.editTd')[0]);
+                initFloatDom.call($('.editTd')[0], this.tableNum);
             },
             rewriteStyle(event) {
                 var self = this;
