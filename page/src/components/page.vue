@@ -35,6 +35,152 @@
     import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
+    //表
+    function tableClass(tableId, hang, lie, dom) {
+        this.table = $('<table class="table"><thead></thead></table>');
+        this.tdList = [];
+        this.tableId = tableId;
+        this.hang = hang;
+        this.lie = lie;
+        this.thead = $('<table class="table"><thead></thead></table>');
+        this.addMoreHang = 3;//编辑状态下额外添加的行的数量
+        this.addHang = function () {
+            for (var i = 0; i < this.addMoreHang; i++) {
+                var hang = (this.hang + this.addMoreHang + 1);
+                this.row.find('tbody').append('<tr><td class="idNum" style="width: 80px;">' + hang + '</td></tr>');
+                var newTr = $('<tr hang="' + hang + '"></tr>');
+                for (var j = 0; j < this.thead.find('thead th').length; j++) {
+                    newTr.append('<td hang="' + hang + '" lie="' + (j + 1) + '"></td>');
+                }
+                this.table.append(newTr);
+                this.hang++;
+            }
+        };
+
+        //添加表格行头
+        (function () {
+            var tr = $('<tr></tr>');
+            var tbodyThead = $('<tr></tr>');
+            for (var i = 0; i < lie; i++) {
+                tr.append($('<th class="lieNum" lieNum="' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '">' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '<div></div></th>'));
+                tbodyThead.append($('<th class="lieNum" lieNum="' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '"></th>'));
+            }
+            this.thead.find('thead').append(tr);
+            var tttt = $('<div class="tableThead" style="position:absolute;left:80px;width: calc(100% - 80px);overflow: hidden"></div>');
+            tttt.append(this.thead);
+            $(dom).append(tttt);
+            this.table.find('thead').append(tbodyThead);
+        }).call(this);
+        this.row = $('<table class="table"><tbody></tbody></table>');
+        //添加表格列头
+        (function () {
+            for (var i = 0; i < hang + this.addMoreHang; i++) {
+                var tr = $('<tr></tr>');
+                tr.append($('<td class="idNum" data-num="' + (i + 1) + '" style="width: 80px;">' + (i + 1) + '<div></div></td>'));
+                this.row.find('tbody').append(tr);
+            }
+            var tdTitle = $('<div class="tableRow"></div>');
+            tdTitle.append(this.row);
+            $(dom).append(tdTitle);
+        }).call(this);
+        var tbody = $('<tbody></tbody>');
+        this.table.append(tbody);
+        if (dom) {
+            this.dom = dom;
+        } else {
+            this.dom = $('.container');
+        }
+        for (let i = 0; i < hang + this.addMoreHang; i++) {
+            var tr = $('<tr hang="' + (i + 1) + '"></tr>');
+            tbody.append(tr);
+            for (let j = 0; j < lie; j++) {
+                tr.append('<td hang="' + (i + 1) + '" lie="' + (j + 1) + '"></td>');
+            }
+        }
+        this.render = function (cssStr) {
+            var tbodyDom = $('<div class="tableBody">' +
+                '<div class="floatSingleValueWrite">' +
+                '<div class="input">' +
+                '<input/>' +
+                '</div>' +
+                '<div class="span"></div>' +
+                '</div>' +
+                '<div class="allCharts">' +
+                '</div>' +
+                '</div>');
+            this.dom.append(tbodyDom);
+            tbodyDom.append(this.table);
+            var this_ = this;
+            tbodyDom.scroll(function () {
+                this_.thead.css('marginLeft', tbodyDom.scrollLeft() * -1);
+                this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
+            });
+        }
+        this.td = function (positionStr) {
+            var tdPos = getCellTemp(positionStr);
+            var hangNum = tdPos[0];
+            var lieNum = tdPos[1];
+            if (this.tdList[hangNum] === undefined) {
+                this.tdList[hangNum] = [];
+            }
+            if (typeof(lieNum) === 'number') {
+                if (this.tdList[hangNum][lieNum - 1] === undefined) {
+                    this.tdList[hangNum][lieNum - 1] = new td(this.tableId, positionStr);
+                }
+            } else {
+                return new td(this.tableId, positionStr);
+            }
+            return this.tdList[hangNum][lieNum - 1];
+        }
+        ////根据开始结尾获取一组td
+        //this.tds = function(begin,end){
+        //    var tds = [];
+        //    for(var hang=begin[0];hang<=end[0];hang++){
+        //        tds[hang-begin[0]] = [];
+        //        for(var lie = begin[1];lie<=end[1];lie++){
+        //            tds[hang-begin[0]].push(this.td(hang,lie));
+        //        }
+        //    }
+        //    return new tdList(tds);
+        //}
+        this.attr = function (key, value) {
+            this.table.attr(key, value);
+            return this;
+        }
+        //this.sortTable = function(lie){
+        //    this.tdList.sort(function(a,b){
+        //        if(a.length<=2){
+        //            return 1;
+        //        }else if(b.length<=2){
+        //            return -1;
+        //        }else if(typeof a[lie].value()=='string'){
+        //            return -1;
+        //        }else if(typeof b[lie].value()=='string'){
+        //            return 1;
+        //        }
+        //        if(a[lie].value()<b[lie].value()){
+        //            return 1;
+        //        }else{
+        //            return -1;
+        //        }
+        //    });
+        //    this.table.find('>tbody').html('');
+        //
+        //    for(var i=0;i<this.tdList.length;i++){
+        //        if(i<15){
+        //            if(this.tdList[i] && this.tdList[i].length>1){
+        //                var tr = $('<tr></tr>');
+        //                for(var j=0;j<this.tdList[i].length;j++){
+        //                    tr.append('<td>'+this.tdList[i][j].value()+'</td>');
+        //
+        //                }
+        //                this.table.append(tr);
+        //            }
+        //        }
+        //    }
+        //}
+    }
+
     function selectTd2() {
         if (this !== window && !$(this).is('.mergeTd')) {
             //不能拆分
