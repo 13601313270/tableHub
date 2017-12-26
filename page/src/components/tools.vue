@@ -183,24 +183,23 @@
                         value: saveVlalue,
                         position: position,
                         size: size
-                    },
-                    success: function (data) {
-                        if (data !== '-1') {
-                            var chartsItem = getEvalObj(tableNum, saveVlalue, true);
-                            $('.allCharts:eq(0)').append(chartsItem.dom);
-                            chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
-                            chartsItem.top = parseInt(position[0]);
-                            chartsItem.left = parseInt(position[1]);
-                            chartsItem.width = parseInt(size[0]);
-                            chartsItem.height = parseInt(size[1]);
-                            chartsItem.dom.attr('index', chartsId);
-                            chartsItem.index = chartsId;
-                            allEcharts[tableNum][chartsId] = chartsItem;
-                            allEcharts[tableNum][chartsId].render();
-                            allEcharts[tableNum][chartsId].myChart.resize();
-                        } else {
-                            alert('样式服务器同步失败');
-                        }
+                    }
+                }).then((data) => {
+                    if (data !== '-1') {
+                        var chartsItem = getEvalObj(tableNum, saveVlalue, true);
+                        $('.allCharts:eq(0)').append(chartsItem.dom);
+                        chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                        chartsItem.top = parseInt(position[0]);
+                        chartsItem.left = parseInt(position[1]);
+                        chartsItem.width = parseInt(size[0]);
+                        chartsItem.height = parseInt(size[1]);
+                        chartsItem.dom.attr('index', chartsId);
+                        chartsItem.index = chartsId;
+                        allEcharts[tableNum][chartsId] = chartsItem;
+                        allEcharts[tableNum][chartsId].render();
+                        allEcharts[tableNum][chartsId].myChart.resize();
+                    } else {
+                        alert('样式服务器同步失败');
                     }
                 });
             },
@@ -259,13 +258,12 @@
                                     tableNum: self.tableNum,
                                     pos: pos,
                                     xfIndex: isExistId,
-                                },
-                                success: function (data) {
-                                    if (data !== '-1') {
-                                        $(this_).attr('cell_xf', data);
-                                    } else {
-                                        alert('样式服务器同步失败');
-                                    }
+                                }
+                            }).then((data) => {
+                                if (data !== '-1') {
+                                    $(this_).attr('cell_xf', data);
+                                } else {
+                                    alert('样式服务器同步失败');
                                 }
                             });
                         }
@@ -281,13 +279,12 @@
                                 tableNum: self.tableNum,
                                 pos: pos,
                                 value: cell_xf,
-                            },
-                            success: function (data) {
-                                let cssstr = createCss(data, cell_xf);
-                                $('style[td_css_list]').append(cssstr);
-                                $(this_).attr('cell_xf', data);
-                                getCellXfCollection[data] = cell_xf;
                             }
+                        }).then((data) => {
+                            let cssstr = createCss(data, cell_xf);
+                            $('style[td_css_list]').append(cssstr);
+                            $(this_).attr('cell_xf', data);
+                            getCellXfCollection[data] = cell_xf;
                         });
                     }
                 }
@@ -353,23 +350,22 @@
                                 fileId: self.fileId,
                                 tableNum: self.tableNum,
                                 pos: pos
-                            },
-                            success: function (data) {
-                                if (data !== '-1') {
-                                    $(this_).attr('colspan', '');
-                                    $(this_).attr('rowspan', '');
-                                    $(this_).removeClass('mergeTd');
+                            }
+                        }).then((data) => {
+                            if (data !== '-1') {
+                                $(this_).attr('colspan', '');
+                                $(this_).attr('rowspan', '');
+                                $(this_).removeClass('mergeTd');
 
-                                    let tableDom = alldoms['appMain' + self.tableNum].table;
-                                    for (let i = hang; i < hang + rowspan; i++) {
-                                        let hangTr = tableDom.find('tr[hang=' + i + ']');
-                                        for (let j = lie; j < lie + colspan; j++) {
-                                            hangTr.find('[lie=' + j + ']').show();
-                                        }
+                                let tableDom = alldoms['appMain' + self.tableNum].table;
+                                for (let i = hang; i < hang + rowspan; i++) {
+                                    let hangTr = tableDom.find('tr[hang=' + i + ']');
+                                    for (let j = lie; j < lie + colspan; j++) {
+                                        hangTr.find('[lie=' + j + ']').show();
                                     }
-                                } else {
-                                    alert('样式服务器同步失败');
                                 }
+                            } else {
+                                alert('样式服务器同步失败');
                             }
                         });
                     } else {
@@ -389,23 +385,22 @@
                                 bottom: bottom,
                                 left: left,
                                 right: right,
-                            },
-                            success: function (data) {
-                                if (data !== '-1') {
-                                    //全部都隐藏
-                                    $(this_).css('display', 'none')
-                                        .removeClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
-                                    //只有第一个显示
-                                    $(this_).eq(0).show()
-                                        .addClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
-                                    $(this_).eq(0).attr('rowspan', bottom - top + 1);
-                                    $(this_).eq(0).attr('colspan', right - left + 1);
-                                    var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
-                                    tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;
-                                    $('.toolsContent [data-name=' + actionType + ']').addClass('active');
-                                } else {
-                                    alert('样式服务器同步失败');
-                                }
+                            }
+                        }).then((data) => {
+                            if (data !== '-1') {
+                                //全部都隐藏
+                                $(this_).css('display', 'none')
+                                    .removeClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
+                                //只有第一个显示
+                                $(this_).eq(0).show()
+                                    .addClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
+                                $(this_).eq(0).attr('rowspan', bottom - top + 1);
+                                $(this_).eq(0).attr('colspan', right - left + 1);
+                                var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
+                                tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;
+                                $('.toolsContent [data-name=' + actionType + ']').addClass('active');
+                            } else {
+                                alert('样式服务器同步失败');
                             }
                         });
                     }

@@ -184,7 +184,7 @@
         //}
     }
 
-    function selectTd2(temp,activeId) {
+    function selectTd2(temp, activeId) {
         if (temp !== window && !$(temp).is('.mergeTd')) {
             //不能拆分
             $('.toolsContent [data-name=tdMerge]').removeClass('active');
@@ -462,11 +462,10 @@
                                         'tableNum': this_.tableNum,
                                         'lienum': lienum,
                                         'width': (width / 10).toFixed(1)
-                                    },
-                                    success: function (data) {
-                                        $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
-                                        $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                     }
+                                }).then((data) => {
+                                    $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
+                                    $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
                                 });
                             }
                         });
@@ -507,9 +506,9 @@
                                         'row': hangnum,
 
                                         'height': parseInt(height)
-                                    },
-                                    success: function (data) {
                                     }
+                                }).then(() => {
+
                                 });
                             }
                         });
@@ -527,13 +526,12 @@
                             function: 'tableAdd',
                             fileId: this.fileId,
                             title: name,
-                        },
-                        success: function (data) {
-                            if (data === -2) {
-                                alert('工作表名称已存在');
-                            } else if (data === 1) {
-                                location.href = location.href;//很多情况下无法刷新
-                            }
+                        }
+                    }).then((data) => {
+                        if (data === -2) {
+                            alert('工作表名称已存在');
+                        } else if (data === 1) {
+                            location.href = location.href;//很多情况下无法刷新
                         }
                     });
                 }
@@ -605,7 +603,7 @@
                 if (!$(eventDom).is('.idNum')) {
                     setTdSelectState.call(eventDom);
                     this.selectTd($(eventDom).attr('cell_xf'));
-                    selectTd2(eventDom,this.tableNum);
+                    selectTd2(eventDom, this.tableNum);
                 }
             },
             mousedown_temp(event) {
@@ -672,7 +670,7 @@
                         }
                     }
                     this.selectTd(undefined);
-                    selectTd2(window,this.tableNum);
+                    selectTd2(window, this.tableNum);
                 }
             },
             mouseup_temp() {
@@ -710,39 +708,35 @@
         created() {
             var this_ = this;
             ajax({
-                url: 'http://www.tablehub.cn/action/table.html',
                 type: 'POST',
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 data: {
                     function: 'tableInfo',
                     fileId: this_.fileId,
                     temp: 1,
-                },
-                success: function (data) {
-                    this_.title = data.title;
-                    this_.isMyTable = data.isMyTable;
-                    var dataList = data.data;
-                    window.getCellXfCollection = data.style;
-                    //单元格样式
-                    {
-                        let nod = document.createElement("style");
-                        nod.type = "text/css";
-                        $(nod).attr('td_css_list', 1);
-                        let str = "";
-                        for (let i = 0; i < data.style.length; i++) {
-                            str += createCss(i, data.style[i]);
-                        }
-                        if (nod.styleSheet) { //ie下
-                            nod.styleSheet.cssText = str;
-                        } else {
-                            nod.innerHTML = str;
-                        }
-                        document.getElementsByTagName("head")[0].appendChild(nod);
-                    }
-                    this_.rewriteExcel(data.data);
-                    //触发表格完成
-                    readyObj.set(1);
                 }
+            }).then((data) => {
+                this_.title = data.title;
+                this_.isMyTable = data.isMyTable;
+                window.getCellXfCollection = data.style;
+                //单元格样式
+                {
+                    let nod = document.createElement("style");
+                    nod.type = "text/css";
+                    $(nod).attr('td_css_list', 1);
+                    let str = "";
+                    for (let i = 0; i < data.style.length; i++) {
+                        str += createCss(i, data.style[i]);
+                    }
+                    if (nod.styleSheet) { //ie下
+                        nod.styleSheet.cssText = str;
+                    } else {
+                        nod.innerHTML = str;
+                    }
+                    document.getElementsByTagName("head")[0].appendChild(nod);
+                }
+                this_.rewriteExcel(data.data);
+                //触发表格完成
+                readyObj.set(1);
             });
             $('body').click(function () {
                 if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
@@ -763,25 +757,22 @@
 
                         if ($(this).attr('oldValue') !== $(this).val()) {
                             ajax({
-                                url: 'http://www.tablehub.cn/action/table.html',
                                 type: 'POST',
-                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                                 data: {
                                     function: 'updateTdValue',
                                     fileId: this_.fileId,
                                     tableNum: $(this).attr('tableid'),
                                     pos: $(this).attr('pos'),
                                     value: $(this).val()
-                                },
-                                success: function (data) {
-                                    if (data !== '-1') {
-                                        if (getCellTemp($(inputDom).attr('pos'))[0] > alldoms['appMain' + $(inputDom).attr('tableid')].hang) {
-                                            alldoms['appMain' + $(inputDom).attr('tableid')].addHang();
-                                        }
-                                        afterUpdate();
-                                    } else {
-                                        alert('样式服务器同步失败');
+                                }
+                            }).then((data) => {
+                                if (data !== '-1') {
+                                    if (getCellTemp($(inputDom).attr('pos'))[0] > alldoms['appMain' + $(inputDom).attr('tableid')].hang) {
+                                        alldoms['appMain' + $(inputDom).attr('tableid')].addHang();
                                     }
+                                    afterUpdate();
+                                } else {
+                                    alert('样式服务器同步失败');
                                 }
                             });
                         } else {

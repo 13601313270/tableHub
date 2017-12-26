@@ -510,7 +510,7 @@
                 console.log($('#dataFloat .contentText textarea').val());
                 var activeType = $('#dataFloat .head').attr('action_type');
                 if (activeType === 'CHARTS') {
-                    ajax({
+                    var promise = ajax({
                         url: 'http://www.tablehub.cn/action/table.html',
                         type: 'POST',
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -520,40 +520,40 @@
                             tableNum: self.tableNum,
                             chartsIndex: $('#dataFloat .head').attr('chartsIndex'),
                             value: $('#dataFloat .contentText textarea').val().replace(/^=/, '')
-                        },
-                        success: function (data) {
-                            if (data === 1) {
-                                var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
-                                var content = $('#dataFloat .contentText textarea').val().replace(/^=/, '');
-                                var oldObj = allEcharts[self.tableNum][chartsIndex];
-                                oldObj.myChart.clear();
+                        }
+                    });
+                    promise.then((data) => {
+                        if (data === 1) {
+                            var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
+                            var content = $('#dataFloat .contentText textarea').val().replace(/^=/, '');
+                            var oldObj = allEcharts[self.tableNum][chartsIndex];
+                            oldObj.myChart.clear();
 
-                                var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
-                                matchPreg = content.match(matchPreg)[1];
-                                matchPreg = getEvalObj(self.tableNum, '[' + matchPreg + ']', true);
-                                var allTemp = ({
-                                    'PIE': ['title', 'XtdLists', 'valueTdLists'],
-                                    'BAR': ['title', 'XtdLists', 'valueTdLists'],
-                                    'LINE': ['title', 'XtdLists', 'valueTdLists'],
-                                })[oldObj.className];
-                                for (let proNum = 0; proNum < allTemp.length; proNum++) {
-                                    var title = allTemp[proNum];
-                                    if (oldObj[title] !== matchPreg[proNum]) {
-                                        if (oldObj[title] instanceof obj) {
-                                            oldObj[title].unBind(oldObj);
-                                        }
-                                        oldObj[title] = matchPreg[proNum];
-                                        if (matchPreg[proNum] instanceof obj) {
-                                            oldObj[title].bind(oldObj);
-                                        }
+                            var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
+                            matchPreg = content.match(matchPreg)[1];
+                            matchPreg = getEvalObj(self.tableNum, '[' + matchPreg + ']', true);
+                            var allTemp = ({
+                                'PIE': ['title', 'XtdLists', 'valueTdLists'],
+                                'BAR': ['title', 'XtdLists', 'valueTdLists'],
+                                'LINE': ['title', 'XtdLists', 'valueTdLists'],
+                            })[oldObj.className];
+                            for (let proNum = 0; proNum < allTemp.length; proNum++) {
+                                var title = allTemp[proNum];
+                                if (oldObj[title] !== matchPreg[proNum]) {
+                                    if (oldObj[title] instanceof obj) {
+                                        oldObj[title].unBind(oldObj);
+                                    }
+                                    oldObj[title] = matchPreg[proNum];
+                                    if (matchPreg[proNum] instanceof obj) {
+                                        oldObj[title].bind(oldObj);
                                     }
                                 }
-                                //渲染
-                                oldObj.render();
-                                $('#dataFloat').hide();
-                            } else {
-                                alert('样式服务器同步失败');
                             }
+                            //渲染
+                            oldObj.render();
+                            $('#dataFloat').hide();
+                        } else {
+                            alert('样式服务器同步失败');
                         }
                     });
                 }
@@ -569,23 +569,22 @@
                             pos: $('#dataFloat .head').html(),
                             xfIndex: xfIndex,
                             value: $('#dataFloat .contentText textarea').val()
-                        },
-                        success: function (data) {
-                            if (data === 1) {
-                                let tableNum = self.tableNum;
-                                let pos = $('#dataFloat .head').html();
-                                tdData[tableNum].tableData[pos] = {
-                                    value: $('#dataFloat .contentText textarea').val(),
-                                    xfIndex: xfIndex
-                                };
-                                writeTd(tableNum, pos, tdData[tableNum].tableData[pos].value, tdData[tableNum].tableData[pos].xfIndex);
-                                $('#dataFloat').hide();
-                                if (getCellTemp(pos)[0] > alldoms['appMain' + tableNum].hang) {
-                                    alldoms['appMain' + tableNum].addHang();
-                                }
-                            } else {
-                                alert('样式服务器同步失败');
+                        }
+                    }).then((data) => {
+                        if (data === 1) {
+                            let tableNum = self.tableNum;
+                            let pos = $('#dataFloat .head').html();
+                            tdData[tableNum].tableData[pos] = {
+                                value: $('#dataFloat .contentText textarea').val(),
+                                xfIndex: xfIndex
+                            };
+                            writeTd(tableNum, pos, tdData[tableNum].tableData[pos].value, tdData[tableNum].tableData[pos].xfIndex);
+                            $('#dataFloat').hide();
+                            if (getCellTemp(pos)[0] > alldoms['appMain' + tableNum].hang) {
+                                alldoms['appMain' + tableNum].addHang();
                             }
+                        } else {
+                            alert('样式服务器同步失败');
                         }
                     });
                 }
@@ -663,13 +662,12 @@
                                 tableNum: $(this).attr('tableid'),
                                 pos: $(this).attr('pos'),
                                 value: $(this).val()
-                            },
-                            success: function (data) {
-                                if (data === 1) {
-                                    turnNewTD();
-                                } else {
-                                    alert('样式服务器同步失败');
-                                }
+                            }
+                        }).then((data) => {
+                            if (data === 1) {
+                                turnNewTD();
+                            } else {
+                                alert('样式服务器同步失败');
                             }
                         });
                     } else {
