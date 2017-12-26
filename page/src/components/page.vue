@@ -128,10 +128,10 @@
             }
             if (typeof(lieNum) === 'number') {
                 if (this.tdList[hangNum][lieNum - 1] === undefined) {
-                    this.tdList[hangNum][lieNum - 1] = new td(this.tableId, positionStr);
+                    this.tdList[hangNum][lieNum - 1] = new td(this.tableId, positionStr,dom('appMain' + this.tableId));
                 }
             } else {
-                return new td(this.tableId, positionStr);
+                return new td(this.tableId, positionStr,dom('appMain' + this.tableId));
             }
             return this.tdList[hangNum][lieNum - 1];
         }

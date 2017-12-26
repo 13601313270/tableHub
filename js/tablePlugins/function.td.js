@@ -9,7 +9,7 @@ function tdValueList(value) {
 
 tdValueList.prototype = new obj('tdValueList');
 
-function td(tableId, positionStr) {
+function td(tableId, positionStr, table) {
     allTD['td:' + tableId + '!' + positionStr] = this;
     this.tableId = tableId;
     this.bindEvent = [];
@@ -20,7 +20,7 @@ function td(tableId, positionStr) {
     }
     this.tdName = positionStr;//字符串名称入(B1)
     var tdPos = getCellTemp(positionStr);
-    this.table = dom('appMain' + tableId);
+    this.table = table;
     this.hang = tdPos[0];
     this.lie = tdPos[1];
     this.xfIndex = 0;
@@ -393,7 +393,7 @@ function td(tableId, positionStr) {
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
                             if (allTD['td:' + this.tableId + '!' + tdPos] == undefined) {
-                                var tdTemp = new td(this.tableId, tdPos);
+                                var tdTemp = new td(this.tableId, tdPos,dom('appMain' + this.tableId));
                             } else {
                                 var tdTemp = allTD['td:' + this.tableId + '!' + tdPos];
                             }
@@ -460,7 +460,7 @@ __allMatch__.push({
         if (allTD['td:' + tableNum + '!' + word]) {
             return allTD['td:' + tableNum + '!' + word];
         } else {
-            return new td(tableNum, word);
+            return new td(tableNum, word,dom('appMain' + tableNum));
         }
     }
 });

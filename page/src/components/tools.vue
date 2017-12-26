@@ -341,9 +341,6 @@
                         let hang = $(this_).attr('hang');
                         let rowspan = $(this_).attr('rowspan');
 
-
-
-
                         ajax({
                             type: 'POST',
                             data: {
