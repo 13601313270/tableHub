@@ -22,7 +22,7 @@
             </div>
         </div>
         <bottom></bottom>
-        <dataFloat :fileId="this.fileId" :table-num="this.tableNum"></dataFloat>
+        <dataFloat :fileId="this.fileId" :table-num="this.tableNum" @change="changeTd"></dataFloat>
         <wrapper></wrapper>
     </div>
 </template>
@@ -675,6 +675,12 @@
             },
             mouseup_temp() {
                 isSelectDoms = false;
+            },
+            changeTd(td) {
+                let {tableNum, pos, value, xfIndex} = td;
+                if (getCellTemp(pos)[0] > alldoms['appMain' + tableNum].hang) {
+                    alldoms['appMain' + tableNum].addHang();
+                }
             }
         },
         data: function () {
@@ -698,8 +704,7 @@
                     alignment: {
                         horizontal: 'general'
                     }
-                }
-                ,
+                },
             }
         },
         components: {
@@ -711,12 +716,12 @@
                 type: 'POST',
                 data: {
                     function: 'tableInfo',
-                    fileId: this_.fileId,
+                    fileId: this.fileId,
                     temp: 1,
                 }
             }).then((data) => {
-                this_.title = data.title;
-                this_.isMyTable = data.isMyTable;
+                this.title = data.title;
+                this.isMyTable = data.isMyTable;
                 window.getCellXfCollection = data.style;
                 //单元格样式
                 {
@@ -734,7 +739,7 @@
                     }
                     document.getElementsByTagName("head")[0].appendChild(nod);
                 }
-                this_.rewriteExcel(data.data);
+                this.rewriteExcel(data.data);
                 //触发表格完成
                 readyObj.set(1);
             });

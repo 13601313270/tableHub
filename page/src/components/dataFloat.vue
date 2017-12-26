@@ -507,7 +507,6 @@
                         xfIndex = input.val();
                     }
                 }
-                console.log($('#dataFloat .contentText textarea').val());
                 var activeType = $('#dataFloat .head').attr('action_type');
                 if (activeType === 'CHARTS') {
                     var promise = ajax({
@@ -559,9 +558,7 @@
                 }
                 else {
                     ajax({
-                        url: 'http://www.tablehub.cn/action/table.html',
                         type: 'POST',
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                         data: {
                             'function': 'updateTdValue',
                             fileId: self.fileId,
@@ -580,9 +577,12 @@
                             };
                             writeTd(tableNum, pos, tdData[tableNum].tableData[pos].value, tdData[tableNum].tableData[pos].xfIndex);
                             $('#dataFloat').hide();
-                            if (getCellTemp(pos)[0] > alldoms['appMain' + tableNum].hang) {
-                                alldoms['appMain' + tableNum].addHang();
-                            }
+                            self.$emit('change', {
+                                tableNum: tableNum,
+                                pos: pos,
+                                value: tdData[tableNum].tableData[pos].value,
+                                xfIndex: tdData[tableNum].tableData[pos].xfIndex
+                            });
                         } else {
                             alert('样式服务器同步失败');
                         }
@@ -615,12 +615,14 @@
                     let inputDom = this;
                     let tableId = $(inputDom).attr('tableid');
                     let posId = $(inputDom).attr('pos');
-                    console.log(posId);
 
                     function turnNewTD() {
-                        if (getCellTemp(posId)[0] > alldoms['appMain' + tableId].hang) {
-                            alldoms['appMain' + tableId].addHang();
-                        }
+                        self.$emit('change', {
+                            tableNum: tableId,
+                            pos: posId,
+                            value: $(inputDom).val(),
+                            xfIndex: $(inputDom).attr('cell_xf')
+                        });
                         writeTd(tableId,
                             posId,
                             $(inputDom).val(),
@@ -630,7 +632,6 @@
                         $(inputDom).removeAttr('cell_xf');
                         $(inputDom).val('');
                         $(inputDom).parent().hide();
-                        console.log(posId);
                         let temp = getCellTemp(posId);
                         if (e.key === 'Enter') {
 
@@ -644,9 +645,7 @@
                                 $(rightDom).trigger('dblclick');
                             } else {
                                 rightDom = new td(tableId, getCellTemp2(temp[0], temp[1]));
-
                             }
-                            console.log(rightDom);
                             $(rightDom).trigger('dblclick');
                         }
                     }

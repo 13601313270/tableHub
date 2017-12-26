@@ -341,10 +341,11 @@
                         let hang = $(this_).attr('hang');
                         let rowspan = $(this_).attr('rowspan');
 
+
+
+
                         ajax({
-                            url: 'http://www.tablehub.cn/action/table.html',
                             type: 'POST',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                             data: {
                                 'function': 'mergeCancel',
                                 fileId: self.fileId,
@@ -357,7 +358,7 @@
                                 $(this_).attr('rowspan', '');
                                 $(this_).removeClass('mergeTd');
 
-                                let tableDom = alldoms['appMain' + self.tableNum].table;
+                                let tableDom = $(this_).parents('tbody');
                                 for (let i = hang; i < hang + rowspan; i++) {
                                     let hangTr = tableDom.find('tr[hang=' + i + ']');
                                     for (let j = lie; j < lie + colspan; j++) {
