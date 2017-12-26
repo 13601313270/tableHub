@@ -15,7 +15,7 @@ function td(tableId, positionStr) {
     this.bindEvent = [];
     this.listening = [];
     this.state = 0;//0正常,1锁定
-    if (positionStr == '=') {
+    if (positionStr === '=') {
         positionStr = 'A1';
     }
     this.tdName = positionStr;//字符串名称入(B1)
@@ -24,7 +24,7 @@ function td(tableId, positionStr) {
     this.hang = tdPos[0];
     this.lie = tdPos[1];
     this.xfIndex = 0;
-    this.dom = this.table.table.find('>tbody').find('>tr').eq(this.hang - 1).find('>td').eq(this.lie - 1);//this.table.table.find('>tbody').find('>tr').eq(this.hang-1).find('>td').eq(this.lie-1);
+    this.dom = this.table.table.find('>tbody').find('>tr').eq(this.hang - 1).find('>td').eq(this.lie - 1);
     this.dom.data('obj', this);
     this.getNearFenshu = function (num, wei) {
         var numList = num.toString().split('.');
@@ -32,9 +32,9 @@ function td(tableId, positionStr) {
         var nearHalf = [0, 1];
 
         var weishuEnd = 10;
-        if (wei == 2) {
+        if (wei === 2) {
             weishuEnd = 100;
-        } else if (wei == 3) {
+        } else if (wei === 3) {
             weishuEnd = 1000;
         }
         for (var fenmu = 1; fenmu < weishuEnd; fenmu++) {
@@ -43,7 +43,7 @@ function td(tableId, positionStr) {
             var half = 0;
             while (true) {
                 half = begin + parseInt((end - begin) / 2);
-                if (half / fenmu == num) {
+                if (half / fenmu === num) {
                     begin = half;
                     end = half;
                     break;
@@ -57,19 +57,19 @@ function td(tableId, positionStr) {
                     break;
                 }
             }
-            if (half / fenmu == num) {
+            if (half / fenmu === num) {
                 nearHalf = [half, fenmu];
                 break;
             }
-            if (begin / fenmu == num) {
+            if (begin / fenmu === num) {
                 nearHalf = [begin, fenmu];
                 break;
             }
-            if (end / fenmu == num) {
+            if (end / fenmu === num) {
                 nearHalf = [end, fenmu];
                 break;
             }
-            if (wei == 1 || (wei == 2 && fenmu >= 10) || (wei == 3 && fenmu >= 100)) {
+            if (wei === 1 || (wei === 2 && fenmu >= 10) || (wei === 3 && fenmu >= 100)) {
                 if (Math.abs(end / fenmu - num) < Math.abs(nearHalf[0] / nearHalf[1] - num)) {
                     nearHalf = [end, fenmu];
                 }
@@ -380,9 +380,9 @@ function td(tableId, positionStr) {
                 getValue = getValue_.get();
             }
             if (getValue instanceof Array) {
-                for (var i = 0; i < getValue.length; i++) {
-                    for (var j = 0; j < getValue[i].length; j++) {
-                        if (i == 0 && j == 0) {
+                for (let i = 0; i < getValue.length; i++) {
+                    for (let j = 0; j < getValue[i].length; j++) {
+                        if (i === 0 && j === 0) {
                             var valueArr = this.formatCode(getValue[i][j]);
                             var insertHtml = '<div class="tdInsertDiv">' +
                                 '<div>' + valueArr[0] + '</div>' +
@@ -422,7 +422,7 @@ function td(tableId, positionStr) {
         this.cssStyle = style;
     };
     this.set = function (value) {
-        if (typeof value == 'string') {
+        if (typeof value === 'string') {
             if (value.match(/^\d+$/) !== null) {
                 value = parseInt(value);
             } else if (value.match(/^\d+\.\d+$/) !== null) {
@@ -432,8 +432,8 @@ function td(tableId, positionStr) {
         if (value instanceof Array) {
             var insertHang = this.hang;
             var insertLie = this.lie;
-            for (var i = 0; i < value.length; i++) {
-                for (var j = 0; j < value[i].length; j++) {
+            for (let i = 0; i < value.length; i++) {
+                for (let j = 0; j < value[i].length; j++) {
                     this.table.td(insertHang + i, insertLie + j).value(value[i][j]);
                 }
             }
@@ -496,10 +496,10 @@ function tdList(begin, end) {
     this.state = 0;//0正常,1锁定
     //以行为一级的二维数组
     this.getHangList = function () {
-        var returnList = [];
-        for (var i = this.begin.hang; i <= this.end.hang; i++) {
+        let returnList = [];
+        for (let i = this.begin.hang; i <= this.end.hang; i++) {
             returnList[i - this.begin.hang] = [];
-            for (var j = this.begin.lie; j <= this.end.lie; j++) {
+            for (let j = this.begin.lie; j <= this.end.lie; j++) {
                 if (allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)] !== undefined) {
                     returnList[i - this.begin.hang].push(allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)].get());
                 }
@@ -509,10 +509,10 @@ function tdList(begin, end) {
     };
     //以列为一级的二维数组
     this.getLieList = function () {
-        var returnList = [];
-        for (var j = this.begin.lie; j <= this.end.lie; j++) {
+        let returnList = [];
+        for (let j = this.begin.lie; j <= this.end.lie; j++) {
             returnList[j - this.begin.lie] = [];
-            for (var i = this.begin.hang; i <= this.end.hang; i++) {
+            for (let i = this.begin.hang; i <= this.end.hang; i++) {
                 if (allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)] !== undefined) {
                     returnList[j - this.begin.lie].push(allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)].get());
                 }
@@ -521,9 +521,9 @@ function tdList(begin, end) {
         return returnList;
     };
     this.get = function () {
-        var returnList = [];
-        for (var i = this.begin.hang; i <= this.end.hang; i++) {
-            for (var j = this.begin.lie; j <= this.end.lie; j++) {
+        let returnList = [];
+        for (let i = this.begin.hang; i <= this.end.hang; i++) {
+            for (let j = this.begin.lie; j <= this.end.lie; j++) {
                 if (allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)] !== undefined) {
                     returnList.push(allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)].get());
                 } else {

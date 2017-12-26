@@ -175,7 +175,6 @@
         </div>
         <div class="action">
             <input type="button" class="btn save" value="确定"/>
-            <input type="button" class="btn copyTo" value="复制到" @click="copyTo"/>
         </div>
     </div>
 </template>
@@ -425,25 +424,7 @@
         $('#dataFloat').removeClass('floatSingleValue');
     }
     export default {
-        methods: {
-            copyTo() {
-                let cellId = prompt('请输入表格位置');
-                if (cellId !== null) {
-                    let newPos = getCellTemp(cellId);
-                    $('body .edit td').removeClass('editTd');
-                    $('body .edit td').removeClass('editTdtop');
-                    $('body .edit td').removeClass('editTdbottom');
-                    $('body .edit td').removeClass('editTdleft');
-                    $('body .edit td').removeClass('editTdright');
-                    dom('appMain').td(newPos[0], newPos[1]).dom.addClass('editTd');
-                    dom('appMain').td(newPos[0], newPos[1]).dom.addClass('editTdtop');
-                    dom('appMain').td(newPos[0], newPos[1]).dom.addClass('editTdbottom');
-                    dom('appMain').td(newPos[0], newPos[1]).dom.addClass('editTdleft');
-                    dom('appMain').td(newPos[0], newPos[1]).dom.addClass('editTdright');
-                    $('#dataFloat>.head').html(cellId);
-                }
-            }
-        },
+        methods: {},
         props: ['fileId', 'table-num'],
         mounted() {
             var self = this;
