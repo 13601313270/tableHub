@@ -48,6 +48,20 @@
     import Vue from 'vue'
     import echarts from 'echarts'
     import setTdSelectState from '@/tools/setTdSelectState.js';
+    // else if (word === '!') {
+    //     var tdNum = 0;
+    //     for (var i = 0; i < tdData.length; i++) {
+    //         if (tdData[i].tableTitle === baseWord) {
+    //             tdNum = i;
+    //         }
+    //     }
+    //     if (typeof tdNum === 'number') {
+    //         baseWord = alldoms['appMain' + tdNum].findChild(forword());
+    //     } else {
+    //         console.log('叹号!');
+    //         console.log(baseWord);
+    //     }
+    // }
 
     //表
     function tableClass(tableId, hang, lie, dom) {
@@ -267,8 +281,9 @@
         name: 'page',
         methods: {
             fx(obj) {
-                console.log(this.$refs.float);
-                this.$refs.float.initFloatDom(obj.td, obj.tableNum);
+                var selectPos = getCellTemp2(parseInt($(obj.td).attr('hang')), parseInt($(obj.td).attr('lie')));
+                var tempValue = alldoms['appMain' + obj.tableNum].findChild(selectPos).value_;
+                this.$refs.float.initFloatDom(obj.td, obj.tableNum, tempValue);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
                 var thisTd = alldoms['appMain' + tableNum].findChild(tdPos);
@@ -854,7 +869,6 @@
                 var activeId = this_.tableNum;
                 var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
                 var tempValue = alldoms['appMain' + activeId].findChild(selectPos).value_;
-                console.log(tempValue);
                 if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
                     //计算宽度
                     function getTrueWidth(str, xf) {
@@ -888,7 +902,7 @@
                     });
                     inputTd.find('input').focus();
                 } else {
-                    this_.$refs.float.initFloatDom(this, this_.tableNum);
+                    this_.$refs.float.initFloatDom(this, activeId, tempValue);
                 }
             });
 

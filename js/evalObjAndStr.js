@@ -148,7 +148,7 @@ function getEvalObj(tableNum, str, isBind) {
     }
 
     function a(endstrArr) {
-        var baseWord = [];
+        var baseWord = null;
         while (true) {
             maxLen--;
             if (forwordStrNum > str.length - 1 || maxLen <= 0) {
@@ -244,10 +244,10 @@ function getEvalObj(tableNum, str, isBind) {
                 if (baseWord.tableId === end.tableId) {
                     var resultList = new tdList(baseWord, end);
                     var tableId = baseWord.tableId;
-                    for (var i = baseWord.hang; i <= end.hang; i++) {
-                        for (var j = baseWord.lie; j <= end.lie; j++) {
+                    for (let i = baseWord.hang; i <= end.hang; i++) {
+                        for (let j = baseWord.lie; j <= end.lie; j++) {
                             var tdStr = getCellTemp2(i, j);
-                            var bindTemp = alldoms['appMain' + tableId].findChild(tdStr);
+                            var bindTemp = baseWord.table.findChild(tdStr);
                             if (isBind) {
                                 bindTemp.bind(resultList);
                             }
@@ -315,25 +315,11 @@ function getEvalObj(tableNum, str, isBind) {
             else if (word === ')') {
                 return baseWord;
             }
-            else if (word === '!') {
-                var tdNum = 0;
-                for (var i = 0; i < tdData.length; i++) {
-                    if (tdData[i].tableTitle === baseWord) {
-                        tdNum = i;
-                    }
-                }
-                if (typeof tdNum === 'number') {
-                    baseWord = alldoms['appMain' + tdNum].findChild(forword());
-                } else {
-                    console.log('叹号!');
-                    console.log(baseWord);
-                }
-            }
             else {
                 var matchObj = null;
                 for (let i = 0; i < __allMatch__.length; i++) {
                     if (word.match(__allMatch__[i].match)) {
-                        matchObj = __allMatch__[i].value(tableNum, word);
+                        matchObj = __allMatch__[i].value(tableNum, word, baseWord);
                         break;
                     }
                 }
@@ -361,101 +347,4 @@ function getEvalObj(tableNum, str, isBind) {
     }
 
     return a();
-}
-
-function getStrByEvalObj(tableNum, beRunObj) {
-    var returnStr = '';
-    if (beRunObj instanceof td) {
-        if (beRunObj.tableId === tableNum) {
-            return getCellTemp2(beRunObj.hang, beRunObj.lie);
-        } else {
-            return beRunObj.tableId + '!' + getCellTemp2(beRunObj.hang, beRunObj.lie);
-        }
-    } else if (beRunObj instanceof __runObj__) {
-        var saveParams = window[beRunObj.className].config.save(beRunObj);
-        var tempArr = [];
-        if (saveParams.length > 0) {
-            for (var i = 0; i < saveParams.length; i++) {
-                if (saveParams[i] instanceof obj) {
-                    tempArr[i] = getStrByEvalObj(tableNum, saveParams[i]);
-                } else {
-                    tempArr[i] = saveParams[i];
-                }
-            }
-        }
-        if (beRunObj.funcName) {
-            if (beRunObj.runObj !== window) {
-                if (beRunObj.runObj.funcName === '') {
-                    return '(' + getStrByEvalObj(tableNum, beRunObj.runObj) + ').' + beRunObj.funcName + '(' + tempArr.join('') + ')';
-                } else {
-                    return getStrByEvalObj(tableNum, beRunObj.runObj) + '.' + beRunObj.funcName + '(' + tempArr.join('') + ')';
-                }
-            } else {
-                return beRunObj.funcName + '(' + tempArr.join('') + ')';
-            }
-        } else {
-            return tempArr.join('');
-        }
-    } else if (beRunObj instanceof obj) {
-        var saveParams = window[beRunObj.className].config.save(beRunObj);
-        if (saveParams.length > 0) {
-            for (var i = 0; i < saveParams.length; i++) {
-                if (saveParams[i] instanceof obj) {
-                    saveParams[i] = getStrByEvalObj(tableNum, saveParams[i]);
-                } else if (typeof saveParams[i] == 'string') {
-                    saveParams[i] = '"' + saveParams[i] + '"';
-                }
-            }
-        }
-        return beRunObj.className + '(' + saveParams.join(',') + ')';
-    } else if (typeof beRunObj == 'object' && beRunObj.name) {//此对象是编辑器dataFloat的getSaveObj方法产生的临时对象
-        if (beRunObj.name == '=') {
-            return beRunObj.params[0];
-        } else if (beRunObj.name == 'td') {
-            if (beRunObj.params[0] == undefined || beRunObj.params[0] == tableNum) {
-                returnStr += beRunObj.params[1];
-            } else {
-                if (beRunObj.params[0].match(/[\+|\-|\*|\/\.]/) == null) {
-                    returnStr += beRunObj.params[0] + '!' + beRunObj.params[1];
-                } else {
-                    returnStr += "'" + beRunObj.params[0] + '\'!' + beRunObj.params[1];
-                }
-            }
-        } else if (beRunObj.name == 'tdList') {
-            returnStr += getStrByEvalObj(tableNum, beRunObj.params[0]);
-            returnStr += ':';
-            returnStr += getStrByEvalObj(tableNum, beRunObj.params[1]);
-        } else {
-            returnStr += beRunObj.name + '(';
-            for (var i = 0; i < beRunObj.params.length; i++) {
-                if (i != 0) {
-                    returnStr += ',';
-                }
-                if (typeof beRunObj.params[i] == 'string') {
-                    returnStr += '"' + beRunObj.params[i] + '"';
-                } else if (typeof beRunObj.params[i] == 'number') {
-                    returnStr += beRunObj.params[i];
-                } else if (beRunObj.params[i] instanceof Array) {
-                    returnStr += '[';
-                    for (var j = 0; j < beRunObj.params[i].length; j++) {
-                        if (j != 0) {
-                            returnStr += ',';
-                        }
-                        if (beRunObj.params[i][j] instanceof obj || typeof beRunObj.params[i][j] == 'object') {
-                            returnStr += getStrByEvalObj(tableNum, beRunObj.params[i][j]);
-                        } else if (typeof beRunObj.params[i][j] == 'string') {
-                            returnStr += '"' + getStrByEvalObj(tableNum, beRunObj.params[i][j]) + '"';
-                        }
-                    }
-                    returnStr += ']';
-                } else {
-                    returnStr += getStrByEvalObj(tableNum, beRunObj.params[i]);
-                }
-            }
-            returnStr += ')';
-        }
-        return returnStr;
-    } else {
-        return beRunObj;
-    }
 }

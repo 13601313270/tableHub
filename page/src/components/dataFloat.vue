@@ -154,6 +154,103 @@
     import ajax from '@/tools/ajax.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
+    function getStrByEvalObj(tableNum, beRunObj) {
+        var returnStr = '';
+        if (beRunObj instanceof td) {
+            if (beRunObj.tableId === tableNum) {
+                return getCellTemp2(beRunObj.hang, beRunObj.lie);
+            } else {
+                return beRunObj.tableId + '!' + getCellTemp2(beRunObj.hang, beRunObj.lie);
+            }
+        } else if (beRunObj instanceof __runObj__) {
+            var saveParams = window[beRunObj.className].config.save(beRunObj);
+            var tempArr = [];
+            if (saveParams.length > 0) {
+                for (let i = 0; i < saveParams.length; i++) {
+                    if (saveParams[i] instanceof obj) {
+                        tempArr[i] = getStrByEvalObj(tableNum, saveParams[i]);
+                    } else {
+                        tempArr[i] = saveParams[i];
+                    }
+                }
+            }
+            if (beRunObj.funcName) {
+                if (beRunObj.runObj !== window) {
+                    if (beRunObj.runObj.funcName === '') {
+                        return '(' + getStrByEvalObj(tableNum, beRunObj.runObj) + ').' + beRunObj.funcName + '(' + tempArr.join('') + ')';
+                    } else {
+                        return getStrByEvalObj(tableNum, beRunObj.runObj) + '.' + beRunObj.funcName + '(' + tempArr.join('') + ')';
+                    }
+                } else {
+                    return beRunObj.funcName + '(' + tempArr.join('') + ')';
+                }
+            } else {
+                return tempArr.join('');
+            }
+        } else if (beRunObj instanceof obj) {
+            var saveParams = window[beRunObj.className].config.save(beRunObj);
+            if (saveParams.length > 0) {
+                for (var i = 0; i < saveParams.length; i++) {
+                    if (saveParams[i] instanceof obj) {
+                        saveParams[i] = getStrByEvalObj(tableNum, saveParams[i]);
+                    } else if (typeof saveParams[i] === 'string') {
+                        saveParams[i] = '"' + saveParams[i] + '"';
+                    }
+                }
+            }
+            return beRunObj.className + '(' + saveParams.join(',') + ')';
+        } else if (typeof beRunObj === 'object' && beRunObj.name) {//此对象是编辑器dataFloat的getSaveObj方法产生的临时对象
+            if (beRunObj.name === '=') {
+                return beRunObj.params[0];
+            } else if (beRunObj.name === 'td') {
+                if (beRunObj.params[0] === undefined || beRunObj.params[0] === tableNum) {
+                    returnStr += beRunObj.params[1];
+                } else {
+                    if (beRunObj.params[0].match(/[\+|\-|\*|\/\.]/) == null) {
+                        returnStr += beRunObj.params[0] + '!' + beRunObj.params[1];
+                    } else {
+                        returnStr += "'" + beRunObj.params[0] + '\'!' + beRunObj.params[1];
+                    }
+                }
+            } else if (beRunObj.name === 'tdList') {
+                returnStr += getStrByEvalObj(tableNum, beRunObj.params[0]);
+                returnStr += ':';
+                returnStr += getStrByEvalObj(tableNum, beRunObj.params[1]);
+            } else {
+                returnStr += beRunObj.name + '(';
+                for (let i = 0; i < beRunObj.params.length; i++) {
+                    if (i !== 0) {
+                        returnStr += ',';
+                    }
+                    if (typeof beRunObj.params[i] === 'string') {
+                        returnStr += '"' + beRunObj.params[i] + '"';
+                    } else if (typeof beRunObj.params[i] === 'number') {
+                        returnStr += beRunObj.params[i];
+                    } else if (beRunObj.params[i] instanceof Array) {
+                        returnStr += '[';
+                        for (let j = 0; j < beRunObj.params[i].length; j++) {
+                            if (j !== 0) {
+                                returnStr += ',';
+                            }
+                            if (beRunObj.params[i][j] instanceof obj || typeof beRunObj.params[i][j] === 'object') {
+                                returnStr += getStrByEvalObj(tableNum, beRunObj.params[i][j]);
+                            } else if (typeof beRunObj.params[i][j] === 'string') {
+                                returnStr += '"' + getStrByEvalObj(tableNum, beRunObj.params[i][j]) + '"';
+                            }
+                        }
+                        returnStr += ']';
+                    } else {
+                        returnStr += getStrByEvalObj(tableNum, beRunObj.params[i]);
+                    }
+                }
+                returnStr += ')';
+            }
+            return returnStr;
+        } else {
+            return beRunObj;
+        }
+    }
+
     function _initFloatType(tableid, evalObj, insertDom, select) {
         if (evalObj instanceof __runObj__) {
             var type = evalObj.funcName;
@@ -369,7 +466,7 @@
                 });
                 updateTextareaText(tableNum);
             },
-            initFloatDom(td, activeId) {
+            initFloatDom(td, activeId, tempValue) {
                 var this_ = td;
                 setTdSelectState.call(this_);
                 //看看当前单元格是否有合并
@@ -388,7 +485,6 @@
                         xfIndex: 0,
                     };
                 }
-                var tempValue = alldoms['appMain' + activeId].findChild(selectPos).value_;
                 this.initFloatType2(activeId, tempValue, $('#dataFloat .content'));
                 $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
                 $('#dataFloat').removeClass('floatSingleValue');
@@ -416,32 +512,32 @@
                         };
 
                     }
+                } else if (['true', 'false'].indexOf(func) > -1) {
+                    evalObj = func === 'true';
                 } else {
-                    if (['true', 'false'].indexOf(func) > -1) {
-                        evalObj = func == 'true';
-                    } else {
-                        var configResult = {};
-                        for (var i in window[func].config.params) {
-                            if (window[func].config.params[i].default !== undefined) {
-                                configResult[i] = window[func].config.params[i].default;
-                            } else if (window[func].config.params[i] instanceof Array) {
-                                configResult[i] = [''];
-                            } else {
-                                configResult[i] = '';
-                            }
+                    var configResult = {};
+                    for (var i in window[func].config.params) {
+                        if (window[func].config.params[i].default !== undefined) {
+                            configResult[i] = window[func].config.params[i].default;
+                        } else if (window[func].config.params[i] instanceof Array) {
+                            configResult[i] = [''];
+                        } else {
+                            configResult[i] = '';
                         }
-                        configResult = window[func].config.save(configResult);
-                        if (func === 'td') {
-                            for (let i = 0; i < tdData.length; i++) {
-                                if (tdData[i].tableTitle === configResult[0]) {
-                                    configResult[0] = alldoms['appMain' + i];
-                                }
-                            }
-                        }
-                        var applyArgs = [window].concat(configResult || []);
-                        var temp = Function.prototype.bind.apply(window[func], applyArgs);
-                        evalObj = new temp();
                     }
+                    //configResult 0,1,2    因为下拉框不能是对象
+                    configResult = window[func].config.save(configResult);
+                    //configResult 名称    因为最终存储也走得save
+                    if (func === 'td') {
+                        for (let i = 0; i < tdData.length; i++) {
+                            if (tdData[i].tableTitle === configResult[0]) {
+                                configResult[0] = alldoms['appMain' + i];
+                            }
+                        }
+                    }
+                    var applyArgs = [window].concat(configResult || []);
+                    var temp = Function.prototype.bind.apply(window[func], applyArgs);
+                    evalObj = new temp();
                 }
                 var dom = $(this).parents('.dataBaseItem').eq(0);
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');

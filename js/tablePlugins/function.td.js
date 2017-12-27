@@ -456,9 +456,25 @@ function td(table, positionStr) {
 
 td.prototype = new obj('td');
 __allMatch__.push({
+    match: /^\!$/,
+    value: function (tableNum, word, baseWord) {
+        let searchTableNum = tableNum;
+        for (let i = 0; i < tdData.length; i++) {
+            if (tdData[i].tableTitle === baseWord) {
+                searchTableNum = i;
+            }
+        }
+        return alldoms['appMain' + searchTableNum];
+    }
+});
+__allMatch__.push({
     match: /^[A-Z]+\d+$/,
-    value: function (tableNum, word) {
-        return alldoms['appMain' + tableNum].findChild(word);
+    value: function (tableNum, word, baseWord) {
+        if (baseWord === null) {
+            return alldoms['appMain' + tableNum].findChild(word);
+        } else {
+            return alldoms['appMain' + baseWord.tableId].findChild(word);
+        }
     }
 });
 functionInit(td, '表格项', {
