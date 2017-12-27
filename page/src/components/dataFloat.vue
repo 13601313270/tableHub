@@ -382,7 +382,7 @@
                 $('#dataFloat .head').attr('action_type', 'td');
                 var thisTdData = tdData[activeId].tableData[selectPos];
                 $('#dataFloat').show();
-                if (thisTdData == undefined) {
+                if (thisTdData === undefined) {
                     thisTdData = {
                         'value': '',
                         xfIndex: 0,

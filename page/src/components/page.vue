@@ -139,10 +139,10 @@
             }
             if (typeof(lieNum) === 'number') {
                 if (this.tdList[hangNum][lieNum - 1] === undefined) {
-                    this.tdList[hangNum][lieNum - 1] = new td(dom('appMain' + this.tableId), positionStr);
+                    this.tdList[hangNum][lieNum - 1] = new td(alldoms['appMain' + this.tableId], positionStr);
                 }
             } else {
-                return new td(dom('appMain' + this.tableId), positionStr);
+                return new td(alldoms['appMain' + this.tableId], positionStr);
             }
             return this.tdList[hangNum][lieNum - 1];
         }
