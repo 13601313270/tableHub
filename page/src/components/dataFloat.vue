@@ -437,8 +437,8 @@
                         configResult = window[func].config.save(configResult);
                         if (func === 'td') {
                             for (let i = 0; i < tdData.length; i++) {
-                                if (tdData[i].tableTitle == configResult[0]) {
-                                    configResult[0] = i;
+                                if (tdData[i].tableTitle === configResult[0]) {
+                                    configResult[0] = alldoms['appMain' + i];
                                 }
                             }
                         }

@@ -394,7 +394,7 @@ function td(table, positionStr) {
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
                             if (allTD['td:' + this.tableId + '!' + tdPos] == undefined) {
-                                var tdTemp = new td(dom('appMain' + this.tableId), tdPos);
+                                var tdTemp = new td(this.table, tdPos);
                             } else {
                                 var tdTemp = allTD['td:' + this.tableId + '!' + tdPos];
                             }
