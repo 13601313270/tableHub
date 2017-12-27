@@ -250,7 +250,7 @@ function getEvalObj(tableNum, str, isBind) {
                             if (allTD['td:' + tableId + '!' + tdStr]) {
                                 var bindTemp = allTD['td:' + tableId + '!' + tdStr];
                             } else {
-                                var bindTemp = new td(tableId, tdStr);
+                                var bindTemp = new td(tableId, tdStr, dom('appMain' + tableId));
                             }
                             if (isBind) {
                                 bindTemp.bind(resultList);
@@ -297,7 +297,7 @@ function getEvalObj(tableNum, str, isBind) {
                             }
                         }
                     } else {
-                        if (word == '.') {
+                        if (word === '.') {
                             var oldBase = baseWord;
                             baseWord = new __runObj__(oldBase, funcName, params);
                             if (isBind) {
@@ -316,22 +316,22 @@ function getEvalObj(tableNum, str, isBind) {
                     }
                 }
             }
-            else if (word == ')') {
+            else if (word === ')') {
                 return baseWord;
             }
-            else if (word == '!') {
+            else if (word === '!') {
                 var tdNum = 0;
                 for (var i = 0; i < tdData.length; i++) {
                     if (tdData[i].tableTitle == baseWord) {
                         var tdNum = i;
                     }
                 }
-                if (typeof tdNum == 'number') {
+                if (typeof tdNum === 'number') {
                     var tdStr = forword();
                     if (allTD['td:' + tdNum + '!' + tdStr]) {
                         baseWord = allTD['td:' + tdNum + '!' + tdStr];
                     } else {
-                        baseWord = new td(tdNum, tdStr);
+                        baseWord = new td(tdNum, tdStr, dom('appMain' + tdNum));
                     }
                 } else {
                     console.log('叹号!');

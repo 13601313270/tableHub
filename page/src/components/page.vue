@@ -128,10 +128,10 @@
             }
             if (typeof(lieNum) === 'number') {
                 if (this.tdList[hangNum][lieNum - 1] === undefined) {
-                    this.tdList[hangNum][lieNum - 1] = new td(this.tableId, positionStr,dom('appMain' + this.tableId));
+                    this.tdList[hangNum][lieNum - 1] = new td(this.tableId, positionStr, dom('appMain' + this.tableId));
                 }
             } else {
-                return new td(this.tableId, positionStr,dom('appMain' + this.tableId));
+                return new td(this.tableId, positionStr, dom('appMain' + this.tableId));
             }
             return this.tdList[hangNum][lieNum - 1];
         }
@@ -354,7 +354,6 @@
 //                    var tableItemDom = $('<div class="tab-pane fade" data-tableid="' + table_Num + '" id="table_' + table_Num + '"></div>');
 //                    $('#myTabContent').append(tableItemDom);
 
-
                         var tableDom = $('#myTabContent').find('#table_' + table_Num);
                         //获取宽高
                         var hang = 0;
@@ -369,7 +368,6 @@
                             lie = Math.max(lie, tdPos[1]);
                         }
                         lie = Math.max(lie, 6);//至少补充到6列
-
                         alldoms['appMain' + table_Num] = new tableClass(table_Num, hang, lie, tableDom);
                         alldoms['appMain' + table_Num].render();
                         (function () {
@@ -408,10 +406,19 @@
                         allEcharts[table_Num] = [];
                         if (tableObj.charts !== undefined) {
                             for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
+                                console.log('=====1=====');
                                 let position = tableObj.charts[chartsId].position.split(',');
                                 let size = tableObj.charts[chartsId].size.split(',');
                                 if (tableObj.charts[chartsId].value !== null) {
-                                    let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
+                                    console.log('=====2=====');
+                                    try {
+
+                                        var chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
+                                    } catch (e) {
+                                        console.log(e);
+                                    }
+
+                                    console.log('=====3=====');
                                     $('.allCharts:eq(' + table_Num + ')').append(chartsItem.dom);
                                     chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
                                     chartsItem.top = parseInt(position[0]);
@@ -423,8 +430,10 @@
                                     readyObj.bind(chartsItem);
                                     allEcharts[table_Num][chartsId] = chartsItem;
                                 }
+                                console.log('=====8=====');
                             }
                         }
+
                     }
                     for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
                         for (let i in tdData[table_Num].tableData) {
