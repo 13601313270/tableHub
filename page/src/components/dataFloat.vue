@@ -313,28 +313,6 @@
         })();
     }
 
-    function initFloatType2(tableNum, tempValue, insertDom, select) {
-        _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
-        $('#dataFloat .contentText textarea').keyup(function () {
-            tempValue = $(this).val();
-            if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
-                let temp = tempValue.match(/=(.+)$/);
-                let evalObj = getEvalObj(tableNum, temp[1], false);
-                _initFloatType(tableNum, evalObj, $('#dataFloat .content'));
-            } else {
-                _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
-            }
-        });
-        $('#dataFloat>.content').on('keyup', 'input', function (e) {
-            updateTextareaText(tableNum);
-        });
-
-        $('#dataFloat>.content').on('change', '[name=value]', function () {
-            updateTextareaText(tableNum);
-        });
-        updateTextareaText(tableNum);
-    }
-
     function updateTextareaText(tableId) {
         let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
         if (typeof evalObj === 'object') {
@@ -398,6 +376,28 @@
 
     export default {
         methods: {
+            initFloatType2(tableNum, tempValue, insertDom, select) {
+                var this_ = this;
+                _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
+                $('#dataFloat .contentText textarea').keyup(function () {
+                    tempValue = $(this).val();
+                    if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
+                        let temp = tempValue.match(/=(.+)$/);
+                        let evalObj = this_.getEvalObj(tableNum, temp[1], false);
+                        _initFloatType(tableNum, evalObj, $('#dataFloat .content'));
+                    } else {
+                        _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
+                    }
+                });
+                $('#dataFloat>.content').on('keyup', 'input', function (e) {
+                    updateTextareaText(tableNum);
+                });
+
+                $('#dataFloat>.content').on('change', '[name=value]', function () {
+                    updateTextareaText(tableNum);
+                });
+                updateTextareaText(tableNum);
+            },
             initFloatDom(td, activeId) {
                 var this_ = td;
                 setTdSelectState.call(this_);
@@ -422,12 +422,12 @@
                 } else {
                     var tempValue = '';
                 }
-                initFloatType2(activeId, tempValue, $('#dataFloat .content'));
+                this.initFloatType2(activeId, tempValue, $('#dataFloat .content'));
                 $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
                 $('#dataFloat').removeClass('floatSingleValue');
             }
         },
-        props: ['fileId', 'table-num'],
+        props: ['fileId', 'table-num', 'get-eval-obj'],
         mounted() {
             var self = this;
             $('#dataFloat').dragging({
@@ -652,7 +652,7 @@
                     $('#dataFloat .head').attr('tableId', tableId);
                     $('#dataFloat .head').attr('chartsIndex', chartsIndex);
                 }
-                initFloatType2(self.tableNum, allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
+                self.initFloatType2(self.tableNum, allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
             });
             $('body').on('dblclick', '.edit #myTabContent td', function () {
                 setTdSelectState.call(this);
@@ -673,6 +673,7 @@
                         $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
                         return span.width() + 8;
                     }
+
                     //计算位置
                     var tableid = self.tableNum;
 

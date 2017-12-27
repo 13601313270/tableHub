@@ -4,6 +4,7 @@
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
+                   @insertChart="insertChart"
                    :cellXfInfo="cellXfInfo"
                    :title="title"
                    :isMyTable="isMyTable"
@@ -31,6 +32,7 @@
         <dataFloat ref="float"
                    :fileId="this.fileId"
                    :table-num="this.tableNum"
+                   :get-eval-obj=this.getEvalObj
                    @change="changeTd"
                    @changeChart="changeChart"></dataFloat>
         <wrapper></wrapper>
@@ -301,6 +303,21 @@
                 }
                 //渲染
                 oldObj.render();
+            },
+            insertChart(opt) {
+                var {tableNum, saveVlalue, chartsId, position, size} = opt;
+                var chartsItem = getEvalObj(tableNum, saveVlalue, true);
+                $('.allCharts:eq(0)').append(chartsItem.dom);
+                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                chartsItem.top = parseInt(position[0]);
+                chartsItem.left = parseInt(position[1]);
+                chartsItem.width = parseInt(size[0]);
+                chartsItem.height = parseInt(size[1]);
+                chartsItem.dom.attr('index', chartsId);
+                chartsItem.index = chartsId;
+                allEcharts[tableNum][chartsId] = chartsItem;
+                allEcharts[tableNum][chartsId].render();
+                allEcharts[tableNum][chartsId].myChart.resize();
             },
             isOpenEditSet(state) {
                 this.isOpenEdit = state;
@@ -721,6 +738,7 @@
         data: function () {
             return {
                 title: '',
+                getEvalObj: getEvalObj,
                 isMyTable: true,
                 isOpenEdit: false,
                 tableNum: 0,//表序列

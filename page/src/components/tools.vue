@@ -186,18 +186,13 @@
                     }
                 }).then((data) => {
                     if (data !== '-1') {
-                        var chartsItem = getEvalObj(tableNum, saveVlalue, true);
-                        $('.allCharts:eq(0)').append(chartsItem.dom);
-                        chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
-                        chartsItem.top = parseInt(position[0]);
-                        chartsItem.left = parseInt(position[1]);
-                        chartsItem.width = parseInt(size[0]);
-                        chartsItem.height = parseInt(size[1]);
-                        chartsItem.dom.attr('index', chartsId);
-                        chartsItem.index = chartsId;
-                        allEcharts[tableNum][chartsId] = chartsItem;
-                        allEcharts[tableNum][chartsId].render();
-                        allEcharts[tableNum][chartsId].myChart.resize();
+                        this.$emit('insertChart',{
+                            tableNum:tableNum,
+                            saveVlalue:saveVlalue,
+                            chartsId:chartsId,
+                            position:position,
+                            size:size
+                        });
                     } else {
                         alert('样式服务器同步失败');
                     }
