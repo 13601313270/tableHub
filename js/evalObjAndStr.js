@@ -155,30 +155,30 @@ function getEvalObj(tableNum, str, isBind) {
                 break;
             }
             var word = forword(true);
-            if (endstrArr != undefined && endstrArr.indexOf(word) > -1) {
+            if (endstrArr !== undefined && endstrArr.indexOf(word) > -1) {
                 return baseWord;
             }
             forword();
 
-            if (word == '(') {
+            if (word === '(') {
                 baseWord = a([')']);
                 forword();
             }
             else if (['+', '-', '*', '/', '>', '<', '<=', '>='].indexOf(word) > -1) {
                 var innerStrArr = [];
-                if (typeof baseWord == 'string') {
+                if (typeof baseWord === 'string') {
                     innerStrArr.push('"' + baseWord + '"');
                 } else {
                     innerStrArr.push(baseWord);
                 }
                 innerStrArr.push(word);
                 while (true) {
-                    if (endstrArr != undefined) {
+                    if (endstrArr !== undefined) {
                         var temp = a(endstrArr.concat(['+', '-', '*', '/', '>', '<']));
                     } else {
                         var temp = a(['+', '-', '*', '/', '>', '<']);
                     }
-                    if (typeof temp == 'string') {
+                    if (typeof temp === 'string') {
                         innerStrArr.push('"' + temp + '"');
                     } else {
                         innerStrArr.push(temp);
@@ -186,7 +186,7 @@ function getEvalObj(tableNum, str, isBind) {
                     var word2 = forword(true);
                     if (word2 === '') {
                         break;
-                    } else if (endstrArr != undefined && endstrArr.indexOf(word2) > -1) {
+                    } else if (endstrArr !== undefined && endstrArr.indexOf(word2) > -1) {
                         break;
                     } else {
                         innerStrArr.push(word2);
@@ -203,11 +203,11 @@ function getEvalObj(tableNum, str, isBind) {
                     }
                 }
             }
-            else if (word == '"' || word == "'") {
+            else if (word === '"' || word === "'") {
                 var strTemp = "";
                 for (var i = forwordStrNum; i < str.length; i++) {
-                    if (str[i] == word) {
-                        if (strTemp.substr(strTemp.length - 1) == '\\') {
+                    if (str[i] === word) {
+                        if (strTemp.substr(strTemp.length - 1) === '\\') {
                         } else {
                             break;
                         }
@@ -218,16 +218,16 @@ function getEvalObj(tableNum, str, isBind) {
                 forwordStrNum++;
                 baseWord = strTemp;
             }
-            else if (word == '[') {
+            else if (word === '[') {
                 var params = [];
-                if (forword(true) == ']') {
+                if (forword(true) === ']') {
                     forword();
                 } else {
                     while (forwordStrNum < str.length - 1) {
                         params.push(a([',', ';', ']']));
                         if ([',', ';'].indexOf(forword(true)) > -1) {
                             forword();
-                        } else if (forword(true) == ']') {
+                        } else if (forword(true) === ']') {
                             forword();
                             break;
                         }
@@ -235,13 +235,13 @@ function getEvalObj(tableNum, str, isBind) {
                 }
                 baseWord = params;
             }
-            else if (word == ':') {
-                if (endstrArr == undefined) {
+            else if (word === ':') {
+                if (endstrArr === undefined) {
                     var end = a(['+', '-', '*', '/', '>', '<', ')']);
                 } else {
                     var end = a(endstrArr.concat(['+', '-', '*', '/', '>', '<', ')']));
                 }
-                if (baseWord.tableId == end.tableId) {
+                if (baseWord.tableId === end.tableId) {
                     var resultList = new tdList(baseWord, end);
                     var tableId = baseWord.tableId;
                     for (var i = baseWord.hang; i <= end.hang; i++) {
@@ -262,23 +262,23 @@ function getEvalObj(tableNum, str, isBind) {
                     throw new DOMException('tdList必须在一张表上');
                 }
             }
-            else if (word == '.' || typeof window[word] == 'function') {
-                if (word == '.') {
+            else if (word === '.' || typeof window[word] === 'function') {
+                if (word === '.') {
                     var funcName = forword();
                 } else {
                     var funcName = word;
                 }
-                if (forword(true) == '(') {
+                if (forword(true) === '(') {
                     forword();
                     var params = [];
-                    if (forword(true) == ')') {
+                    if (forword(true) === ')') {
                         forword();
                     } else {
                         while (forwordStrNum < str.length - 1) {
                             params.push(a([',', ';', ')']));
                             if ([',', ';'].indexOf(forword(true)) > -1) {
                                 forword();
-                            } else if (forword(true) == ')') {
+                            } else if (forword(true) === ')') {
                                 forword();
                                 break;
                             }
@@ -322,7 +322,7 @@ function getEvalObj(tableNum, str, isBind) {
             else if (word === '!') {
                 var tdNum = 0;
                 for (var i = 0; i < tdData.length; i++) {
-                    if (tdData[i].tableTitle == baseWord) {
+                    if (tdData[i].tableTitle === baseWord) {
                         tdNum = i;
                     }
                 }
@@ -340,7 +340,7 @@ function getEvalObj(tableNum, str, isBind) {
             }
             else {
                 var matchObj = null;
-                for (var i = 0; i < __allMatch__.length; i++) {
+                for (let i = 0; i < __allMatch__.length; i++) {
                     if (word.match(__allMatch__[i].match)) {
                         matchObj = __allMatch__[i].value(tableNum, word);
                         break;
@@ -349,13 +349,13 @@ function getEvalObj(tableNum, str, isBind) {
                 if (matchObj == null) {
                     var isTableName = false;
                     for (var i = 0; i < tdData.length; i++) {
-                        if (tdData[i].tableTitle == word) {
+                        if (tdData[i].tableTitle === word) {
                             isTableName = true;
                             baseWord = word;
                             break;
                         }
                     }
-                    if (isTableName == false) {
+                    if (isTableName === false) {
                         console.log('----------');
                         console.log(str);
                         console.log(word);
