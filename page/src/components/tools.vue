@@ -487,7 +487,6 @@
                         cell_xf.font.color = 'FF' + color.toHexString().substr(1);
                         run(function () {
                             button.css('color', color.toHexString());
-//                    $(writeTd).css('backgroundColor','');
                         });
                     }
                 },

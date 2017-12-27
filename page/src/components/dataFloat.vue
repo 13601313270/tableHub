@@ -179,8 +179,7 @@
     </div>
 </template>
 <script>
-    import ajax from '@/tools/ajax.js'
-    import writeTd from '@/tools/writeTd.js';
+    import ajax from '@/tools/ajax.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
     function _initFloatType(tableid, evalObj, insertDom, select) {
@@ -538,7 +537,6 @@
                                 value: $('#dataFloat .contentText textarea').val(),
                                 xfIndex: xfIndex
                             };
-                            writeTd(tableNum, pos, tdData[tableNum].tableData[pos].value, tdData[tableNum].tableData[pos].xfIndex);
                             $('#dataFloat').hide();
                             self.$emit('change', {
                                 tableNum: tableNum,
@@ -586,10 +584,6 @@
                             value: $(inputDom).val(),
                             xfIndex: $(inputDom).attr('cell_xf')
                         });
-                        writeTd(tableId,
-                            posId,
-                            $(inputDom).val(),
-                            $(inputDom).attr('cell_xf'));
                         $(inputDom).removeAttr('tableid');
                         $(inputDom).removeAttr('pos');
                         $(inputDom).removeAttr('cell_xf');

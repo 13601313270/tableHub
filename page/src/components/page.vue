@@ -47,7 +47,6 @@
     import ajax from '@/tools/ajax.js'
     import Vue from 'vue'
     import echarts from 'echarts'
-    import writeTd from '@/tools/writeTd.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
     //表
@@ -276,6 +275,23 @@
                 console.log(this.$refs.float);
                 this.$refs.float.initFloatDom(obj.td, obj.tableNum);
             },
+            writeTd(tableNum, tdPos, str, xfIndex) {
+                if (allTD['td:' + tableNum + '!' + tdPos] === undefined) {
+                    var thisTd = new td(dom('appMain' + tableNum), tdPos);
+                } else {
+                    var thisTd = allTD['td:' + tableNum + '!' + tdPos];
+                }
+                thisTd.xfIndex = xfIndex;
+                if (str === null) {
+                    thisTd.set('');
+                } else if (typeof str === 'string' && str.substr(0, 1) === '=') {
+                    str = str.match(/=(.*)/)[1];
+                    thisTd.set(getEvalObj(tableNum, str, true));
+                } else {
+                    thisTd.set(str);
+                }
+                readyObj.bind(thisTd);
+            },
             changeChart(charts) {
                 var {tableNum, chartsIndex, content} = charts;
                 var oldObj = allEcharts[tableNum][chartsIndex];
@@ -480,7 +496,7 @@
                     }
                     for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
                         for (let i in tdData[table_Num].tableData) {
-                            writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
+                            this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                         }
                     }
                     //修改列宽度
@@ -730,6 +746,7 @@
             },
             changeTd(td) {
                 let {tableNum, pos, value, xfIndex} = td;
+                this.writeTd(tableNum, pos, value, xfIndex);
                 if (getCellTemp(pos)[0] > alldoms['appMain' + tableNum].hang) {
                     alldoms['appMain' + tableNum].addHang();
                 }
@@ -802,7 +819,7 @@
                         var inputDom = this;
 
                         function afterUpdate() {
-                            writeTd($(inputDom).attr('tableid'),
+                            this_.writeTd($(inputDom).attr('tableid'),
                                 $(inputDom).attr('pos'),
                                 $(inputDom).val(),
                                 $(inputDom).attr('cell_xf'));
