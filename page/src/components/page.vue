@@ -856,12 +856,146 @@
                     });
                 }
             });
+
+            $('body').on('dblclick', '.edit #myTabContent td', function () {
+                setTdSelectState.call(this);
+                //看看当前单元格是否有合并
+                var activeId = this_.tableNum;
+                var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
+                if (allTD['td:' + activeId + '!' + selectPos]) {
+                    var tempValue = allTD['td:' + activeId + '!' + selectPos].value_;
+                } else {
+                    var tempValue = '';
+                }
+                if (typeof tempValue === 'string' || typeof tempValue === 'number') {
+                    //计算宽度
+                    function getTrueWidth(str, xf) {
+                        var span = $('<span></span>');
+                        span.attr('cell_xf', xf);
+                        span.html(str);
+                        $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
+                        return span.width() + 8;
+                    }
+
+                    $('.tableBody').eq(activeId).scrollTop();
+                    var position = $(this).position();
+                    var inputTd = $(this).parents('.tableBody').find('.floatSingleValueWrite .input');
+                    inputTd.show();
+                    inputTd.find('input').val(tempValue);
+                    inputTd.find('input').attr('cell_xf', $(this).attr('cell_xf'));
+                    inputTd.find('input').attr('tableId', activeId);
+                    inputTd.find('input').attr('pos', getCellTemp2($(this).attr('hang'), $(this).attr('lie')));
+                    inputTd.find('input').attr('oldValue', tempValue);
+                    inputTd.css('left', position.left - parseInt($(this).parents('.tableBody').css('marginLeft')) + $('.tableBody').eq(activeId).scrollLeft() - 1);
+                    inputTd.css('top', position.top - parseInt($(this).parents('.tableBody').css('marginTop')) + $('.tableBody').eq(activeId).scrollTop());
+                    inputTd.css('height', $(this).outerHeight() + 2);
+                    inputTd.css('min-width', $(this).outerWidth() + 3);
+                    inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
+                    var this2_ = this;
+                    inputTd.find('input').on('input', function () {
+                        inputTd.css('width', getTrueWidth.call(this2_, $(this).val(), $(this2_).attr('cell_xf')));
+                    });
+                    inputTd.find('input').click(function (event) {
+                        event.stopPropagation();
+                    });
+                    inputTd.find('input').focus();
+                } else {
+                    this_.$refs.float.initFloatDom(this, this_.tableNum);
+                }
+            });
+
+            $('body').on('keydown', '#myTabContent .floatSingleValueWrite .input input', function (e) {
+                if (['Enter', 'ArrowRight'].indexOf(e.key) > -1) {    //'ArrowRight',
+                    let inputDom = this;
+                    let tableId = $(inputDom).attr('tableid');
+                    let posId = $(inputDom).attr('pos');
+
+                    function turnNewTD() {
+                        this_.changeTd({
+                            tableNum: tableId,
+                            pos: posId,
+                            value: $(inputDom).val(),
+                            xfIndex: $(inputDom).attr('cell_xf')
+                        });
+                        $(inputDom).removeAttr('tableid');
+                        $(inputDom).removeAttr('pos');
+                        $(inputDom).removeAttr('cell_xf');
+                        $(inputDom).val('');
+                        $(inputDom).parent().hide();
+                        let temp = getCellTemp(posId);
+                        if (e.key === 'Enter') {
+
+                        } else {
+                            //键盘向右箭头
+                            if (e.key === 'ArrowRight') {
+                                temp[1]++;
+                            }
+                            let rightDom;
+                            if (allTD['td:' + tableId + '!' + getCellTemp2(temp[0], temp[1])] !== undefined) {
+                                rightDom = allTD['td:' + tableId + '!' + getCellTemp2(temp[0], temp[1])].dom;
+                                $(rightDom).trigger('dblclick');
+                            } else {
+                                rightDom = new td(dom('appMain' + tableId), getCellTemp2(temp[0], temp[1]));
+                            }
+                            $(rightDom).trigger('dblclick');
+                        }
+                    }
+
+                    if ($(this).attr('oldValue') !== $(this).val()) {
+                        ajax({
+                            url: 'http://www.tablehub.cn/action/table.html',
+                            type: 'POST',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            data: {
+                                function: 'updateTdValue',
+                                fileId: this_.fileId,
+                                tableNum: $(this).attr('tableid'),
+                                pos: $(this).attr('pos'),
+                                value: $(this).val()
+                            }
+                        }).then((data) => {
+                            if (data === 1) {
+                                turnNewTD();
+                            } else {
+                                alert('样式服务器同步失败');
+                            }
+                        });
+                    } else {
+                        turnNewTD();
+                    }
+                }
+            });
         }
     }
 
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
+<style lang="less">
+    .floatSingleValueWrite {
+        height: 1px;
+        width: 1px;
+        position: relative;
+        margin-top: -2px;
+        .input {
+            position: absolute;
+            z-index: 2;
+            display: none;
+            background-color: rgb(255, 255, 255);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.63);
+        }
+        input {
+            width: 100%;
+            height: 100%;
+            &:focus {
+                outline: none;
+            }
+        }
+        .span {
+            opacity: 0;
+        }
+    }
+</style>
 <style scoped>
     body {
         background-color: #e6e6e6;
