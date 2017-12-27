@@ -497,8 +497,8 @@ function tdList(begin, end) {
         for (let i = this.begin.hang; i <= this.end.hang; i++) {
             returnList[i - this.begin.hang] = [];
             for (let j = this.begin.lie; j <= this.end.lie; j++) {
-                if (alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)) !== undefined) {
-                    returnList[i - this.begin.hang].push(alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)).get());
+                if (this.begin.table.child(getCellTemp2(i, j)) !== undefined) {
+                    returnList[i - this.begin.hang].push(this.begin.table.child(getCellTemp2(i, j)).get());
                 }
             }
         }
@@ -510,8 +510,8 @@ function tdList(begin, end) {
         for (let j = this.begin.lie; j <= this.end.lie; j++) {
             returnList[j - this.begin.lie] = [];
             for (let i = this.begin.hang; i <= this.end.hang; i++) {
-                if (alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)) !== undefined) {
-                    returnList[j - this.begin.lie].push(alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)).get());
+                if (this.begin.table.child(getCellTemp2(i, j)) !== undefined) {
+                    returnList[j - this.begin.lie].push(this.begin.table.child(getCellTemp2(i, j)).get());
                 }
             }
         }
@@ -521,8 +521,8 @@ function tdList(begin, end) {
         let returnList = [];
         for (let i = this.begin.hang; i <= this.end.hang; i++) {
             for (let j = this.begin.lie; j <= this.end.lie; j++) {
-                if (alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)) !== undefined) {
-                    returnList.push(alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)).get());
+                if (this.begin.table.child(getCellTemp2(i, j)) !== undefined) {
+                    returnList.push(this.begin.table.child(getCellTemp2(i, j)).get());
                 } else {
                     returnList.push('');
                 }
