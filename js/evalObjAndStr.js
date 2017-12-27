@@ -323,7 +323,7 @@ function getEvalObj(tableNum, str, isBind) {
                 var tdNum = 0;
                 for (var i = 0; i < tdData.length; i++) {
                     if (tdData[i].tableTitle == baseWord) {
-                        var tdNum = i;
+                        tdNum = i;
                     }
                 }
                 if (typeof tdNum === 'number') {
@@ -375,7 +375,7 @@ function getEvalObj(tableNum, str, isBind) {
 function getStrByEvalObj(tableNum, beRunObj) {
     var returnStr = '';
     if (beRunObj instanceof td) {
-        if (beRunObj.tableId == tableNum) {
+        if (beRunObj.tableId === tableNum) {
             return getCellTemp2(beRunObj.hang, beRunObj.lie);
         } else {
             return beRunObj.tableId + '!' + getCellTemp2(beRunObj.hang, beRunObj.lie);

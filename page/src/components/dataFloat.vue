@@ -396,35 +396,37 @@
         }
     }
 
-    window.initFloatDom = function (activeId) {
-        setTdSelectState.call(this);
-        //看看当前单元格是否有合并
-        $('.table tbody .idNum').removeClass('idNumOn');
-        $('.table tbody .idNum').eq(parseInt($(this).attr('hang')) - 1).addClass('idNumOn');
-        $('.table thead .lieNum').removeClass('lieNumOn');
-        $('.table thead .lieNum').eq(parseInt($(this).attr('lie')) - 1).addClass('lieNumOn');
-        var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
-        $('#dataFloat .head').html(selectPos);
-        $('#dataFloat .head').attr('action_type', 'td');
-        var thisTdData = tdData[activeId].tableData[selectPos];
-        $('#dataFloat').show();
-        if (thisTdData == undefined) {
-            thisTdData = {
-                'value': '',
-                xfIndex: 0,
-            };
-        }
-        if (allTD['td:' + activeId + '!' + selectPos]) {
-            var tempValue = allTD['td:' + activeId + '!' + selectPos].value_;
-        } else {
-            var tempValue = '';
-        }
-        initFloatType2(activeId, tempValue, $('#dataFloat .content'));
-        $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
-        $('#dataFloat').removeClass('floatSingleValue');
-    }
     export default {
-        methods: {},
+        methods: {
+            initFloatDom(td, activeId) {
+                var this_ = td;
+                setTdSelectState.call(this_);
+                //看看当前单元格是否有合并
+                $('.table tbody .idNum').removeClass('idNumOn');
+                $('.table tbody .idNum').eq(parseInt($(this_).attr('hang')) - 1).addClass('idNumOn');
+                $('.table thead .lieNum').removeClass('lieNumOn');
+                $('.table thead .lieNum').eq(parseInt($(this_).attr('lie')) - 1).addClass('lieNumOn');
+                var selectPos = getCellTemp2(parseInt($(this_).attr('hang')), parseInt($(this_).attr('lie')));
+                $('#dataFloat .head').html(selectPos);
+                $('#dataFloat .head').attr('action_type', 'td');
+                var thisTdData = tdData[activeId].tableData[selectPos];
+                $('#dataFloat').show();
+                if (thisTdData == undefined) {
+                    thisTdData = {
+                        'value': '',
+                        xfIndex: 0,
+                    };
+                }
+                if (allTD['td:' + activeId + '!' + selectPos]) {
+                    var tempValue = allTD['td:' + activeId + '!' + selectPos].value_;
+                } else {
+                    var tempValue = '';
+                }
+                initFloatType2(activeId, tempValue, $('#dataFloat .content'));
+                $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
+                $('#dataFloat').removeClass('floatSingleValue');
+            }
+        },
         props: ['fileId', 'table-num'],
         mounted() {
             var self = this;
@@ -506,31 +508,11 @@
                         if (data === 1) {
                             var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
                             var content = $('#dataFloat .contentText textarea').val().replace(/^=/, '');
-                            var oldObj = allEcharts[self.tableNum][chartsIndex];
-                            oldObj.myChart.clear();
-
-                            var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
-                            matchPreg = content.match(matchPreg)[1];
-                            matchPreg = getEvalObj(self.tableNum, '[' + matchPreg + ']', true);
-                            var allTemp = ({
-                                'PIE': ['title', 'XtdLists', 'valueTdLists'],
-                                'BAR': ['title', 'XtdLists', 'valueTdLists'],
-                                'LINE': ['title', 'XtdLists', 'valueTdLists'],
-                            })[oldObj.className];
-                            for (let proNum = 0; proNum < allTemp.length; proNum++) {
-                                var title = allTemp[proNum];
-                                if (oldObj[title] !== matchPreg[proNum]) {
-                                    if (oldObj[title] instanceof obj) {
-                                        oldObj[title].unBind(oldObj);
-                                    }
-                                    oldObj[title] = matchPreg[proNum];
-                                    if (matchPreg[proNum] instanceof obj) {
-                                        oldObj[title].bind(oldObj);
-                                    }
-                                }
-                            }
-                            //渲染
-                            oldObj.render();
+                            self.$emit('changeChart', {
+                                tableNum: self.tableNum,
+                                chartsIndex: chartsIndex,
+                                content: content
+                            });
                             $('#dataFloat').hide();
                         } else {
                             alert('样式服务器同步失败');
@@ -691,7 +673,6 @@
                         $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
                         return span.width() + 8;
                     }
-
                     //计算位置
                     var tableid = self.tableNum;
 
@@ -718,7 +699,7 @@
                     });
                     inputTd.find('input').focus();
                 } else {
-                    initFloatDom.call(this, self.tableNum);
+                    self.initFloatDom(this, self.tableNum);
                 }
             });
         }

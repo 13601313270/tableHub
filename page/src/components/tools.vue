@@ -208,7 +208,10 @@
                 if (this_.length !== 1) {
                     return;
                 }
-                initFloatDom.call($('.editTd')[0], this.tableNum);
+                this.$emit('fx', {
+                    tableNum: this.tableNum,
+                    td: this_[0]
+                });
             },
             rewriteStyle(event) {
                 var self = this;

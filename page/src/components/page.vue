@@ -2,8 +2,14 @@
     <div>
         <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
              @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
-            <tools @stateChange="isOpenEditSet" :cellXfInfo="cellXfInfo" :title="title" :isMyTable="isMyTable"
-                   :isOpenEdit="isOpenEdit" :fileId="fileId" :table-num="this.tableNum"></tools>
+            <tools @stateChange="isOpenEditSet"
+                   @fx="fx"
+                   :cellXfInfo="cellXfInfo"
+                   :title="title"
+                   :isMyTable="isMyTable"
+                   :isOpenEdit="isOpenEdit"
+                   :fileId="fileId"
+                   :table-num="this.tableNum"></tools>
             <div id="myTabContentParent">
                 <ul class="allTableSelect nav nav-tabs">
                     <li v-for="(item,key) in allTableTitle" v-bind:class="{active:tableNum===key}"
@@ -22,7 +28,11 @@
             </div>
         </div>
         <bottom></bottom>
-        <dataFloat :fileId="this.fileId" :table-num="this.tableNum" @change="changeTd"></dataFloat>
+        <dataFloat ref="float"
+                   :fileId="this.fileId"
+                   :table-num="this.tableNum"
+                   @change="changeTd"
+                   @changeChart="changeChart"></dataFloat>
         <wrapper></wrapper>
     </div>
 </template>
@@ -260,6 +270,38 @@
     export default {
         name: 'page',
         methods: {
+            fx(obj) {
+                console.log(this.$refs.float);
+                this.$refs.float.initFloatDom(obj.td, obj.tableNum);
+            },
+            changeChart(charts) {
+                var {tableNum, chartsIndex, content} = charts;
+                var oldObj = allEcharts[tableNum][chartsIndex];
+                oldObj.myChart.clear();
+
+                var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
+                matchPreg = content.match(matchPreg)[1];
+                matchPreg = getEvalObj(tableNum, '[' + matchPreg + ']', true);
+                var allTemp = ({
+                    'PIE': ['title', 'XtdLists', 'valueTdLists'],
+                    'BAR': ['title', 'XtdLists', 'valueTdLists'],
+                    'LINE': ['title', 'XtdLists', 'valueTdLists'],
+                })[oldObj.className];
+                for (let proNum = 0; proNum < allTemp.length; proNum++) {
+                    var title = allTemp[proNum];
+                    if (oldObj[title] !== matchPreg[proNum]) {
+                        if (oldObj[title] instanceof obj) {
+                            oldObj[title].unBind(oldObj);
+                        }
+                        oldObj[title] = matchPreg[proNum];
+                        if (matchPreg[proNum] instanceof obj) {
+                            oldObj[title].bind(oldObj);
+                        }
+                    }
+                }
+                //渲染
+                oldObj.render();
+            },
             isOpenEditSet(state) {
                 this.isOpenEdit = state;
                 let lieAddCount = 2;//增加
