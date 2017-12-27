@@ -1,5 +1,4 @@
 //td
-var allTD = {};
 
 function tdValueList(value) {
     this.value_ = value;
@@ -11,7 +10,7 @@ tdValueList.prototype = new obj('tdValueList');
 
 function td(table, positionStr) {
     var tableId = table.tableId;
-    allTD['td:' + tableId + '!' + positionStr] = this;
+    table.tdList[positionStr] = this;
     this.tableId = tableId;
     this.bindEvent = [];
     this.listening = [];
@@ -393,10 +392,12 @@ function td(table, positionStr) {
                             this.dom.html(insertHtml);
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
-                            if (allTD['td:' + this.tableId + '!' + tdPos] == undefined) {
+
+
+                            if (alldoms['appMain' + this.tableId].child(tdPos) == undefined) {
                                 var tdTemp = new td(this.table, tdPos);
                             } else {
-                                var tdTemp = allTD['td:' + this.tableId + '!' + tdPos];
+                                var tdTemp = alldoms['appMain' + this.tableId].child(tdPos);
                             }
                             if (getValue_ instanceof tdValueList) {
                                 this.bind(tdTemp);
@@ -458,8 +459,8 @@ td.prototype = new obj('td');
 __allMatch__.push({
     match: /^[A-Z]+\d+$/,
     value: function (tableNum, word) {
-        if (allTD['td:' + tableNum + '!' + word]) {
-            return allTD['td:' + tableNum + '!' + word];
+        if (alldoms['appMain' + tableNum].child(word)) {
+            return alldoms['appMain' + tableNum].child(word);
         } else {
             return new td(dom('appMain' + tableNum), word);
         }
@@ -501,8 +502,8 @@ function tdList(begin, end) {
         for (let i = this.begin.hang; i <= this.end.hang; i++) {
             returnList[i - this.begin.hang] = [];
             for (let j = this.begin.lie; j <= this.end.lie; j++) {
-                if (allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)] !== undefined) {
-                    returnList[i - this.begin.hang].push(allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)].get());
+                if (alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)) !== undefined) {
+                    returnList[i - this.begin.hang].push(alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)).get());
                 }
             }
         }
@@ -514,8 +515,8 @@ function tdList(begin, end) {
         for (let j = this.begin.lie; j <= this.end.lie; j++) {
             returnList[j - this.begin.lie] = [];
             for (let i = this.begin.hang; i <= this.end.hang; i++) {
-                if (allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)] !== undefined) {
-                    returnList[j - this.begin.lie].push(allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)].get());
+                if (alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)) !== undefined) {
+                    returnList[j - this.begin.lie].push(alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)).get());
                 }
             }
         }
@@ -525,8 +526,8 @@ function tdList(begin, end) {
         let returnList = [];
         for (let i = this.begin.hang; i <= this.end.hang; i++) {
             for (let j = this.begin.lie; j <= this.end.lie; j++) {
-                if (allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)] !== undefined) {
-                    returnList.push(allTD["td:" + this.begin.tableId + "!" + getCellTemp2(i, j)].get());
+                if (alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)) !== undefined) {
+                    returnList.push(alldoms['appMain' + this.begin.tableId].child(getCellTemp2(i, j)).get());
                 } else {
                     returnList.push('');
                 }

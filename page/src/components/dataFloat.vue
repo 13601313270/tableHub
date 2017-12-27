@@ -388,8 +388,8 @@
                         xfIndex: 0,
                     };
                 }
-                if (allTD['td:' + activeId + '!' + selectPos]) {
-                    var tempValue = allTD['td:' + activeId + '!' + selectPos].value_;
+                if (alldoms['appMain' + activeId].child(selectPos)) {
+                    var tempValue = alldoms['appMain' + activeId].child(selectPos).value_;
                 } else {
                     var tempValue = '';
                 }

@@ -52,7 +52,7 @@
     //表
     function tableClass(tableId, hang, lie, dom) {
         this.table = $('<table class="table"><thead></thead></table>');
-        this.tdList = [];
+        this.tdList = {};
         this.tableId = tableId;
         this.hang = hang;
         this.lie = lie;
@@ -130,21 +130,24 @@
                 this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
             });
         }
+        this.child = function (positionStr) {
+            return this.tdList[positionStr];
+        }
         this.td = function (positionStr) {
-            var tdPos = getCellTemp(positionStr);
-            var hangNum = tdPos[0];
-            var lieNum = tdPos[1];
-            if (this.tdList[hangNum] === undefined) {
-                this.tdList[hangNum] = [];
-            }
-            if (typeof(lieNum) === 'number') {
-                if (this.tdList[hangNum][lieNum - 1] === undefined) {
-                    this.tdList[hangNum][lieNum - 1] = new td(alldoms['appMain' + this.tableId], positionStr);
-                }
-            } else {
-                return new td(alldoms['appMain' + this.tableId], positionStr);
-            }
-            return this.tdList[hangNum][lieNum - 1];
+            // var tdPos = getCellTemp(positionStr);
+            // var hangNum = tdPos[0];
+            // var lieNum = tdPos[1];
+            // if (this.tdList[hangNum] === undefined) {
+            //     this.tdList[hangNum] = [];
+            // }
+            // if (typeof(lieNum) === 'number') {
+            //     if (this.tdList[hangNum][lieNum - 1] === undefined) {
+            //         this.tdList[hangNum][lieNum - 1] = new td(alldoms['appMain' + this.tableId], positionStr);
+            //     }
+            // } else {
+            //     return new td(alldoms['appMain' + this.tableId], positionStr);
+            // }
+            // return this.tdList[hangNum][lieNum - 1];
         }
         ////根据开始结尾获取一组td
         //this.tds = function(begin,end){
@@ -276,10 +279,10 @@
                 this.$refs.float.initFloatDom(obj.td, obj.tableNum);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
-                if (allTD['td:' + tableNum + '!' + tdPos] === undefined) {
+                if (alldoms['appMain' + tableNum].child(tdPos) === undefined) {
                     var thisTd = new td(dom('appMain' + tableNum), tdPos);
                 } else {
-                    var thisTd = allTD['td:' + tableNum + '!' + tdPos];
+                    var thisTd = alldoms['appMain' + tableNum].child(tdPos);
                 }
                 thisTd.xfIndex = xfIndex;
                 if (str === null) {
@@ -862,8 +865,9 @@
                 //看看当前单元格是否有合并
                 var activeId = this_.tableNum;
                 var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
-                if (allTD['td:' + activeId + '!' + selectPos]) {
-                    var tempValue = allTD['td:' + activeId + '!' + selectPos].value_;
+
+                if (alldoms['appMain' + activeId].child(selectPos)) {
+                    var tempValue = alldoms['appMain' + activeId].child(selectPos).value_;
                 } else {
                     var tempValue = '';
                 }
@@ -931,8 +935,8 @@
                                 temp[1]++;
                             }
                             let rightDom;
-                            if (allTD['td:' + tableId + '!' + getCellTemp2(temp[0], temp[1])] !== undefined) {
-                                rightDom = allTD['td:' + tableId + '!' + getCellTemp2(temp[0], temp[1])].dom;
+                            if (alldoms['appMain' + tableId].child(getCellTemp2(temp[0], temp[1])) !== undefined) {
+                                rightDom = alldoms['appMain' + tableId].child(getCellTemp2(temp[0], temp[1])).dom;
                                 $(rightDom).trigger('dblclick');
                             } else {
                                 rightDom = new td(dom('appMain' + tableId), getCellTemp2(temp[0], temp[1]));
