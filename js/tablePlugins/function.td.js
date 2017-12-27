@@ -455,38 +455,6 @@ function td(table, positionStr) {
 }
 
 td.prototype = new obj('td');
-__allMatch__.push({
-    match: /^[A-Z]+\d+$/,
-    value: function (tableNum, word, baseWord) {
-        if (baseWord === null) {
-            return alldoms['appMain' + tableNum].findChild(word);
-        } else {
-            return alldoms['appMain' + baseWord.tableId].findChild(word);
-        }
-    }
-});
-functionInit(td, '表格项', {
-    params: {
-        tableId: {
-            title: '表',
-            dataType: 'int',
-            default: 0,
-            //select:{
-            //    'string':'字符串',
-            //    'int':'数字'
-            //}
-        },
-        tdName: {
-            title: '表格位置',
-            dataType: 'string',
-            default: 'A1',
-        }
-    },
-    save: function (obj) {
-        return [alldoms['appMain' + obj.tableId], obj.tdName];
-    }
-});
-
 
 //一组td
 function tdList(begin, end) {
