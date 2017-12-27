@@ -18,6 +18,7 @@ function td(table, positionStr) {
     if (positionStr === '=') {
         positionStr = 'A1';
     }
+    this.value_ = '';
     this.tdName = positionStr;//字符串名称入(B1)
     var tdPos = getCellTemp(positionStr);
     this.table = table;
@@ -457,11 +458,7 @@ td.prototype = new obj('td');
 __allMatch__.push({
     match: /^[A-Z]+\d+$/,
     value: function (tableNum, word) {
-        if (alldoms['appMain' + tableNum].child(word)) {
-            return alldoms['appMain' + tableNum].child(word);
-        } else {
-            return new td(dom('appMain' + tableNum), word);
-        }
+        return alldoms['appMain' + tableNum].findChild(word);
     }
 });
 functionInit(td, '表格项', {

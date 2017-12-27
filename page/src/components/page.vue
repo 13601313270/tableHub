@@ -133,21 +133,13 @@
         this.child = function (positionStr) {
             return this.tdList[positionStr];
         }
+        this.findChild = function (positionStr) {
+            if (this.tdList[positionStr] === undefined) {
+                new td(this, positionStr);
+            }
+            return this.tdList[positionStr];
+        }
         this.td = function (positionStr) {
-            // var tdPos = getCellTemp(positionStr);
-            // var hangNum = tdPos[0];
-            // var lieNum = tdPos[1];
-            // if (this.tdList[hangNum] === undefined) {
-            //     this.tdList[hangNum] = [];
-            // }
-            // if (typeof(lieNum) === 'number') {
-            //     if (this.tdList[hangNum][lieNum - 1] === undefined) {
-            //         this.tdList[hangNum][lieNum - 1] = new td(alldoms['appMain' + this.tableId], positionStr);
-            //     }
-            // } else {
-            //     return new td(alldoms['appMain' + this.tableId], positionStr);
-            // }
-            // return this.tdList[hangNum][lieNum - 1];
         }
         ////根据开始结尾获取一组td
         //this.tds = function(begin,end){
@@ -279,11 +271,7 @@
                 this.$refs.float.initFloatDom(obj.td, obj.tableNum);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
-                if (alldoms['appMain' + tableNum].child(tdPos) === undefined) {
-                    var thisTd = new td(dom('appMain' + tableNum), tdPos);
-                } else {
-                    var thisTd = alldoms['appMain' + tableNum].child(tdPos);
-                }
+                var thisTd = alldoms['appMain' + tableNum].findChild(tdPos);
                 thisTd.xfIndex = xfIndex;
                 if (str === null) {
                     thisTd.set('');
@@ -397,9 +385,9 @@
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
 
-                        dom('appMain' + table_Num).td(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
-                        dom('appMain' + table_Num).td(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
-                        dom('appMain' + table_Num).td(beginAndEnd[0]).dom.addClass('mergeTd');
+                        dom('appMain' + table_Num).findChild(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
+                        dom('appMain' + table_Num).findChild(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
+                        dom('appMain' + table_Num).findChild(beginAndEnd[0]).dom.addClass('mergeTd');
 
                         for (let tr = begin[0]; tr <= end[0]; tr++) {
                             let firstTdWidth = 0;
@@ -726,18 +714,18 @@
                     for (let i = top; i <= bottom; i++) {
                         for (let j = left; j <= right; j++) {
                             if (i === top) {
-                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdtop');
+                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdtop');
                             }
                             if (i === bottom) {
-                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdbottom');
+                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdbottom');
                             }
                             if (j === left) {
-                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdleft');
+                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdleft');
                             }
                             if (j === right) {
-                                dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTdright');
+                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdright');
                             }
-                            dom('appMain' + tableid).td(getCellTemp2(i, j)).dom.addClass('editTd');
+                            dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTd');
                         }
                     }
                     this.selectTd(undefined);
@@ -865,13 +853,9 @@
                 //看看当前单元格是否有合并
                 var activeId = this_.tableNum;
                 var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
-
-                if (alldoms['appMain' + activeId].child(selectPos)) {
-                    var tempValue = alldoms['appMain' + activeId].child(selectPos).value_;
-                } else {
-                    var tempValue = '';
-                }
-                if (typeof tempValue === 'string' || typeof tempValue === 'number') {
+                var tempValue = alldoms['appMain' + activeId].findChild(selectPos).value_;
+                console.log(tempValue);
+                if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
                     //计算宽度
                     function getTrueWidth(str, xf) {
                         var span = $('<span></span>');
@@ -934,13 +918,7 @@
                             if (e.key === 'ArrowRight') {
                                 temp[1]++;
                             }
-                            let rightDom;
-                            if (alldoms['appMain' + tableId].child(getCellTemp2(temp[0], temp[1])) !== undefined) {
-                                rightDom = alldoms['appMain' + tableId].child(getCellTemp2(temp[0], temp[1])).dom;
-                                $(rightDom).trigger('dblclick');
-                            } else {
-                                rightDom = new td(dom('appMain' + tableId), getCellTemp2(temp[0], temp[1]));
-                            }
+                            let rightDom = alldoms['appMain' + tableId].findChild(getCellTemp2(temp[0], temp[1])).dom;
                             $(rightDom).trigger('dblclick');
                         }
                     }

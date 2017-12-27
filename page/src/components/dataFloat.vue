@@ -388,11 +388,7 @@
                         xfIndex: 0,
                     };
                 }
-                if (alldoms['appMain' + activeId].child(selectPos)) {
-                    var tempValue = alldoms['appMain' + activeId].child(selectPos).value_;
-                } else {
-                    var tempValue = '';
-                }
+                var tempValue = alldoms['appMain' + activeId].findChild(selectPos).value_;
                 this.initFloatType2(activeId, tempValue, $('#dataFloat .content'));
                 $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
                 $('#dataFloat').removeClass('floatSingleValue');

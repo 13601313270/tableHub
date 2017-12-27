@@ -247,11 +247,7 @@ function getEvalObj(tableNum, str, isBind) {
                     for (var i = baseWord.hang; i <= end.hang; i++) {
                         for (var j = baseWord.lie; j <= end.lie; j++) {
                             var tdStr = getCellTemp2(i, j);
-                            if (alldoms['appMain' + tableId].child(tdStr)) {
-                                var bindTemp = alldoms['appMain' + tableId].child(tdStr);
-                            } else {
-                                var bindTemp = new td(dom('appMain' + tableId), tdStr);
-                            }
+                            var bindTemp = alldoms['appMain' + tableId].findChild(tdStr);
                             if (isBind) {
                                 bindTemp.bind(resultList);
                             }
@@ -327,12 +323,7 @@ function getEvalObj(tableNum, str, isBind) {
                     }
                 }
                 if (typeof tdNum === 'number') {
-                    var tdStr = forword();
-                    if (alldoms['appMain' + tdNum].child(tdStr)) {
-                        baseWord = alldoms['appMain' + tdNum].child(tdStr);
-                    } else {
-                        baseWord = new td(dom('appMain' + tdNum), tdStr);
-                    }
+                    baseWord = alldoms['appMain' + tdNum].findChild(forword());
                 } else {
                     console.log('叹号!');
                     console.log(baseWord);
