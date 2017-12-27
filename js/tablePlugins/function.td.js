@@ -9,7 +9,8 @@ function tdValueList(value) {
 
 tdValueList.prototype = new obj('tdValueList');
 
-function td(tableId, positionStr, table) {
+function td(table, positionStr) {
+    var tableId = table.tableId;
     allTD['td:' + tableId + '!' + positionStr] = this;
     this.tableId = tableId;
     this.bindEvent = [];
@@ -393,7 +394,7 @@ function td(tableId, positionStr, table) {
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
                             if (allTD['td:' + this.tableId + '!' + tdPos] == undefined) {
-                                var tdTemp = new td(this.tableId, tdPos,dom('appMain' + this.tableId));
+                                var tdTemp = new td(dom('appMain' + this.tableId), tdPos);
                             } else {
                                 var tdTemp = allTD['td:' + this.tableId + '!' + tdPos];
                             }
@@ -460,7 +461,7 @@ __allMatch__.push({
         if (allTD['td:' + tableNum + '!' + word]) {
             return allTD['td:' + tableNum + '!' + word];
         } else {
-            return new td(tableNum, word,dom('appMain' + tableNum));
+            return new td(dom('appMain' + tableNum), word);
         }
     }
 });

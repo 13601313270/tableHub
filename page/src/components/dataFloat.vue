@@ -625,7 +625,7 @@
                                 rightDom = allTD['td:' + tableId + '!' + getCellTemp2(temp[0], temp[1])].dom;
                                 $(rightDom).trigger('dblclick');
                             } else {
-                                rightDom = new td(tableId, getCellTemp2(temp[0], temp[1]),dom('appMain' + tableId));
+                                rightDom = new td(dom('appMain' + tableId), getCellTemp2(temp[0], temp[1]));
                             }
                             $(rightDom).trigger('dblclick');
                         }

@@ -1,6 +1,6 @@
 export default function(tableNum,tdPos,str,xfIndex){
     if(allTD['td:'+tableNum+'!'+tdPos]===undefined){
-        var thisTd = new td(tableNum,tdPos,dom('appMain' + tableNum));
+        var thisTd = new td(dom('appMain' + tableNum),tdPos);
     }else{
         var thisTd = allTD['td:'+tableNum+'!'+tdPos];
     }

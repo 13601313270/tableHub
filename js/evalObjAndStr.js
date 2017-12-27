@@ -250,7 +250,7 @@ function getEvalObj(tableNum, str, isBind) {
                             if (allTD['td:' + tableId + '!' + tdStr]) {
                                 var bindTemp = allTD['td:' + tableId + '!' + tdStr];
                             } else {
-                                var bindTemp = new td(tableId, tdStr, dom('appMain' + tableId));
+                                var bindTemp = new td(dom('appMain' + tableId), tdStr);
                             }
                             if (isBind) {
                                 bindTemp.bind(resultList);
@@ -284,7 +284,7 @@ function getEvalObj(tableNum, str, isBind) {
                             }
                         }
                     }
-                    if (typeof window[funcName] == 'function' && window[funcName].prototype instanceof obj) {
+                    if (typeof window[funcName] === 'function' && window[funcName].prototype instanceof obj) {
                         var applyArgs = [window].concat(params || []);
                         var temp = Function.prototype.bind.apply(window[funcName], applyArgs);
                         baseWord = new temp();
@@ -331,7 +331,7 @@ function getEvalObj(tableNum, str, isBind) {
                     if (allTD['td:' + tdNum + '!' + tdStr]) {
                         baseWord = allTD['td:' + tdNum + '!' + tdStr];
                     } else {
-                        baseWord = new td(tdNum, tdStr, dom('appMain' + tdNum));
+                        baseWord = new td(dom('appMain' + tdNum), tdStr);
                     }
                 } else {
                     console.log('叹号!');
