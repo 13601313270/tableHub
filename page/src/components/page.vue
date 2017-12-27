@@ -48,6 +48,20 @@
     import Vue from 'vue'
     import echarts from 'echarts'
     import setTdSelectState from '@/tools/setTdSelectState.js';
+
+    __allMatch__.push({
+        match: /^\!$/,
+        value: function (tableNum, word, baseWord) {
+            let searchTableNum = tableNum;
+            for (let i = 0; i < tdData.length; i++) {
+                if (tdData[i].tableTitle === baseWord) {
+                    searchTableNum = i;
+                }
+            }
+            return alldoms['appMain' + searchTableNum];
+        }
+    });
+
     // else if (word === '!') {
     //     var tdNum = 0;
     //     for (var i = 0; i < tdData.length; i++) {

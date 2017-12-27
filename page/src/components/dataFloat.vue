@@ -203,13 +203,14 @@
             if (beRunObj.name === '=') {
                 return beRunObj.params[0];
             } else if (beRunObj.name === 'td') {
-                if (beRunObj.params[0] === undefined || beRunObj.params[0] === tableNum) {
+                let tableTitle = tdData[beRunObj.params[0].tableId].tableTitle;
+                if (tableTitle === undefined || tableTitle === tableNum) {
                     returnStr += beRunObj.params[1];
                 } else {
-                    if (beRunObj.params[0].match(/[\+|\-|\*|\/\.]/) == null) {
-                        returnStr += beRunObj.params[0] + '!' + beRunObj.params[1];
+                    if (tableTitle.match(/[\+|\-|\*|\/\.]/) == null) {
+                        returnStr += tableTitle + '!' + beRunObj.params[1];
                     } else {
-                        returnStr += "'" + beRunObj.params[0] + '\'!' + beRunObj.params[1];
+                        returnStr += "'" + tableTitle + '\'!' + beRunObj.params[1];
                     }
                 }
             } else if (beRunObj.name === 'tdList') {
@@ -525,19 +526,21 @@
                             configResult[i] = '';
                         }
                     }
-                    //configResult 0,1,2    因为下拉框不能是对象
                     configResult = window[func].config.save(configResult);
-                    //configResult 名称    因为最终存储也走得save
-                    if (func === 'td') {
-                        for (let i = 0; i < tdData.length; i++) {
-                            if (tdData[i].tableTitle === configResult[0]) {
-                                configResult[0] = alldoms['appMain' + i];
-                            }
-                        }
-                    }
                     var applyArgs = [window].concat(configResult || []);
-                    var temp = Function.prototype.bind.apply(window[func], applyArgs);
-                    evalObj = new temp();
+                    try {
+                        var temp = Function.prototype.bind.apply(window[func], applyArgs);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    try {
+                        console.log(applyArgs);
+                        console.log(applyArgs);
+                        evalObj = new temp();
+                    } catch (e) {
+                        console.log(e);
+                    }
+
                 }
                 var dom = $(this).parents('.dataBaseItem').eq(0);
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');
