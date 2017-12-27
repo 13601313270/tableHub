@@ -48,65 +48,6 @@
     import Vue from 'vue'
     import echarts from 'echarts'
     import setTdSelectState from '@/tools/setTdSelectState.js';
-    functionInit(td, '表格项', {
-        params: {
-            tableId: {
-                title: '表',
-                dataType: 'int',
-                default: 0,
-                //select:{
-                //    'string':'字符串',
-                //    'int':'数字'
-                //}
-            },
-            tdName: {
-                title: '表格位置',
-                dataType: 'string',
-                default: 'A1',
-            }
-        },
-        save: function (obj) {
-            return [alldoms['appMain' + obj.tableId], obj.tdName];
-        }
-    });
-    __allMatch__.push({
-        match: /^[A-Z]+\d+$/,
-        value: function (tableNum, word, baseWord) {
-            if (baseWord === null) {
-                return alldoms['appMain' + tableNum].findChild(word);
-            } else {
-                return alldoms['appMain' + baseWord.tableId].findChild(word);
-            }
-        }
-    });
-    __allMatch__.push({
-        match: /^\!$/,
-        value: function (tableNum, word, baseWord) {
-            let searchTableNum = tableNum;
-            for (let i = 0; i < tdData.length; i++) {
-                if (tdData[i].tableTitle === baseWord) {
-                    searchTableNum = i;
-                }
-            }
-            return alldoms['appMain' + searchTableNum];
-        }
-    });
-
-    // else if (word === '!') {
-    //     var tdNum = 0;
-    //     for (var i = 0; i < tdData.length; i++) {
-    //         if (tdData[i].tableTitle === baseWord) {
-    //             tdNum = i;
-    //         }
-    //     }
-    //     if (typeof tdNum === 'number') {
-    //         baseWord = alldoms['appMain' + tdNum].findChild(forword());
-    //     } else {
-    //         console.log('叹号!');
-    //         console.log(baseWord);
-    //     }
-    // }
-
     //表
     function tableClass(tableId, hang, lie, dom) {
         this.table = $('<table class="table"><thead></thead></table>');
@@ -326,11 +267,11 @@
         methods: {
             fx(obj) {
                 var selectPos = getCellTemp2(parseInt($(obj.td).attr('hang')), parseInt($(obj.td).attr('lie')));
-                var tempValue = alldoms['appMain' + obj.tableNum].findChild(selectPos).value_;
+                var tempValue = this.allTableDom[obj.tableNum].findChild(selectPos).value_;
                 this.$refs.float.initFloatDom(obj.td, obj.tableNum, tempValue);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
-                var thisTd = alldoms['appMain' + tableNum].findChild(tdPos);
+                var thisTd = this.allTableDom[tableNum].findChild(tdPos);
                 thisTd.xfIndex = xfIndex;
                 if (str === null) {
                     thisTd.set('');
@@ -444,18 +385,18 @@
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
 
-                        dom('appMain' + table_Num).findChild(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
-                        dom('appMain' + table_Num).findChild(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
-                        dom('appMain' + table_Num).findChild(beginAndEnd[0]).dom.addClass('mergeTd');
+                        this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
+                        this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
+                        this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom.addClass('mergeTd');
 
                         for (let tr = begin[0]; tr <= end[0]; tr++) {
                             let firstTdWidth = 0;
                             for (let td = end[1]; td >= begin[1]; td--) {
-                                firstTdWidth += dom('appMain' + table_Num).thead.find('thead th').eq(td - 1).outerWidth();
+                                firstTdWidth += this_.allTableDom[table_Num].thead.find('thead th').eq(td - 1).outerWidth();
                                 if (tr === begin[0] && td === begin[1]) {
 
                                 } else {
-                                    dom('appMain' + table_Num).td(getCellTemp2(tr, td)).dom.hide();
+                                    this_.allTableDom[table_Num].td(getCellTemp2(tr, td)).dom.hide();
                                 }
                             }
                         }
@@ -488,8 +429,8 @@
                             lie = Math.max(lie, tdPos[1]);
                         }
                         lie = Math.max(lie, 6);//至少补充到6列
-                        alldoms['appMain' + table_Num] = new tableClass(table_Num, hang, lie, tableDom);
-                        alldoms['appMain' + table_Num].render();
+                        this_.allTableDom[table_Num]= new tableClass(table_Num, hang, lie, tableDom);
+                        this_.allTableDom[table_Num].render();
                         (function () {
                             //单元格列宽
                             var nod = document.createElement("style");
@@ -515,7 +456,7 @@
                             var row = tableObj.row;
                             for (let i in row) {
                                 $('.tableRow table').eq(table_Num).find('tr').eq(i - 1).find('td').height(row[i].height - 2);//2是边框
-                                alldoms['appMain' + table_Num].table.find('tbody tr').eq(i - 1).height(row[i].height);
+                                this_.allTableDom[table_Num].table.find('tbody tr').eq(i - 1).height(row[i].height);
                             }
                         })();
                         //单元格合并
@@ -552,10 +493,10 @@
                     //修改列宽度
                     $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
                         function setTdWidth(table_Num, thNum, width) {
-                            dom('appMain' + table_Num).thead.find('thead th').eq(thNum - 1).css({
+                            this_.allTableDom[table_Num].thead.find('thead th').eq(thNum - 1).css({
                                 width: width * 10
                             });
-                            dom('appMain' + table_Num).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
+                            this_.allTableDom[table_Num].table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
                                 width: width * 10
                             });
                         }
@@ -591,10 +532,10 @@
                     //修改列高度
                     $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
                         function setTdHeight(table_Num, thNum, height) {
-                            dom('appMain' + table_Num).thead.find('thead th').eq(thNum - 1).css({
+                            this_.allTableDom[table_Num].thead.find('thead th').eq(thNum - 1).css({
                                 height: height * 10
                             });
-                            dom('appMain' + table_Num).table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
+                            this_.allTableDom[table_Num].table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
                                 height: height * 10
                             });
                         }
@@ -608,7 +549,7 @@
                                 var thNum = dom_.parent().data('num');
                                 var height = (pos.top + 5);
                                 dom_.parent().css('height', height);
-                                dom('appMain' + this_.tableNum).table.find('tbody tr').eq(thNum - 1).css({
+                                this_.allTableDom[this_.tableNum].table.find('tbody tr').eq(thNum - 1).css({
                                     height: height
                                 });
                             },
@@ -773,18 +714,18 @@
                     for (let i = top; i <= bottom; i++) {
                         for (let j = left; j <= right; j++) {
                             if (i === top) {
-                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdtop');
+                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdtop');
                             }
                             if (i === bottom) {
-                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdbottom');
+                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdbottom');
                             }
                             if (j === left) {
-                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdleft');
+                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdleft');
                             }
                             if (j === right) {
-                                dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTdright');
+                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdright');
                             }
-                            dom('appMain' + tableid).findChild(getCellTemp2(i, j)).dom.addClass('editTd');
+                            this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTd');
                         }
                     }
                     this.selectTd(undefined);
@@ -797,8 +738,8 @@
             changeTd(td) {
                 let {tableNum, pos, value, xfIndex} = td;
                 this.writeTd(tableNum, pos, value, xfIndex);
-                if (getCellTemp(pos)[0] > alldoms['appMain' + tableNum].hang) {
-                    alldoms['appMain' + tableNum].addHang();
+                if (getCellTemp(pos)[0] > this.allTableDom[tableNum].hang) {
+                    this.allTableDom[tableNum].addHang();
                 }
             }
         },
@@ -825,6 +766,10 @@
                         horizontal: 'general'
                     }
                 },
+
+
+                allTableDom:[],
+
             }
         },
         components: {
@@ -832,6 +777,49 @@
         },
         created() {
             var this_ = this;
+            functionInit(td, '表格项', {
+                params: {
+                    tableId: {
+                        title: '表',
+                        dataType: 'int',
+                        default: 0,
+                        //select:{
+                        //    'string':'字符串',
+                        //    'int':'数字'
+                        //}
+                    },
+                    tdName: {
+                        title: '表格位置',
+                        dataType: 'string',
+                        default: 'A1',
+                    }
+                },
+                save: function (obj) {
+                    return [this_.allTableDom[obj.tableId], obj.tdName];
+                }
+            });
+            __allMatch__.push({
+                match: /^[A-Z]+\d+$/,
+                value: function (tableNum, word, baseWord) {
+                    if (baseWord === null) {
+                        return this_.allTableDom[tableNum].findChild(word);
+                    } else {
+                        return this_.allTableDom[baseWord.tableId].findChild(word);
+                    }
+                }
+            });
+            __allMatch__.push({
+                match: /^\!$/,
+                value: function (tableNum, word, baseWord) {
+                    let searchTableNum = tableNum;
+                    for (let i = 0; i < tdData.length; i++) {
+                        if (tdData[i].tableTitle === baseWord) {
+                            searchTableNum = i;
+                        }
+                    }
+                    return this_.allTableDom[searchTableNum];
+                }
+            });
             ajax({
                 type: 'POST',
                 data: {
@@ -892,8 +880,8 @@
                                 }
                             }).then((data) => {
                                 if (data !== '-1') {
-                                    if (getCellTemp($(inputDom).attr('pos'))[0] > alldoms['appMain' + $(inputDom).attr('tableid')].hang) {
-                                        alldoms['appMain' + $(inputDom).attr('tableid')].addHang();
+                                    if (getCellTemp($(inputDom).attr('pos'))[0] > this_.allTableDom[$(inputDom).attr('tableid')].hang) {
+                                        this_.allTableDom[$(inputDom).attr('tableid')].addHang();
                                     }
                                     afterUpdate();
                                 } else {
@@ -912,7 +900,7 @@
                 //看看当前单元格是否有合并
                 var activeId = this_.tableNum;
                 var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
-                var tempValue = alldoms['appMain' + activeId].findChild(selectPos).value_;
+                var tempValue = this_.allTableDom[activeId].findChild(selectPos).value_;
                 if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
                     //计算宽度
                     function getTrueWidth(str, xf) {
@@ -976,7 +964,7 @@
                             if (e.key === 'ArrowRight') {
                                 temp[1]++;
                             }
-                            let rightDom = alldoms['appMain' + tableId].findChild(getCellTemp2(temp[0], temp[1])).dom;
+                            let rightDom = this_.allTableDom[getCellTemp2(temp[0], temp[1])].findChild(getCellTemp2(temp[0], temp[1])).dom;
                             $(rightDom).trigger('dblclick');
                         }
                     }
