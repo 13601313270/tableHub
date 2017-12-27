@@ -392,12 +392,10 @@ function td(table, positionStr) {
                             this.dom.html(insertHtml);
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
-
-
-                            if (alldoms['appMain' + this.tableId].child(tdPos) == undefined) {
+                            if (this.table.child(tdPos) === undefined) {
                                 var tdTemp = new td(this.table, tdPos);
                             } else {
-                                var tdTemp = alldoms['appMain' + this.tableId].child(tdPos);
+                                var tdTemp = this.table.child(tdPos);
                             }
                             if (getValue_ instanceof tdValueList) {
                                 this.bind(tdTemp);
