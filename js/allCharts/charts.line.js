@@ -32,7 +32,7 @@ function LINE(title, XtdLists, valueTdLists) {
         if (domTemp.width() !== domTemp.find('>div').width() || domTemp.height() !== domTemp.find('>div').height()) {
             this.myChart.resize();
         }
-        if ((this.XtdLists instanceof tdList) == false) {
+        if ((this.XtdLists instanceof tdList) === false) {
             this.myChart.setOption({
                 title: {
                     text: '',
@@ -55,14 +55,14 @@ function LINE(title, XtdLists, valueTdLists) {
             return;
         }
         var X = this.XtdLists.get();
-        for (var i = 0; i < X.length; i++) {
+        for (let i = 0; i < X.length; i++) {
             if (X[i] === undefined) {
                 X[i] = 0;
             }
             X[i] = X[i].toString();
         }
         var value = this.valueTdLists.get();
-        for (i = 0; i < X.length; i++) {
+        for (let i = 0; i < X.length; i++) {
             if (value[i] === undefined) {
                 value[i] = 0;
             }

@@ -44,10 +44,12 @@
     import tools from '@/components/tools.vue'
     import dataFloat from '@/components/dataFloat.vue'
     import wrapper from '@/components/wrapper.vue'
+    import pageFloatPanel from '@/components/pageFloatPanel.vue'
     import ajax from '@/tools/ajax.js'
     import Vue from 'vue'
     import echarts from 'echarts'
     import setTdSelectState from '@/tools/setTdSelectState.js';
+
     //表
     function tableClass(tableId, hang, lie, dom) {
         this.table = $('<table class="table"><thead></thead></table>');
@@ -429,7 +431,7 @@
                             lie = Math.max(lie, tdPos[1]);
                         }
                         lie = Math.max(lie, 6);//至少补充到6列
-                        this_.allTableDom[table_Num]= new tableClass(table_Num, hang, lie, tableDom);
+                        this_.allTableDom[table_Num] = new tableClass(table_Num, hang, lie, tableDom);
                         this_.allTableDom[table_Num].render();
                         (function () {
                             //单元格列宽
@@ -766,14 +768,11 @@
                         horizontal: 'general'
                     }
                 },
-
-
-                allTableDom:[],
-
+                allTableDom: [],
             }
         },
         components: {
-            bottom, tools, dataFloat, wrapper
+            bottom, tools, dataFloat, wrapper, pageFloatPanel
         },
         created() {
             var this_ = this;
