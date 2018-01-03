@@ -981,7 +981,7 @@
         }
     }
 </style>
-<style scoped>
+<style lang="less" scoped>
     body {
         background-color: #e6e6e6;
     }
@@ -991,15 +991,14 @@
         margin-top: 0;
         background-color: white;
         table-layout: fixed;
-    }
+        > thead > tr > th {
+            width: 100px;
+        }
 
-    .table > thead > tr > th {
-        width: 100px;
-    }
-
-    .table > tbody > tr > td {
-        width: 100px;
-        overflow: hidden;
+        > tbody > tr > td {
+            width: 100px;
+            overflow: hidden;
+        }
     }
 
     .idNum {
@@ -1009,16 +1008,15 @@
     }
 
     .tableBody {
-        margin-left: 0px;
+        margin-left: 0;
         width: 100%;
         height: 100%;
         overflow: auto;
-        margin-top: 0px;
-    }
-
-    .tableBody .input-group {
-        width: 98%;
-        margin-left: 1%;
+        margin-top: 0;
+        .input-group {
+            width: 98%;
+            margin-left: 1%;
+        }
     }
 
     .edit .tableBody {
@@ -1044,28 +1042,29 @@
         display: none;
     }
 
-    .edit .table {
-        margin: 0 0;
-    }
+    .edit {
+        .table {
+            margin: 0 0;
+        }
 
-    .edit .tableRow {
-        display: block;
-    }
+        .tableRow {
+            display: block;
+        }
 
-    .edit .tableThead {
-        display: block;
+        .tableThead {
+            display: block;
+        }
     }
 
     #myTabContent {
         position: relative;
         height: calc(100% - 40px);
-    }
-
-    #myTabContent .tab-pane {
-        overflow: auto;
-        width: 100%;
-        height: 100%;
-        padding-top: 5px;
+        .tab-pane {
+            overflow: auto;
+            width: 100%;
+            height: 100%;
+            padding-top: 5px;
+        }
     }
 
     .edit #myTabContentParent .tab-pane {
@@ -1117,25 +1116,27 @@
         background-color: #c3c3c3;
     }
 
-    .edit .editTd {
-        background-color: #e5f2ff;
-        /*border:solid 2px #0000b8;*/
-    }
+    .edit {
+        .editTd {
+            background-color: #e5f2ff;
+            /*border:solid 2px #0000b8;*/
+        }
 
-    .edit .editTdtop {
-        border-top: solid 2px #0000b8;
-    }
+        .editTdtop {
+            border-top: solid 2px #0000b8;
+        }
 
-    .edit .editTdbottom {
-        border-bottom: solid 2px #0000b8;
-    }
+        .editTdbottom {
+            border-bottom: solid 2px #0000b8;
+        }
 
-    .edit .editTdleft {
-        border-left: solid 2px #0000b8;
-    }
+        .editTdleft {
+            border-left: solid 2px #0000b8;
+        }
 
-    .edit .editTdright {
-        border-right: solid 2px #0000b8;
+        .editTdright {
+            border-right: solid 2px #0000b8;
+        }
     }
 
     .tableThead thead > tr > th {
@@ -1156,45 +1157,47 @@
         height: 37px;
     }
 
-    .tableThead > thead th {
-        border-bottom: solid 3px #929292 !important;
-    }
-
-    .tableThead .table > thead > tr > .lieNum {
-        position: relative;
-    }
-
-    .tableThead .table > thead > tr > .lieNum > div {
-        cursor: ew-resize;
-        position: absolute;
-        right: 0;
-        top: 0;
-        height: 100%;
-        width: 5px;
+    .tableThead {
+        > thead th {
+            border-bottom: solid 3px #929292 !important;
+        }
+        .table > thead > tr > .lieNum {
+            position: relative;
+            > div {
+                cursor: ew-resize;
+                position: absolute;
+                right: 0;
+                top: 0;
+                height: 100%;
+                width: 5px;
+            }
+        }
     }
 
     .table > tbody > tr > .mergeTd {
         white-space: initial
     }
 
-    .tableBody tr {
-        background-color: white;
-    }
+    .tableBody {
+        tr {
+            background-color: white;
+        }
 
-    .tableBody thead {
-        height: 20px;
-    }
+        thead {
+            height: 20px;
+        }
 
-    .tableBody thead [lienum] {
-        padding: 0;
-    }
+        thead [lienum] {
+            padding: 0;
+        }
 
-    .tableBody .table {
-        margin-top: -16px;
-    }
+        .table {
+            margin-top: -16px;
+        }
 
-    .tableBody .table > thead > tr > th {
-        border-bottom: none;
+        .table > thead > tr > th {
+            border-bottom: none;
+        }
     }
 
     .styleAllSelect {
@@ -1241,28 +1244,27 @@
     .table td .tdInsertDiv {
         display: table;
         width: 100%;
-    }
+        > div {
+            display: table-cell;
+        }
 
-    .table td .tdInsertDiv > div {
-        display: table-cell;
-    }
+        > div:nth-child(2) {
+            white-space: normal;
+            display: block;
+            height: 1rem;
+        }
 
-    .table td .tdInsertDiv > div:nth-child(2) {
-        white-space: normal;
-        display: block;
-        height: 1rem;
-    }
+        > div:nth-child(2) > span {
+            /*max-width: 100px;*/
+            display: inline-block;
+        }
 
-    .table td .tdInsertDiv > div:nth-child(2) > span {
-        /*max-width: 100px;*/
-        display: inline-block;
-    }
+        > div:first-child {
+            text-align: left;
+        }
 
-    .table td .tdInsertDiv > div:first-child {
-        text-align: left;
-    }
-
-    .table td .tdInsertDiv > div:last-child {
-        text-align: right;
+        > div:last-child {
+            text-align: right;
+        }
     }
 </style>

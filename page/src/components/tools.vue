@@ -186,12 +186,12 @@
                     }
                 }).then((data) => {
                     if (data !== '-1') {
-                        this.$emit('insertChart',{
-                            tableNum:tableNum,
-                            saveVlalue:saveVlalue,
-                            chartsId:chartsId,
-                            position:position,
-                            size:size
+                        this.$emit('insertChart', {
+                            tableNum: tableNum,
+                            saveVlalue: saveVlalue,
+                            chartsId: chartsId,
+                            position: position,
+                            size: size
                         });
                     } else {
                         alert('样式服务器同步失败');
