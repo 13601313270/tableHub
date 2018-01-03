@@ -142,53 +142,11 @@
         }
         this.td = function (positionStr) {
         }
-        ////根据开始结尾获取一组td
-        //this.tds = function(begin,end){
-        //    var tds = [];
-        //    for(var hang=begin[0];hang<=end[0];hang++){
-        //        tds[hang-begin[0]] = [];
-        //        for(var lie = begin[1];lie<=end[1];lie++){
-        //            tds[hang-begin[0]].push(this.td(hang,lie));
-        //        }
-        //    }
-        //    return new tdList(tds);
-        //}
+        //根据开始结尾获取一组td
         this.attr = function (key, value) {
             this.table.attr(key, value);
             return this;
         }
-        //this.sortTable = function(lie){
-        //    this.tdList.sort(function(a,b){
-        //        if(a.length<=2){
-        //            return 1;
-        //        }else if(b.length<=2){
-        //            return -1;
-        //        }else if(typeof a[lie].value()=='string'){
-        //            return -1;
-        //        }else if(typeof b[lie].value()=='string'){
-        //            return 1;
-        //        }
-        //        if(a[lie].value()<b[lie].value()){
-        //            return 1;
-        //        }else{
-        //            return -1;
-        //        }
-        //    });
-        //    this.table.find('>tbody').html('');
-        //
-        //    for(var i=0;i<this.tdList.length;i++){
-        //        if(i<15){
-        //            if(this.tdList[i] && this.tdList[i].length>1){
-        //                var tr = $('<tr></tr>');
-        //                for(var j=0;j<this.tdList[i].length;j++){
-        //                    tr.append('<td>'+this.tdList[i][j].value()+'</td>');
-        //
-        //                }
-        //                this.table.append(tr);
-        //            }
-        //        }
-        //    }
-        //}
     }
 
     function selectTd2(temp, activeId) {
