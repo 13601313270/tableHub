@@ -50,7 +50,7 @@ function __runObj__(runObj, funcName, params) {
             }
         } else {
             try {
-                console.log(runParams);
+                // console.log(runParams);
                 return eval(runParams.join(''));
             } catch (e) {
                 return '';

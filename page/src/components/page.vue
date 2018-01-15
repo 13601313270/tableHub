@@ -21,10 +21,12 @@
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
                 <div id="myTabContent" class="tab-content">
-                    <div v-for="(item,key) in allFileData" class="tab-pane fade"
-                         :class="{active:key===tableNum,in:key===tableNum}"
-                         :data-tableid="key"
-                         :id="'table_' + key"></div>
+                    <table-vue-obj v-for="(item,key) in allTableDom" class="tab-pane fade"
+                                   :key="key"
+                                   :class="{active:key===tableNum,in:key===tableNum}"
+                                   :data-tableid="key"
+                                   :table-obj="item"
+                                   :id="'table_' + key"></table-vue-obj>
                 </div>
             </div>
         </div>
@@ -50,86 +52,92 @@
     import echarts from 'echarts'
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
+    var tableVueObj = {
+        props: ['tableObj'],
+        methods: {
+            getCellTemp2(trNum, tdNum) {
+                var result = '';
+                do {
+                    var append = String.fromCharCode(tdNum % 26 + 64);
+                    if (append === '@') {
+                        append = 'Z';
+                        tdNum -= 26;
+                    }
+                    result = append + '' + result;
+                    tdNum = parseInt(tdNum / 26);
+                } while (tdNum > 0);
+                return result + trNum;
+            },
+        },
+        // tbodyDom.scroll(function () {
+        //     this_.thead.css('marginLeft', tbodyDom.scrollLeft() * -1);
+        //     this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
+        // });
+        template: `<div>
+    <div class="tableThead" style="position:absolute;left:80px;width: calc(100% - 80px);overflow: hidden">
+        <table class="table">
+        <thead>
+            <tr>
+                <th v-for="i in tableObj.lie" class="lieNum"
+                    :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]">{{getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]}}<div></div></th>
+            </tr>
+        </thead></table>
+    </div>
+    <div class="tableRow">
+        <table class="table">
+        <tbody>
+            <tr v-for="i in tableObj.hang">
+                <td class="idNum" :data-num="i" style="width: 80px;">{{i}}<div></div></td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+    <div class="tableBody">
+        <div class="floatSingleValueWrite">
+            <div class="input">
+                <input/>
+            </div>
+            <div class="span"></div>
+        </div>
+        <div class="allCharts"></div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th v-for="i in tableObj.lie" class="lienum"
+                        :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="i in tableObj.hang" :hang="i">
+                    <td v-for="j in tableObj.lie" :hang="i" :lie="j">
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>`,
+    };
+
+    var jqueryDomToVue = {
+        render:function(createElement){
+
+        }
+    };
     //表
-    function tableClass(tableId, hang, lie, dom) {
+    function tableClass(tableId, hang, lie) {
         this.table = $('<table class="table"><thead></thead></table>');
         this.tdList = {};
         this.tableId = tableId;
         this.hang = hang;
         this.lie = lie;
-        this.thead = $('<table class="table"><thead></thead></table>');
         this.addMoreHang = 3;//编辑状态下额外添加的行的数量
         this.addHang = function () {
             for (var i = 0; i < this.addMoreHang; i++) {
-                var hang = (this.hang + this.addMoreHang + 1);
-                this.row.find('tbody').append('<tr><td class="idNum" style="width: 80px;">' + hang + '</td></tr>');
-                var newTr = $('<tr hang="' + hang + '"></tr>');
-                for (var j = 0; j < this.thead.find('thead th').length; j++) {
-                    newTr.append('<td hang="' + hang + '" lie="' + (j + 1) + '"></td>');
-                }
-                this.table.append(newTr);
                 this.hang++;
             }
         };
-
-        //添加表格行头
-        (function () {
-            var tr = $('<tr></tr>');
-            var tbodyThead = $('<tr></tr>');
-            for (var i = 0; i < lie; i++) {
-                tr.append($('<th class="lieNum" lieNum="' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '">' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '<div></div></th>'));
-                tbodyThead.append($('<th class="lieNum" lieNum="' + getCellTemp2(0, i + 1).match(/([A-Z]*)(\d+)/)[1] + '"></th>'));
-            }
-            this.thead.find('thead').append(tr);
-            var tttt = $('<div class="tableThead" style="position:absolute;left:80px;width: calc(100% - 80px);overflow: hidden"></div>');
-            tttt.append(this.thead);
-            $(dom).append(tttt);
-            this.table.find('thead').append(tbodyThead);
-        }).call(this);
-        this.row = $('<table class="table"><tbody></tbody></table>');
-        //添加表格列头
-        (function () {
-            for (var i = 0; i < hang + this.addMoreHang; i++) {
-                var tr = $('<tr></tr>');
-                tr.append($('<td class="idNum" data-num="' + (i + 1) + '" style="width: 80px;">' + (i + 1) + '<div></div></td>'));
-                this.row.find('tbody').append(tr);
-            }
-            var tdTitle = $('<div class="tableRow"></div>');
-            tdTitle.append(this.row);
-            $(dom).append(tdTitle);
-        }).call(this);
-        var tbody = $('<tbody></tbody>');
-        this.table.append(tbody);
-        if (dom) {
-            this.dom = dom;
-        } else {
-            this.dom = $('.container');
-        }
-        for (let i = 0; i < hang + this.addMoreHang; i++) {
-            var tr = $('<tr hang="' + (i + 1) + '"></tr>');
-            tbody.append(tr);
-            for (let j = 0; j < lie; j++) {
-                tr.append('<td hang="' + (i + 1) + '" lie="' + (j + 1) + '"></td>');
-            }
-        }
         this.render = function (cssStr) {
-            var tbodyDom = $('<div class="tableBody">' +
-                '<div class="floatSingleValueWrite">' +
-                '<div class="input">' +
-                '<input/>' +
-                '</div>' +
-                '<div class="span"></div>' +
-                '</div>' +
-                '<div class="allCharts">' +
-                '</div>' +
-                '</div>');
-            this.dom.append(tbodyDom);
-            tbodyDom.append(this.table);
-            var this_ = this;
-            tbodyDom.scroll(function () {
-                this_.thead.css('marginLeft', tbodyDom.scrollLeft() * -1);
-                this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
-            });
         }
         this.child = function (positionStr) {
             return this.tdList[positionStr];
@@ -139,13 +147,6 @@
                 new td(this, positionStr);
             }
             return this.tdList[positionStr];
-        }
-        this.td = function (positionStr) {
-        }
-        //根据开始结尾获取一组td
-        this.attr = function (key, value) {
-            this.table.attr(key, value);
-            return this;
         }
     }
 
@@ -363,67 +364,71 @@
                     }
                 }
 
-                setTimeout(() => {//vue执行较为延时
-                    td.config.params.tableId.select = {};
-                    for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
-                        var tableObj = this.allFileData[table_Num];
-                        var tableTitle = tableObj.title;
-                        this.allTableTitle.push(tableTitle);
-                        td.config.params.tableId.select[table_Num.toString()] = tableTitle;
-                        tdData[table_Num] = {
-                            tableTitle: tableTitle,
-                            tableData: tableObj.tableValue,
-                            mergeCells: tableObj.mergeCells,
-                        };
-                        var tableDom = $('#myTabContent').find('#table_' + table_Num);
-                        //获取宽高
-                        var hang = 0;
-                        var lie = 0;
-                        for (let i in tdData[table_Num].tableData) {
-                            try {
-                                var tdPos = getCellTemp(i);
-                            } catch (e) {
-                                continue;
-                            }
-                            hang = Math.max(hang, tdPos[0]);
-                            lie = Math.max(lie, tdPos[1]);
+
+                td.config.params.tableId.select = {};
+                for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
+                    var tableObj = this.allFileData[table_Num];
+                    var tableTitle = tableObj.title;
+                    this.allTableTitle.push(tableTitle);
+                    td.config.params.tableId.select[table_Num.toString()] = tableTitle;
+                    tdData[table_Num] = {
+                        tableTitle: tableTitle,
+                        tableData: tableObj.tableValue,
+                        mergeCells: tableObj.mergeCells,
+                    };
+                    //获取宽高
+                    var hang = 0;
+                    var lie = 0;
+                    for (let i in tdData[table_Num].tableData) {
+                        try {
+                            var tdPos = getCellTemp(i);
+                        } catch (e) {
+                            continue;
                         }
-                        lie = Math.max(lie, 6);//至少补充到6列
-                        this_.allTableDom[table_Num] = new tableClass(table_Num, hang, lie, tableDom);
-                        this_.allTableDom[table_Num].render();
-                        (function () {
-                            //单元格列宽
-                            var nod = document.createElement("style");
-                            nod.type = "text/css";
-                            $(nod).attr('td_css_list', 1);
-                            var str = "";
-                            var column = tableObj.column;
-                            for (let i in column) {
-                                var thNum = getCellTemp(i + '1')[1];
-                                var strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lienum=\"" + i + "\"]{\n";
-                                strItem += 'width:' + column[i].width * 10 + 'px;\n';
-                                strItem += "}\n";
-                                str += strItem;
-                            }
-                            if (nod.styleSheet) { //ie下
-                                nod.styleSheet.cssText = str;
-                            } else {
-                                nod.innerHTML = str;
-                            }
-                            document.getElementsByTagName("head")[0].appendChild(nod);
+                        hang = Math.max(hang, tdPos[0]);
+                        lie = Math.max(lie, tdPos[1]);
+                    }
+                    lie = Math.max(lie, 6);//至少补充到6列
+                    this_.allTableDom[table_Num] = new tableClass(table_Num, hang, lie);
+                    this_.allTableDom[table_Num].render();
+                    (function () {
+                        //单元格列宽
+                        var nod = document.createElement("style");
+                        nod.type = "text/css";
+                        $(nod).attr('td_css_list', 1);
+                        var str = "";
+                        var column = tableObj.column;
+                        for (let i in column) {
+                            var thNum = getCellTemp(i + '1')[1];
+                            var strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lienum=\"" + i + "\"]{\n";
+                            strItem += 'width:' + column[i].width * 10 + 'px;\n';
+                            strItem += "}\n";
+                            str += strItem;
+                        }
+                        if (nod.styleSheet) { //ie下
+                            nod.styleSheet.cssText = str;
+                        } else {
+                            nod.innerHTML = str;
+                        }
+                        document.getElementsByTagName("head")[0].appendChild(nod);
 
-                            //设置列高
-                            var row = tableObj.row;
-                            for (let i in row) {
-                                $('.tableRow table').eq(table_Num).find('tr').eq(i - 1).find('td').height(row[i].height - 2);//2是边框
-                                this_.allTableDom[table_Num].table.find('tbody tr').eq(i - 1).height(row[i].height);
-                            }
-                        })();
-                        //单元格合并
-                        initMerge(table_Num, tdData[table_Num].mergeCells);
+                        //设置列高
+                        var row = tableObj.row;
+                        for (let i in row) {
+                            $('.tableRow table').eq(table_Num).find('tr').eq(i - 1).find('td').height(row[i].height - 2);//2是边框
+                            this_.allTableDom[table_Num].table.find('tbody tr').eq(i - 1).height(row[i].height);
+                        }
+                    })();
+                    //单元格合并
+                    initMerge(table_Num, tdData[table_Num].mergeCells);
 
+
+                }
+                setTimeout(() => {
+                    for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
                         //绘制图表
                         allEcharts[table_Num] = [];
+                        var tableObj = this.allFileData[table_Num];
                         if (tableObj.charts !== undefined) {
                             for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
                                 let position = tableObj.charts[chartsId].position.split(',');
@@ -443,7 +448,6 @@
                                 }
                             }
                         }
-
                     }
                     for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
                         for (let i in tdData[table_Num].tableData) {
@@ -532,7 +536,7 @@
                             }
                         });
                     });
-                }, 300);
+                }, 100);
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
@@ -730,7 +734,7 @@
             }
         },
         components: {
-            bottom, tools, dataFloat, wrapper, pageFloatPanel
+            bottom, tools, dataFloat, wrapper, pageFloatPanel, tableVueObj
         },
         created() {
             var this_ = this;
