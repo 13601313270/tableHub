@@ -25,7 +25,7 @@ function td(table, positionStr) {
     this.hang = tdPos[0];
     this.lie = tdPos[1];
     this.xfIndex = 0;
-    this.dom = this.table.table.find('>tbody').find('>tr').eq(this.hang - 1).find('>td').eq(this.lie - 1);
+    this.dom = $('#myTabContent>.tab-pane').eq(this.tableId).find('.tableBody tbody').find('>tr').eq(this.hang - 1).find('>td').eq(this.lie - 1);
     this.dom.data('obj', this);
     this.getNearFenshu = function (num, wei) {
         var numList = num.toString().split('.');
