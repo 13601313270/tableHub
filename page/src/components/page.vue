@@ -64,7 +64,7 @@
         computed: {
             css() {
                 return {
-                    background: 'red', zIndex: 99,
+                    zIndex: 99,
                     left: this.positionX === null ? '' : (this.positionX + 'px'),
                     top: this.positionY === null ? '' : (this.positionY + 'px'),
                 }
@@ -204,10 +204,11 @@
     };
 
     //表
-    function tableClass(tableId, hang, lie) {
+    function tableClass(tableId, dbSave, hang, lie) {
         // this.table = $('<table class="table"><thead></thead></table>');
         this.tdList = {};
         this.tableId = tableId;
+        this.dbSave = dbSave;
         this.hang = hang;
         this.lie = lie;
         this.addMoreHang = 3;//编辑状态下额外添加的行的数量
@@ -217,8 +218,39 @@
                 this.hang++;
             }
         };
+        this.cssNod = document.createElement("style");
+        (function () {
+            this.cssNod.id = "tdWidthHeight";
+            this.cssNod.type = "text/css";
+            $(this.cssNod).attr('td_css_list', 1);
+            document.getElementsByTagName("head")[0].appendChild(this.cssNod);
+        }).call(this);
         this.render = function (cssStr) {
-        }
+        };
+        this.initTdStyle = function () {
+            var column = this.dbSave.column;
+            var row = this.dbSave.row;
+            //单元格列宽
+            let str = "";
+            for (let i in column) {
+                let thNum = getCellTemp(i + '1')[1];
+                let strItem = "#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [lienum=\"" + i + "\"]{\n";
+                strItem += 'width:' + column[i].width * 10 + 'px;\n';
+                strItem += "}\n";
+                str += strItem;
+            }
+            for (let i in row) {
+                let strItem = "#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [hang=\"" + i + "\"],#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [hang=\"" + i + "\"]{\n";
+                strItem += 'height:' + (row[i].height) + 'px;\n';
+                strItem += "}\n";
+                str += strItem;
+            }
+            if (this.cssNod.styleSheet) { //ie下
+                this.cssNod.styleSheet.cssText = str;
+            } else {
+                this.cssNod.innerHTML += str;
+            }
+        };
         this.child = function (positionStr) {
             return this.tdList[positionStr];
         }
@@ -451,31 +483,6 @@
                 $(nod).attr('td_css_list', 1);
                 document.getElementsByTagName("head")[0].appendChild(nod);
 
-                function initTdStyle(table_Num) {
-                    var column = this_.allFileData[table_Num].column;
-                    var row = this_.allFileData[table_Num].row;
-                    //单元格列宽
-                    let str = "";
-                    for (let i in column) {
-                        let thNum = getCellTemp(i + '1')[1];
-                        let strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lienum=\"" + i + "\"]{\n";
-                        strItem += 'width:' + column[i].width * 10 + 'px;\n';
-                        strItem += "}\n";
-                        str += strItem;
-                    }
-                    for (let i in row) {
-                        let strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [hang=\"" + i + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [hang=\"" + i + "\"]{\n";
-                        strItem += 'height:' + (row[i].height) + 'px;\n';
-                        strItem += "}\n";
-                        str += strItem;
-                    }
-                    if (nod.styleSheet) { //ie下
-                        nod.styleSheet.cssText = str;
-                    } else {
-                        nod.innerHTML += str;
-                    }
-                }
-
                 td.config.params.tableId.select = {};
                 for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
                     var tableObj = this.allFileData[table_Num];
@@ -500,10 +507,9 @@
                         lie = Math.max(lie, tdPos[1]);
                     }
                     lie = Math.max(lie, 6);//至少补充到6列
-                    this_.allTableDom[table_Num] = new tableClass(table_Num, hang, lie);
+                    this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
                     this_.allTableDom[table_Num].render();
-                    //添加宽高样式
-                    initTdStyle(table_Num);
+                    this_.allTableDom[table_Num].initTdStyle();
                     //单元格合并
                     initMerge(table_Num, tdData[table_Num].mergeCells);
                 }
@@ -551,7 +557,7 @@
                         //         var table_Num = this_.tableNum;
                         //         var thNum = dom.parent().attr('lienum');
                         //         this_.allFileData[table_Num].column[thNum].width = (pos.left + 5) / 10;
-                        //         initTdStyle(table_Num);
+                        ////         initTdStyle(table_Num);
                         //     },
                         //     onMouseup: function (dom) {
                         //         var lienum = dom.parent().attr('lienum');
@@ -566,7 +572,7 @@
                         //                 'width': (width / 10).toFixed(1)
                         //             }
                         //         }).then((data) => {
-                        //             initTdStyle(this_.tableNum);
+                        ////             initTdStyle(this_.tableNum);
                         //         });
                         //     }
                         // });
@@ -582,7 +588,7 @@
                                 var height = pos.top + 5;
                                 var thNum = dom_.parent().attr('hang');
                                 this_.allFileData[this_.tableNum].row[thNum].height = height;
-                                initTdStyle(this_.tableNum);
+                                //initTdStyle(this_.tableNum);
                             },
                             onMouseup: function (dom) {
                                 ajax({
@@ -595,7 +601,7 @@
                                         'height': parseInt(dom.parent().height())
                                     }
                                 }).then(() => {
-                                    initTdStyle(this_.tableNum);
+                                    //initTdStyle(this_.tableNum);
                                 });
                             }
                         });
