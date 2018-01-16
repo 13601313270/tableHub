@@ -396,9 +396,8 @@
             },
             changeChart(charts) {
                 var {tableNum, chartsIndex, content} = charts;
-                var oldObj = allEcharts[tableNum][chartsIndex];
+                var oldObj = this_.allTableDom[tableNum].alltableObj[chartsIndex];
                 oldObj.myChart.clear();
-
                 var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
                 matchPreg = content.match(matchPreg)[1];
                 matchPreg = getEvalObj(tableNum, '[' + matchPreg + ']', true);
@@ -434,8 +433,8 @@
                 chartsItem.dom.attr('index', chartsId);
                 chartsItem.index = chartsId;
                 allEcharts[tableNum][chartsId] = chartsItem;
-                allEcharts[tableNum][chartsId].render();
-                allEcharts[tableNum][chartsId].myChart.resize();
+                chartsItem.render();
+                chartsItem.myChart.resize();
             },
             isOpenEditSet(state) {
                 this.isOpenEdit = state;
