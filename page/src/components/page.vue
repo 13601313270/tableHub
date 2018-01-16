@@ -54,6 +54,12 @@
 
     var tableVueObj = {
         props: ['tableObj'],
+        data() {
+            return {
+                theadLeft: 0,
+                rowTop: 0,
+            };
+        },
         methods: {
             getCellTemp2(trNum, tdNum) {
                 var result = '';
@@ -68,14 +74,16 @@
                 } while (tdNum > 0);
                 return result + trNum;
             },
+            scroll(event) {
+                this.theadLeft = event.target.scrollLeft;
+                this.rowTop = event.target.scrollTop;
+                // this_.thead.css('marginLeft', tbodyDom.scrollLeft() * -1);
+                // this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
+            },
         },
-        // tbodyDom.scroll(function () {
-        //     this_.thead.css('marginLeft', tbodyDom.scrollLeft() * -1);
-        //     this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
-        // });
         template: `<div>
-    <div class="tableThead" style="position:absolute;left:80px;width: calc(100% - 80px);overflow: hidden">
-        <table class="table">
+    <div class="tableThead">
+        <table class="table" :style="{marginLeft:theadLeft*-1+'px'}">
         <thead>
             <tr>
                 <th v-for="i in tableObj.lie" class="lieNum"
@@ -84,7 +92,7 @@
         </thead></table>
     </div>
     <div class="tableRow">
-        <table class="table">
+        <table class="table" :style="{marginTop:rowTop*-1+'px'}">
         <tbody>
             <tr v-for="i in tableObj.hang">
                 <td class="idNum" :hang="i" style="width: 80px;">{{i}}<div></div></td>
@@ -92,7 +100,7 @@
         </tbody>
         </table>
     </div>
-    <div class="tableBody">
+    <div class="tableBody" @scroll="scroll($event)">
         <div class="floatSingleValueWrite">
             <div class="input">
                 <input/>
@@ -131,7 +139,7 @@
 
     //表
     function tableClass(tableId, hang, lie) {
-        this.table = $('<table class="table"><thead></thead></table>');
+        // this.table = $('<table class="table"><thead></thead></table>');
         this.tdList = {};
         this.tableId = tableId;
         this.hang = hang;
@@ -370,6 +378,35 @@
                     }
                 }
 
+                //样式
+                let nod = document.createElement("style");
+                nod.id = "tdWidthHeight";
+                nod.type = "text/css";
+                $(nod).attr('td_css_list', 1);
+                document.getElementsByTagName("head")[0].appendChild(nod);
+
+                function initTdStyle(table_Num, column, row) {
+                    //单元格列宽
+                    let str = "";
+                    for (let i in column) {
+                        let thNum = getCellTemp(i + '1')[1];
+                        let strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lienum=\"" + i + "\"]{\n";
+                        strItem += 'width:' + column[i].width * 10 + 'px;\n';
+                        strItem += "}\n";
+                        str += strItem;
+                    }
+                    for (let i in row) {
+                        let strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [hang=\"" + i + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [hang=\"" + i + "\"]{\n";
+                        strItem += 'height:' + (row[i].height) + 'px;\n';
+                        strItem += "}\n";
+                        str += strItem;
+                    }
+                    if (nod.styleSheet) { //ie下
+                        nod.styleSheet.cssText = str;
+                    } else {
+                        nod.innerHTML += str;
+                    }
+                }
 
                 td.config.params.tableId.select = {};
                 for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
@@ -397,34 +434,8 @@
                     lie = Math.max(lie, 6);//至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, hang, lie);
                     this_.allTableDom[table_Num].render();
-                    (function () {
-                        //单元格列宽
-                        let nod = document.createElement("style");
-                        nod.type = "text/css";
-                        $(nod).attr('td_css_list', 1);
-                        let str = "";
-                        var column = tableObj.column;
-                        for (let i in column) {
-                            let thNum = getCellTemp(i + '1')[1];
-                            let strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [lienum=\"" + i + "\"]{\n";
-                            strItem += 'width:' + column[i].width * 10 + 'px;\n';
-                            strItem += "}\n";
-                            str += strItem;
-                        }
-                        let row = tableObj.row;
-                        for (let i in row) {
-                            let strItem = "#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [hang=\"" + i + "\"],#myTabContent>.tab-pane:nth-child(" + (table_Num + 1) + ") [hang=\"" + i + "\"]{\n";
-                            strItem += 'height:' + (row[i].height) + 'px;\n';
-                            strItem += "}\n";
-                            str += strItem;
-                        }
-                        if (nod.styleSheet) { //ie下
-                            nod.styleSheet.cssText = str;
-                        } else {
-                            nod.innerHTML += str;
-                        }
-                        document.getElementsByTagName("head")[0].appendChild(nod);
-                    })();
+                    //添加宽高样式
+                    initTdStyle(table_Num, tableObj.column, tableObj.row);
                     //单元格合并
                     initMerge(table_Num, tdData[table_Num].mergeCells);
                 }
@@ -462,90 +473,69 @@
                             this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                         }
                     }
+                    //修改列宽度
+                    $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
+                        function setTdWidth(table_Num, thNum, width) {
+                            this_.allFileData[table_Num].column[thNum].width = width;
+                            initTdStyle(table_Num, this_.allFileData[table_Num].column, this_.allFileData[table_Num].row);
+                        }
+
+                        $(this).dragging({
+                            move: 'x',
+                            xLimit: false,
+                            yLimit: false,
+                            randomPosition: false,
+                            onMousemove: function (dom, pos) {
+                                setTdWidth(this_.tableNum, dom.parent().attr('lienum'), (pos.left + 5) / 10);
+                            },
+                            onMouseup: function (dom) {
+                                var lienum = dom.parent().attr('lienum');
+                                var width = dom.parent().width();
+                                ajax({
+                                    type: 'POST',
+                                    data: {
+                                        'function': 'updateWidth',
+                                        'fileId': this_.fileId,
+                                        'tableNum': this_.tableNum,
+                                        'lienum': lienum,
+                                        'width': (width / 10).toFixed(1)
+                                    }
+                                }).then((data) => {
+                                    initTdStyle(this_.tableNum, this_.allFileData[this_.tableNum].column);
+                                });
+                            }
+                        });
+                    });
+                    //修改列高度
+                    $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
+                        $(this).dragging({
+                            move: 'y',
+                            xLimit: false,
+                            yLimit: false,
+                            randomPosition: false,
+                            onMousemove: function (dom_, pos) {
+                                var height = pos.top + 5;
+                                var thNum = dom_.parent().attr('hang');
+                                this_.allFileData[this_.tableNum].row[thNum].height = height;
+                                initTdStyle(this_.tableNum, this_.allFileData[this_.tableNum].column, this_.allFileData[this_.tableNum].row);
+                            },
+                            onMouseup: function (dom) {
+                                ajax({
+                                    type: 'POST',
+                                    data: {
+                                        'function': 'updateHeight',
+                                        'fileId': this_.fileId,
+                                        'tableNum': this_.tableNum,
+                                        'row': dom.parent().attr('hang'),
+                                        'height': parseInt(dom.parent().height())
+                                    }
+                                }).then(() => {
+                                    initTdStyle(this_.tableNum, this_.allFileData[this_.tableNum].column, this_.allFileData[this_.tableNum].row);
+                                });
+                            }
+                        });
+                    });
                 }, 100);
-
-                //修改列宽度
-                $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
-                    function setTdWidth(table_Num, thNum, width) {
-                        this_.allTableDom[table_Num].thead.find('thead th').eq(thNum - 1).css({
-                            width: width * 10
-                        });
-                        this_.allTableDom[table_Num].table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
-                            width: width * 10
-                        });
-                    }
-
-                    $(this).dragging({
-                        move: 'x',
-                        xLimit: false,
-                        yLimit: false,
-                        randomPosition: false,
-                        onMousemove: function (dom, pos) {
-                            var thNum = getCellTemp(dom.parent().attr('lienum') + '1')[1];
-                            setTdWidth(this_.tableNum, thNum, (pos.left + 5) / 10);
-                        },
-                        onMouseup: function (dom) {
-                            var lienum = dom.parent().attr('lienum');
-                            var width = dom.parent().width();
-                            ajax({
-                                type: 'POST',
-                                data: {
-                                    'function': 'updateWidth',
-                                    'fileId': this_.fileId,
-                                    'tableNum': this_.tableNum,
-                                    'lienum': lienum,
-                                    'width': (width / 10).toFixed(1)
-                                }
-                            }).then((data) => {
-                                $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lie="' + getCellTemp(lienum + '1')[1] + '"]').width(width);
-                                $('#myTabContent>.tab-pane:nth-child(' + (this_.tableNum + 1) + ') .tableBody [lienum="' + lienum + '"]').width(width + 2);//2是边框的宽度
-                            });
-                        }
-                    });
-                });
-                //修改列高度
-                $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
-                    function setTdHeight(table_Num, thNum, height) {
-                        this_.allTableDom[table_Num].thead.find('thead th').eq(thNum - 1).css({
-                            height: height * 10
-                        });
-                        this_.allTableDom[table_Num].table.find('tbody tr:eq(0) td').eq(thNum - 1).css({
-                            height: height * 10
-                        });
-                    }
-
-                    $(this).dragging({
-                        move: 'y',
-                        xLimit: false,
-                        yLimit: false,
-                        randomPosition: false,
-                        onMousemove: function (dom_, pos) {
-                            var thNum = dom_.parent().data('num');
-                            var height = (pos.top + 5);
-                            dom_.parent().css('height', height);
-                            this_.allTableDom[this_.tableNum].table.find('tbody tr').eq(thNum - 1).css({
-                                height: height
-                            });
-                        },
-                        onMouseup: function (dom) {
-                            var hangnum = dom.parent().data('num');
-                            var height = dom.parent().height();
-                            ajax({
-                                type: 'POST',
-                                data: {
-                                    'function': 'updateHeight',
-                                    'fileId': this_.fileId,
-                                    'tableNum': this_.tableNum,
-                                    'row': hangnum,
-
-                                    'height': parseInt(height)
-                                }
-                            }).then(() => {
-
-                            });
-                        }
-                    });
-                });
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
@@ -994,7 +984,7 @@
         }
     }
 </style>
-<style lang="less" scoped>
+<style lang="less">
     body {
         background-color: #e6e6e6;
     }
@@ -1034,8 +1024,8 @@
 
     .edit .tableBody {
         margin-left: 80px;
-        width: calc(100% - 80px);
-        height: calc(100% - 39px);
+        width: calc(~"100% - 80px");
+        height: calc(~"100% - 39px");
         overflow: scroll;
         margin-top: 39px;
         cursor: cell;
@@ -1047,12 +1037,8 @@
         left: 0;
         width: 80px;
         top: 37px;
-        height: calc(100% - 39px);
+        height: calc(~"100% - 39px");
         overflow: hidden;
-    }
-
-    .tableThead {
-        display: none;
     }
 
     .edit {
@@ -1171,6 +1157,11 @@
     }
 
     .tableThead {
+        display: none;
+        position: absolute;
+        left: 80px;
+        width: calc(~"100% - 80px");
+        overflow: hidden;
         > thead th {
             border-bottom: solid 3px #929292 !important;
         }
@@ -1205,7 +1196,7 @@
         }
 
         .table {
-            margin-top: -16px;
+            margin-top: -2px;
         }
 
         .table > thead > tr > th {
