@@ -87,7 +87,7 @@
                 this.mDown = false;
                 document.removeEventListener("mousemove", this.mousemove);
                 document.removeEventListener("mouseup", this.mouseup);
-                this.$emit('mouseup', {x: this.positionX, y: this.positionY})
+                this.$emit('mouseup', {x: this.positionX, y: this.positionY, dom: this.$el})
                 event.preventDefault();
             },
             mousemove(event) {
@@ -98,14 +98,13 @@
                     if (['y', 'both'].includes(this.move)) {
                         this.positionY = this.downY + event.pageY;
                     }
-                    this.$emit('mousemove', {x: this.positionX, y: this.positionY})
+                    this.$emit('mousemove', {x: this.positionX, y: this.positionY, dom: this.$el})
                     event.preventDefault();
                 }
             },
         },
         template: `<div :style="css"
             @mousedown.self.prevent="mousedown($event)"
-            v-html="this.positionX"
             ><slot></slot>
         </div>`,
     };
@@ -138,12 +137,48 @@
                 this.theadLeft = event.target.scrollLeft;
                 this.rowTop = event.target.scrollTop;
             },
-            mousemove(e) {
-                console.log(e);
+            Xmousemove(e) {
+                let thNum = e.dom.parentNode.getAttribute('lienum');
+                this.tableObj.dbSave.column[thNum].width = (e.x + 5) / 10;
+                this.tableObj.initTdStyle();
             },
-            mouseup(e) {
-                console.log(e);
+            Ymousemove(e) {
+                let thNum = e.dom.parentNode.getAttribute('hang');
+                this.tableObj.dbSave.row[thNum].height = e.y;
+                this.tableObj.initTdStyle();
             },
+            Xmouseup(e) {
+                console.log(e.dom.parentNode);
+                let thNum = e.dom.parentNode.getAttribute('lienum');
+                let width = e.x + 5;
+                ajax({
+                    type: 'POST',
+                    data: {
+                        'function': 'updateWidth',
+                        'fileId': this.tableObj.fileId,
+                        'tableNum': this.tableObj.tableId,
+                        'lienum': thNum,
+                        'width': (width / 10).toFixed(1)
+                    }
+                }).then((data) => {
+                    //initTdStyle(this_.tableNum);
+                });
+            },
+            Ymouseup(e) {
+                let row = e.dom.parentNode.getAttribute('hang');
+                ajax({
+                    type: 'POST',
+                    data: {
+                        'function': 'updateHeight',
+                        'fileId': this.tableObj.fileId,
+                        'tableNum': this.tableObj.tableId,
+                        'row': row,
+                        'height': parseInt(e.y)
+                    }
+                }).then(() => {
+                    //initTdStyle(this_.tableNum);
+                });
+            }
         },
         template: `<div>
     <div class="tableThead">
@@ -152,7 +187,7 @@
             <tr>
                 <th v-for="i in tableObj.lie" class="lieNum"
                     :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]">{{getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]}}
-                    <absolute-move @mousemove="mousemove" @mouseup="mouseup" move="x">111</absolute-move>
+                    <absolute-move @mousemove="Xmousemove" @mouseup="Xmouseup" move="x"></absolute-move>
                 </th>
             </tr>
         </thead></table>
@@ -161,7 +196,9 @@
         <table class="table" :style="{marginTop:rowTop*-1+'px'}">
         <tbody>
             <tr v-for="i in tableObj.hang">
-                <td class="idNum" :hang="i" style="width: 80px;">{{i}}<div></div></td>
+                <td class="idNum" :hang="i" style="width: 80px;">{{i}}
+                    <absolute-move @mousemove="Ymousemove" @mouseup="Ymouseup" move="y"></absolute-move>
+                </td>
             </tr>
         </tbody>
         </table>
@@ -205,6 +242,7 @@
 
     //表
     function tableClass(tableId, dbSave, hang, lie) {
+        this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
         // this.table = $('<table class="table"><thead></thead></table>');
         this.tdList = {};
         this.tableId = tableId;
@@ -546,68 +584,6 @@
                             this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                         }
                     }
-                    //修改列宽度
-                    $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
-                        // $(this).dragging({
-                        //     move: 'x',
-                        //     xLimit: false,
-                        //     yLimit: false,
-                        //     randomPosition: false,
-                        //     onMousemove: function (dom, pos) {
-                        //         var table_Num = this_.tableNum;
-                        //         var thNum = dom.parent().attr('lienum');
-                        //         this_.allFileData[table_Num].column[thNum].width = (pos.left + 5) / 10;
-                        ////         initTdStyle(table_Num);
-                        //     },
-                        //     onMouseup: function (dom) {
-                        //         var lienum = dom.parent().attr('lienum');
-                        //         var width = dom.parent().width();
-                        //         ajax({
-                        //             type: 'POST',
-                        //             data: {
-                        //                 'function': 'updateWidth',
-                        //                 'fileId': this_.fileId,
-                        //                 'tableNum': this_.tableNum,
-                        //                 'lienum': lienum,
-                        //                 'width': (width / 10).toFixed(1)
-                        //             }
-                        //         }).then((data) => {
-                        ////             initTdStyle(this_.tableNum);
-                        //         });
-                        //     }
-                        // });
-                    });
-                    //修改列高度
-                    $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
-                        $(this).dragging({
-                            move: 'y',
-                            xLimit: false,
-                            yLimit: false,
-                            randomPosition: false,
-                            onMousemove: function (dom_, pos) {
-                                var height = pos.top + 5;
-                                var thNum = dom_.parent().attr('hang');
-                                this_.allFileData[this_.tableNum].row[thNum].height = height;
-                                //initTdStyle(this_.tableNum);
-                            },
-                            onMouseup: function (dom) {
-                                ajax({
-                                    type: 'POST',
-                                    data: {
-                                        'function': 'updateHeight',
-                                        'fileId': this_.fileId,
-                                        'tableNum': this_.tableNum,
-                                        'row': dom.parent().attr('hang'),
-                                        'height': parseInt(dom.parent().height())
-                                    }
-                                }).then(() => {
-                                    //initTdStyle(this_.tableNum);
-                                });
-                            }
-                        });
-
-
-                    });
                 }, 100);
             },
             addTable() {
