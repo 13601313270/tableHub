@@ -52,8 +52,68 @@
     import echarts from 'echarts'
     import setTdSelectState from '@/tools/setTdSelectState.js';
 
+    var absoluteMove = {
+        props: {
+            'move': {default: 'both'}
+        },
+        data() {
+            return {
+                mDown: false, downX: 0, downY: 0, positionX: null, positionY: null,
+            };
+        },
+        computed: {
+            css() {
+                return {
+                    background: 'red', zIndex: 99,
+                    left: this.positionX === null ? '' : (this.positionX + 'px'),
+                    top: this.positionY === null ? '' : (this.positionY + 'px'),
+                }
+            }
+        },
+        methods: {
+            mousedown(event) {
+                if (this.positionX === null) {
+                    this.positionX = event.target.offsetLeft;
+                    this.positionY = event.target.offsetTop;
+                }
+                this.mDown = true;
+                this.downX = event.target.offsetLeft - event.pageX;
+                this.downY = event.target.offsetTop - event.pageY;
+                document.addEventListener("mousemove", this.mousemove);
+                document.addEventListener("mouseup", this.mouseup);
+                event.preventDefault();
+            },
+            mouseup(event) {
+                this.mDown = false;
+                document.removeEventListener("mousemove", this.mousemove);
+                document.removeEventListener("mouseup", this.mouseup);
+                this.$emit('mouseup', {x: this.positionX, y: this.positionY})
+                event.preventDefault();
+            },
+            mousemove(event) {
+                if (this.mDown) {
+                    if (['x', 'both'].includes(this.move)) {
+                        this.positionX = this.downX + event.pageX;
+                    }
+                    if (['y', 'both'].includes(this.move)) {
+                        this.positionY = this.downY + event.pageY;
+                    }
+                    this.$emit('mousemove', {x: this.positionX, y: this.positionY})
+                    event.preventDefault();
+                }
+            },
+        },
+        template: `<div :style="css"
+            @mousedown.self.prevent="mousedown($event)"
+            v-html="this.positionX"
+            ><slot></slot>
+        </div>`,
+    };
+
+
     var tableVueObj = {
         props: ['tableObj'],
+        components: {absoluteMove},
         data() {
             return {
                 theadLeft: 0,
@@ -77,8 +137,12 @@
             scroll(event) {
                 this.theadLeft = event.target.scrollLeft;
                 this.rowTop = event.target.scrollTop;
-                // this_.thead.css('marginLeft', tbodyDom.scrollLeft() * -1);
-                // this_.row.css('marginTop', tbodyDom.scrollTop() * -1);
+            },
+            mousemove(e) {
+                console.log(e);
+            },
+            mouseup(e) {
+                console.log(e);
             },
         },
         template: `<div>
@@ -87,7 +151,9 @@
         <thead>
             <tr>
                 <th v-for="i in tableObj.lie" class="lieNum"
-                    :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]">{{getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]}}<div></div></th>
+                    :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]">{{getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]}}
+                    <absolute-move @mousemove="mousemove" @mouseup="mouseup" move="x">111</absolute-move>
+                </th>
             </tr>
         </thead></table>
     </div>
@@ -385,7 +451,9 @@
                 $(nod).attr('td_css_list', 1);
                 document.getElementsByTagName("head")[0].appendChild(nod);
 
-                function initTdStyle(table_Num, column, row) {
+                function initTdStyle(table_Num) {
+                    var column = this_.allFileData[table_Num].column;
+                    var row = this_.allFileData[table_Num].row;
                     //单元格列宽
                     let str = "";
                     for (let i in column) {
@@ -435,7 +503,7 @@
                     this_.allTableDom[table_Num] = new tableClass(table_Num, hang, lie);
                     this_.allTableDom[table_Num].render();
                     //添加宽高样式
-                    initTdStyle(table_Num, tableObj.column, tableObj.row);
+                    initTdStyle(table_Num);
                     //单元格合并
                     initMerge(table_Num, tdData[table_Num].mergeCells);
                 }
@@ -450,7 +518,6 @@
                             let size = tableObj.charts[chartsId].size.split(',');
                             if (tableObj.charts[chartsId].value !== null) {
                                 let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
-                                // $('.allCharts:eq(' + table_Num + ')').append(chartsItem.dom);
                                 chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
                                 chartsItem.top = parseInt(position[0]);
                                 chartsItem.left = parseInt(position[1]);
@@ -475,36 +542,34 @@
                     }
                     //修改列宽度
                     $('.tableThead>.table>thead>tr>.lieNum>div').each(function () {
-                        function setTdWidth(table_Num, thNum, width) {
-                            this_.allFileData[table_Num].column[thNum].width = width;
-                            initTdStyle(table_Num, this_.allFileData[table_Num].column, this_.allFileData[table_Num].row);
-                        }
-
-                        $(this).dragging({
-                            move: 'x',
-                            xLimit: false,
-                            yLimit: false,
-                            randomPosition: false,
-                            onMousemove: function (dom, pos) {
-                                setTdWidth(this_.tableNum, dom.parent().attr('lienum'), (pos.left + 5) / 10);
-                            },
-                            onMouseup: function (dom) {
-                                var lienum = dom.parent().attr('lienum');
-                                var width = dom.parent().width();
-                                ajax({
-                                    type: 'POST',
-                                    data: {
-                                        'function': 'updateWidth',
-                                        'fileId': this_.fileId,
-                                        'tableNum': this_.tableNum,
-                                        'lienum': lienum,
-                                        'width': (width / 10).toFixed(1)
-                                    }
-                                }).then((data) => {
-                                    initTdStyle(this_.tableNum, this_.allFileData[this_.tableNum].column);
-                                });
-                            }
-                        });
+                        // $(this).dragging({
+                        //     move: 'x',
+                        //     xLimit: false,
+                        //     yLimit: false,
+                        //     randomPosition: false,
+                        //     onMousemove: function (dom, pos) {
+                        //         var table_Num = this_.tableNum;
+                        //         var thNum = dom.parent().attr('lienum');
+                        //         this_.allFileData[table_Num].column[thNum].width = (pos.left + 5) / 10;
+                        //         initTdStyle(table_Num);
+                        //     },
+                        //     onMouseup: function (dom) {
+                        //         var lienum = dom.parent().attr('lienum');
+                        //         var width = dom.parent().width();
+                        //         ajax({
+                        //             type: 'POST',
+                        //             data: {
+                        //                 'function': 'updateWidth',
+                        //                 'fileId': this_.fileId,
+                        //                 'tableNum': this_.tableNum,
+                        //                 'lienum': lienum,
+                        //                 'width': (width / 10).toFixed(1)
+                        //             }
+                        //         }).then((data) => {
+                        //             initTdStyle(this_.tableNum);
+                        //         });
+                        //     }
+                        // });
                     });
                     //修改列高度
                     $('.tableRow>.table>tbody>tr>.idNum>div').each(function () {
@@ -517,7 +582,7 @@
                                 var height = pos.top + 5;
                                 var thNum = dom_.parent().attr('hang');
                                 this_.allFileData[this_.tableNum].row[thNum].height = height;
-                                initTdStyle(this_.tableNum, this_.allFileData[this_.tableNum].column, this_.allFileData[this_.tableNum].row);
+                                initTdStyle(this_.tableNum);
                             },
                             onMouseup: function (dom) {
                                 ajax({
@@ -530,10 +595,12 @@
                                         'height': parseInt(dom.parent().height())
                                     }
                                 }).then(() => {
-                                    initTdStyle(this_.tableNum, this_.allFileData[this_.tableNum].column, this_.allFileData[this_.tableNum].row);
+                                    initTdStyle(this_.tableNum);
                                 });
                             }
                         });
+
+
                     });
                 }, 100);
             },
