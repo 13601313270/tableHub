@@ -256,7 +256,6 @@
     //表
     function tableClass(tableId, dbSave, hang, lie) {
         this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
-        // this.table = $('<table class="table"><thead></thead></table>');
         this.tdList = {};
         this.tableId = tableId;
         this.dbSave = dbSave;
@@ -370,13 +369,13 @@
             }
         }
         if (item.alignment) {
-            if (item.alignment.horizontal == 'left') {
+            if (item.alignment.horizontal === 'left') {
                 strItem += 'text-align: left!important;\n';
-            } else if (item.alignment.horizontal == 'right') {
+            } else if (item.alignment.horizontal === 'right') {
                 strItem += 'text-align: right!important;\n';
-            } else if (item.alignment.horizontal == 'center') {
+            } else if (item.alignment.horizontal === 'center') {
                 strItem += 'text-align: center!important;\n';
-            } else if (item.alignment.horizontal == 'general') {
+            } else if (item.alignment.horizontal === 'general') {
 //                    strItem+='text-align: center;\n';
             }
         }
