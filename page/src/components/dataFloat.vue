@@ -1,18 +1,21 @@
 <template>
-    <div id="dataFloat">
-        <div class="head"></div>
-        <div class="content"></div>
-        <div class="contentText" style="border-top:solid 1px grey">
-            <textarea style="width: 100%;"></textarea>
+    <absolute-move move="both" hander="head">
+        <div id="dataFloat">
+            <div class="head" ref="head"></div>
+            <div class="content"></div>
+            <div class="contentText" style="border-top:solid 1px grey">
+                <textarea style="width: 100%;"></textarea>
+            </div>
+            <div class="action">
+                <input type="button" class="btn save" value="确定"/>
+            </div>
         </div>
-        <div class="action">
-            <input type="button" class="btn save" value="确定"/>
-        </div>
-    </div>
+    </absolute-move>
 </template>
 <script>
     import ajax from '@/tools/ajax.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
+    import absoluteMove from '@/components/widthMove.vue';
 
     function getStrByEvalObj(tableNum, beRunObj) {
         var returnStr = '';
@@ -352,11 +355,9 @@
             }
         },
         props: ['fileId', 'table-num', 'get-eval-obj'],
+        components: {absoluteMove},
         mounted() {
             var self = this;
-            $('#dataFloat').dragging({
-                move: 'both', hander: '.head'
-            });
             $('#myTabContent').on('click', '.active', function () {
                 $('#dataFloat').hide();
             });
@@ -506,10 +507,6 @@
         background-color: white;
         border: solid 1px black;
         width: 500px;
-        position: fixed;
-        z-index: 99;
-        top: 100px;
-        left: 30px;
         display: none;
     }
 

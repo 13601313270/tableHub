@@ -1,6 +1,11 @@
 <template>
-    <div :style="css"
-         @mousedown.self.prevent="mousedown($event)">
+    <div v-if="hander===null" class="move" :style="css" ref="move"
+         @mousedown.prevent="mousedown($event)">
+        <div @mousedown.prevent="mousedown"></div>
+        <slot></slot>
+    </div>
+    <div v-else class="move" :style="css" ref="move">
+        <div @mousedown.prevent="mousedown"></div>
         <slot></slot>
     </div>
 </template>
@@ -8,31 +13,42 @@
 <script>
     export default {
         props: {
-            'move': {default: 'both'}
+            'move': {default: 'both'},
+            'left': {default: null},
+            'top': {default: null},
+            'hander': {default: null},
         },
         data() {
             return {
-                mDown: false, downX: 0, downY: 0, positionX: null, positionY: null,
+                mDown: false, downX: 0, downY: 0, positionX: this.left, positionY: this.top,
             };
         },
         computed: {
             css() {
                 return {
+                    position: 'absolute',
                     zIndex: 99,
                     left: this.positionX === null ? '' : (this.positionX + 'px'),
                     top: this.positionY === null ? '' : (this.positionY + 'px'),
                 }
             }
         },
+        mounted() {
+            if (this.$slots.default) {
+                var className = this.$props.hander;
+                this.$slots.default[0].elm.getElementsByClassName(className)[0].addEventListener('mousedown', this.mousedown);
+            }
+        },
         methods: {
             mousedown(event) {
+                this.$slots.default[0].elm.mousedown = this.mousedown;
                 if (this.positionX === null) {
-                    this.positionX = event.target.offsetLeft;
-                    this.positionY = event.target.offsetTop;
+                    this.positionX = this.$refs.move.offsetLeft;
+                    this.positionY = this.$refs.move.offsetTop;
                 }
                 this.mDown = true;
-                this.downX = event.target.offsetLeft - event.pageX;
-                this.downY = event.target.offsetTop - event.pageY;
+                this.downX = this.$refs.move.offsetLeft - event.pageX;
+                this.downY = this.$refs.move.offsetTop - event.pageY;
                 document.addEventListener("mousemove", this.mousemove);
                 document.addEventListener("mouseup", this.mouseup);
                 event.preventDefault();
@@ -48,6 +64,7 @@
                 if (this.mDown) {
                     if (['x', 'both'].includes(this.move)) {
                         this.positionX = this.downX + event.pageX;
+                        // console.log(this.positionX);
                     }
                     if (['y', 'both'].includes(this.move)) {
                         this.positionY = this.downY + event.pageY;

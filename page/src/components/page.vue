@@ -92,7 +92,6 @@
                 this.tableObj.initTdStyle();
             },
             Xmouseup(e) {
-                console.log(e.dom.parentNode);
                 let thNum = e.dom.parentNode.getAttribute('lienum');
                 let width = e.x + 5;
                 ajax({
@@ -145,6 +144,25 @@
 
                 });
             },
+            moveCharts(pos) {
+                // var chartsIndex = Array.from(pos.dom.parentNode.children).indexOf(pos.dom);
+                // console.log(this.alltableObj[chartsIndex]);
+                // ajax({
+                //     type: 'POST',
+                //     data: {
+                //         function: 'updateChartsPos',
+                //         fileId: this.tableObj.fileId,
+                //         tableNum: this.tableObj.tableId,
+                //         chartsIndex: chartsIndex,
+                //         top: pos.y,
+                //         left: pos.x,
+                //         width: this.alltableObj[chartsIndex].width,
+                //         height: this.alltableObj[chartsIndex].height,
+                //     }
+                // }).then((data) => {
+                //     //initTdStyle(this_.tableNum);
+                // });
+            }
         },
         template: `<div>
     <div class="tableThead">
@@ -176,7 +194,14 @@
             </div>
             <div class="span"></div>
         </div>
-        <div class="allCharts" ref="allCharts"></div>
+        <div class="allCharts" ref="allCharts">
+            <absolute-move
+                move="both"
+                @mouseup="moveCharts"
+                v-for="item in this.alltableObj"
+                :left="item.left"
+                :top="item.top"></absolute-move>
+        </div>
         <table class="table">
             <thead>
                 <tr>
@@ -210,11 +235,9 @@
             setTimeout(() => {
                 for (let i = 0; i < this.alltableObj.length; i++) {
                     let chartsItem = this.alltableObj[i];
-                    this.$refs.allCharts.appendChild(chartsItem.dom[0]);
-                    this.tempAddDbClickToFloat(chartsItem.dom[0]);
+                    this.$refs.allCharts.getElementsByClassName('move')[i].appendChild(chartsItem.dom[0]);
                     chartsItem.render();
                 }
-                // console.log('=====');
             }, 100);
         },
     };

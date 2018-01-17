@@ -21,7 +21,7 @@ function PIE(title, XtdLists, valueTdLists) {
         height: this.height,
     });
     this.myChart = null;
-    this.render = function() {
+    this.render = function () {
         this.dom.css({
             top: this.top,
             left: this.left,
@@ -81,75 +81,6 @@ function PIE(title, XtdLists, valueTdLists) {
             ]
         });
     };
-    (function() {
-        var $this = this;
-        var mDown = false;
-        var move = false;
-        var positionX;
-        var positionY;
-        this.mousedown(function(e) {
-            if (isCanEdit && $('#tablePanel').is('.edit')) {
-                $this.moving = true;
-                mDown = true;
-                move = false;
-                positionX = $this.position().left - e.pageX;
-                positionY = $this.position().top - e.pageY;
-            }
-            return false;
-        });
-        $(document).mouseup(function(e) {
-            mDown = false;
-            if ($this.moving && move) {
-                var type = $this.attr('type');
-                var tableId = $('#myTabContent .active').data('tableid');
-                var chartsIndex = $this.attr('index');
-                var top = parseInt($this.css('top'));
-                var left = parseInt($this.css('left'));
-                var width = parseInt($this.css('width'));
-                var height = parseInt($this.css('height'));
-                allEcharts[tableId][chartsIndex].top = top;
-                allEcharts[tableId][chartsIndex].left = left;
-                $.ajax({
-                    url: 'http://www.tablehub.cn/action/table.html',
-                    type: 'POST',
-                    xhrFields: {
-                        withCredentials: true
-                    },
-                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data: {
-                        function: 'updateChartsPos',
-                        fileId: fileId,
-                        tableNum: tableId,
-                        chartsIndex: chartsIndex,
-                        top: top,
-                        left: left,
-                        width: width,
-                        height: height,
-                    },
-                    success: function(data) {
-                        if (data !== '1') {
-                            alert('样式服务器同步失败');
-                        }
-                    }
-                });
-            }
-            $this.moving = false;
-        });
-        $(document).mousemove(function(e) {
-            var top = positionY + e.pageY;
-            var left = positionX + e.pageX;
-            if (top < 0) {
-                top = 0
-            }
-            if (left < 0) {
-                left = 0
-            }
-            if (mDown) {
-                move = true;
-                $this.css({left: left, top: top});
-            }
-        });
-    }).call(this.dom);
 }
 
 PIE.prototype = new obj('PIE');
@@ -171,7 +102,7 @@ chartsInit(PIE, '饼状图', {
             default: 0,
         }
     },
-    save: function(obj) {
+    save: function (obj) {
         return [obj.title, obj.XtdLists, obj.valueTdLists];
     }
 });
