@@ -498,23 +498,6 @@
                 $('.addMore').before(dom);
                 updateTextareaText(self.tableNum);
             });
-            $('body').on('dblclick', '.edit #myTabContent .allCharts>div', function () {
-                let tableId = self.tableNum;
-                let chartsIndex = $(this).attr('index');
-                $('#dataFloat').show();
-                $('#dataFloat .head').html('图表');
-
-                let allChartsName = [];
-                for (let i = 0; i < allChartFunction.length; i++) {
-                    allChartsName.push(allChartFunction[i].funcName);
-                }
-                if (allEcharts[tableId][chartsIndex] instanceof obj && allChartsName.indexOf(allEcharts[tableId][chartsIndex].className) > -1) {
-                    $('#dataFloat .head').attr('action_type', 'CHARTS');
-                    $('#dataFloat .head').attr('tableId', tableId);
-                    $('#dataFloat .head').attr('chartsIndex', chartsIndex);
-                }
-                self.initFloatType2(self.tableNum, allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
-            });
         }
     }
 </script>
@@ -650,11 +633,5 @@
 
     #dataFloat.floatSingleValue > .content {
         display: none;
-    }
-
-    .tableBody .allCharts {
-        height: 1px;
-        width: 1px;
-        position: relative;
     }
 </style>

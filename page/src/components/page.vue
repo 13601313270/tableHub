@@ -60,6 +60,7 @@
             return {
                 theadLeft: 0,
                 rowTop: 0,
+                alltableObj: this.tableObj.alltableObj,
             };
         },
         methods: {
@@ -121,7 +122,29 @@
                 }).then(() => {
                     //initTdStyle(this_.tableNum);
                 });
-            }
+            },
+            tempAddDbClickToFloat(dom) {
+                var self = this;
+                $(dom).on('dblclick', function () {
+                    let tableId = self.tableObj.tableId;
+                    let chartsIndex = $(dom).attr('index');
+                    $('#dataFloat').show();
+                    $('#dataFloat .head').html('图表');
+
+                    let allChartsName = [];
+                    for (let i = 0; i < allChartFunction.length; i++) {
+                        allChartsName.push(allChartFunction[i].funcName);
+                    }
+                    if (allEcharts[tableId][chartsIndex] instanceof obj && allChartsName.indexOf(allEcharts[tableId][chartsIndex].className) > -1) {
+                        $('#dataFloat .head').attr('action_type', 'CHARTS');
+                        $('#dataFloat .head').attr('tableId', tableId);
+                        $('#dataFloat .head').attr('chartsIndex', chartsIndex);
+                    }
+                    console.log(self.$parent.$refs.float);
+                    self.$parent.$refs.float.initFloatType2(tableId, allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
+
+                });
+            },
         },
         template: `<div>
     <div class="tableThead">
@@ -153,7 +176,7 @@
             </div>
             <div class="span"></div>
         </div>
-        <div class="allCharts"></div>
+        <div class="allCharts" ref="allCharts"></div>
         <table class="table">
             <thead>
                 <tr>
@@ -171,11 +194,24 @@
         </table>
     </div>
 </div>`,
+        watch: {
+            alltableObj(value) {
+                var domArr = Array.from(this.$refs.allCharts.children);
+                value.forEach((item) => {
+                    if (!domArr.includes(item.dom[0])) {
+                        this.$refs.allCharts.appendChild(item.dom[0]);
+                        this.tempAddDbClickToFloat(item.dom[0]);
+                        item.render();
+                    }
+                });
+            }
+        },
         mounted() {
             setTimeout(() => {
-                for (let i = 0; i < this.tableObj.alltableObj.length; i++) {
-                    let chartsItem = this.tableObj.alltableObj[i];
-                    $('.allCharts:eq(' + this.tableObj.tableId + ')').append(chartsItem.dom);
+                for (let i = 0; i < this.alltableObj.length; i++) {
+                    let chartsItem = this.alltableObj[i];
+                    this.$refs.allCharts.appendChild(chartsItem.dom[0]);
+                    this.tempAddDbClickToFloat(chartsItem.dom[0]);
                     chartsItem.render();
                 }
                 // console.log('=====');
@@ -339,7 +375,7 @@
             },
             changeChart(charts) {
                 var {tableNum, chartsIndex, content} = charts;
-                var oldObj = this_.allTableDom[tableNum].alltableObj[chartsIndex];
+                var oldObj = this.allTableDom[tableNum].alltableObj[chartsIndex];
                 oldObj.myChart.clear();
                 var matchPreg = new RegExp(oldObj.className + '\\\((\\\S+)\\\)');
                 matchPreg = content.match(matchPreg)[1];
@@ -367,7 +403,6 @@
             insertChart(opt) {
                 var {tableNum, saveVlalue, chartsId, position, size} = opt;
                 var chartsItem = getEvalObj(tableNum, saveVlalue, true);
-                $('.allCharts:eq(0)').append(chartsItem.dom);
                 chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
                 chartsItem.top = parseInt(position[0]);
                 chartsItem.left = parseInt(position[1]);
@@ -376,6 +411,7 @@
                 chartsItem.dom.attr('index', chartsId);
                 chartsItem.index = chartsId;
                 allEcharts[tableNum][chartsId] = chartsItem;
+                this.allTableDom[tableNum].alltableObj.push(chartsItem);
                 chartsItem.render();
                 chartsItem.myChart.resize();
             },
@@ -888,7 +924,6 @@
                     this_.$refs.float.initFloatDom(this, activeId, tempValue);
                 }
             });
-
             $('body').on('keydown', '#myTabContent .floatSingleValueWrite .input input', function (e) {
                 if (['Enter', 'ArrowRight'].indexOf(e.key) > -1) {    //'ArrowRight',
                     let inputDom = this;
@@ -1010,6 +1045,11 @@
         .input-group {
             width: 98%;
             margin-left: 1%;
+        }
+        .allCharts {
+            height: 1px;
+            width: 1px;
+            position: relative;
         }
     }
 
