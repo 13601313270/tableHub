@@ -22,6 +22,7 @@
                 </ul>
                 <div id="myTabContent" class="tab-content">
                     <table-vue-obj v-for="(item,key) in allTableDom" class="tab-pane fade"
+                                   :edit="isOpenEdit"
                                    :key="key"
                                    :class="{active:key===tableNum,in:key===tableNum}"
                                    :data-tableid="key"
@@ -54,7 +55,7 @@
     import absoluteMove from '@/components/widthMove.vue';
 
     var tableVueObj = {
-        props: ['tableObj'],
+        props: ['tableObj', 'edit'],
         components: {absoluteMove},
         data() {
             return {
@@ -145,23 +146,26 @@
                 });
             },
             moveCharts(pos) {
-                // var chartsIndex = Array.from(pos.dom.parentNode.children).indexOf(pos.dom);
-                // console.log(this.alltableObj[chartsIndex]);
-                // ajax({
-                //     type: 'POST',
-                //     data: {
-                //         function: 'updateChartsPos',
-                //         fileId: this.tableObj.fileId,
-                //         tableNum: this.tableObj.tableId,
-                //         chartsIndex: chartsIndex,
-                //         top: pos.y,
-                //         left: pos.x,
-                //         width: this.alltableObj[chartsIndex].width,
-                //         height: this.alltableObj[chartsIndex].height,
-                //     }
-                // }).then((data) => {
-                //     //initTdStyle(this_.tableNum);
-                // });
+                let chartsIndex = Array.from(pos.dom.parentNode.children).indexOf(pos.dom);
+                if (this.alltableObj[chartsIndex].left !== pos.x || this.alltableObj[chartsIndex].top !== pos.y) {
+                    ajax({
+                        type: 'POST',
+                        data: {
+                            function: 'updateChartsPos',
+                            fileId: this.tableObj.fileId,
+                            tableNum: this.tableObj.tableId,
+                            chartsIndex: chartsIndex,
+                            top: pos.y,
+                            left: pos.x,
+                            width: this.alltableObj[chartsIndex].width,
+                            height: this.alltableObj[chartsIndex].height,
+                        }
+                    }).then((data) => {
+                        this.alltableObj[chartsIndex].left = pos.x;
+                        this.alltableObj[chartsIndex].top = pos.y;
+                        //initTdStyle(this_.tableNum);
+                    });
+                }
             }
         },
         template: `<div>
@@ -196,7 +200,7 @@
         </div>
         <div class="allCharts" ref="allCharts">
             <absolute-move
-                move="both"
+                :move="edit?'both':'none'"
                 @mouseup="moveCharts"
                 v-for="item in this.alltableObj"
                 :left="item.left"

@@ -1,11 +1,9 @@
 <template>
     <div v-if="hander===null" class="move" :style="css" ref="move"
          @mousedown.prevent="mousedown($event)">
-        <div @mousedown.prevent="mousedown"></div>
         <slot></slot>
     </div>
     <div v-else class="move" :style="css" ref="move">
-        <div @mousedown.prevent="mousedown"></div>
         <slot></slot>
     </div>
 </template>
@@ -34,24 +32,25 @@
             }
         },
         mounted() {
-            if (this.$slots.default) {
+            if (this.$slots.default && this.hander !== null) {
                 var className = this.$props.hander;
                 this.$slots.default[0].elm.getElementsByClassName(className)[0].addEventListener('mousedown', this.mousedown);
             }
         },
         methods: {
             mousedown(event) {
-                this.$slots.default[0].elm.mousedown = this.mousedown;
-                if (this.positionX === null) {
-                    this.positionX = this.$refs.move.offsetLeft;
-                    this.positionY = this.$refs.move.offsetTop;
+                if (this.move !== 'none') {
+                    if (this.positionX === null) {
+                        this.positionX = this.$refs.move.offsetLeft;
+                        this.positionY = this.$refs.move.offsetTop;
+                    }
+                    this.mDown = true;
+                    this.downX = this.$refs.move.offsetLeft - event.pageX;
+                    this.downY = this.$refs.move.offsetTop - event.pageY;
+                    document.addEventListener("mousemove", this.mousemove);
+                    document.addEventListener("mouseup", this.mouseup);
+                    event.preventDefault();
                 }
-                this.mDown = true;
-                this.downX = this.$refs.move.offsetLeft - event.pageX;
-                this.downY = this.$refs.move.offsetTop - event.pageY;
-                document.addEventListener("mousemove", this.mousemove);
-                document.addEventListener("mouseup", this.mouseup);
-                event.preventDefault();
             },
             mouseup(event) {
                 this.mDown = false;
