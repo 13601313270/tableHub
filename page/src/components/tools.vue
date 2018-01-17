@@ -167,7 +167,6 @@
             insertCharts(valueStr) {
                 valueStr += '("标题","","")';
                 var tableNum = this.tableNum;
-                var chartsId = allEcharts[tableNum].length;
                 var position = [200, 100];
                 var size = [300, 200];
                 var saveVlalue = valueStr;
@@ -179,23 +178,19 @@
                         function: 'insertChartsValue',
                         fileId: this.fileId,
                         tableNum: tableNum,
-                        chartsIndex: chartsId,
                         value: saveVlalue,
                         position: position,
                         size: size
                     }
                 }).then((data) => {
-                    if (data !== '-1') {
-                        this.$emit('insertChart', {
-                            tableNum: tableNum,
-                            saveVlalue: saveVlalue,
-                            chartsId: chartsId,
-                            position: position,
-                            size: size
-                        });
-                    } else {
-                        alert('样式服务器同步失败');
-                    }
+                    console.log(data);
+                    this.$emit('insertChart', {
+                        tableNum: tableNum,
+                        saveVlalue: saveVlalue,
+                        chartsId: data.result,
+                        position: position,
+                        size: size
+                    });
                 });
             },
             fx() {

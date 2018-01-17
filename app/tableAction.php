@@ -17,7 +17,8 @@ header('Access-Control-Allow-Credentials:true');
 
 
 $userInfo = user::create()->getBySessionToken($_COOKIE['sessionToken']);
-function getNumByWord($word) {
+function getNumByWord($word)
+{
     $word = str_split($word);
     $returnNum = 0;
     for ($i = 0; $i < count($word); $i++) {
@@ -26,7 +27,8 @@ function getNumByWord($word) {
     return $returnNum;
 }
 
-function getWordByNum($num) {
+function getWordByNum($num)
+{
     $result = '';
     do {
         $append = chr($num % 26 + 64);
@@ -122,7 +124,7 @@ if ($_POST['function'] === 'updateTdValue') {
     if ($tableInfo['data'][$tableNum]->charts == null) {
         $tableInfo['data'][$tableNum]->charts = array();
     }
-    $tableInfo['data'][$tableNum]->charts[$chartsIndex] = array(
+    $tableInfo['data'][$tableNum]->charts[] = array(
         'position' => $_POST['position'][0] . ',' . $_POST['position'][1],
         'size' => $_POST['size'][0] . ',' . $_POST['size'][1],
         'value' => $value
@@ -131,7 +133,10 @@ if ($_POST['function'] === 'updateTdValue') {
         'data' => json_encode($tableInfo['data'])
     ));
     if ($result) {
-        echo '1';
+        echo json_encode(array(
+            result => count($tableInfo['data'][$tableNum]->charts)
+        ));
+        exit;
     } else {
         echo '-1';
     }

@@ -64,15 +64,15 @@
                             chartsIndex: chartIndex,
                         }, function(result) {
                             if (result == 1) {
-                                var thisObj = allEcharts[tableNum][chartIndex];
-                                var listenCount = thisObj.listening.length;
-                                for (var i = listenCount - 1; i >= 0; i--) {
-                                    if (thisObj.listening[i] instanceof obj) {
-                                        thisObj.listening[i].unBind(thisObj);
-                                    }
-                                }
-                                thisObj.dom.remove();
-                                allEcharts[tableNum].splice(chartIndex, 1);
+                                // var thisObj = allEcharts[tableNum][chartIndex];
+                                // var listenCount = thisObj.listening.length;
+                                // for (var i = listenCount - 1; i >= 0; i--) {
+                                //     if (thisObj.listening[i] instanceof obj) {
+                                //         thisObj.listening[i].unBind(thisObj);
+                                //     }
+                                // }
+                                // thisObj.dom.remove();
+                                // allEcharts[tableNum].splice(chartIndex, 1);
                                 // $('#myTabContent>.tab-pane.active .allCharts>*').each(function() {
                                 //     if (parseInt($(this).attr('index')) > chartIndex) {
                                 //         $(this).attr('index', parseInt($(this).attr('index')) - 1);
@@ -168,15 +168,16 @@
                     chartsIndex: chartIndex,
                 }, function(result) {
                     if (result == 1) {
-                        var thisObj = allEcharts[tableNum][chartIndex];
-                        var listenCount = thisObj.listening.length;
-                        for (var i = listenCount - 1; i >= 0; i--) {
-                            if (thisObj.listening[i] instanceof obj) {
-                                thisObj.listening[i].unBind(thisObj);
-                            }
-                        }
-                        thisObj.dom.remove();
-                        allEcharts[tableNum].splice(chartIndex, 1);
+                        // var thisObj = allEcharts[tableNum][chartIndex];
+                        // var listenCount = thisObj.listening.length;
+                        // for (var i = listenCount - 1; i >= 0; i--) {
+                        //     if (thisObj.listening[i] instanceof obj) {
+                        //         thisObj.listening[i].unBind(thisObj);
+                        //     }
+                        // }
+                        // thisObj.dom.remove();
+                        // allEcharts[tableNum].splice(chartIndex, 1);
+
                         // $('#myTabContent>.tab-pane.active .allCharts>*').each(function() {
                         //     if (parseInt($(this).attr('index')) > chartIndex) {
                         //         $(this).attr('index', parseInt($(this).attr('index')) - 1);

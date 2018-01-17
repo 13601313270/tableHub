@@ -135,13 +135,11 @@
                     for (let i = 0; i < allChartFunction.length; i++) {
                         allChartsName.push(allChartFunction[i].funcName);
                     }
-                    if (allEcharts[tableId][chartsIndex] instanceof obj && allChartsName.indexOf(allEcharts[tableId][chartsIndex].className) > -1) {
-                        $('#dataFloat .head').attr('action_type', 'CHARTS');
-                        $('#dataFloat .head').attr('tableId', tableId);
-                        $('#dataFloat .head').attr('chartsIndex', chartsIndex);
-                    }
+                    $('#dataFloat .head').attr('action_type', 'CHARTS');
+                    $('#dataFloat .head').attr('tableId', tableId);
+                    $('#dataFloat .head').attr('chartsIndex', chartsIndex);
                     console.log(self.$parent.$refs.float);
-                    self.$parent.$refs.float.initFloatType2(tableId, allEcharts[tableId][chartsIndex], $('#dataFloat .content'));
+                    self.$parent.$refs.float.initFloatType2(tableId, self.alltableObj[chartsIndex], $('#dataFloat .content'));
 
                 });
             },
@@ -200,9 +198,10 @@
         </div>
         <div class="allCharts" ref="allCharts">
             <absolute-move
+                :key="key"
                 :move="edit?'both':'none'"
                 @mouseup="moveCharts"
-                v-for="item in this.alltableObj"
+                v-for="item,key in this.alltableObj"
                 :left="item.left"
                 :top="item.top"></absolute-move>
         </div>
@@ -227,10 +226,12 @@
             alltableObj(value) {
                 var domArr = Array.from(this.$refs.allCharts.children);
                 value.forEach((item) => {
-                    if (!domArr.includes(item.dom[0])) {
-                        this.$refs.allCharts.appendChild(item.dom[0]);
-                        this.tempAddDbClickToFloat(item.dom[0]);
-                        item.render();
+                    if (!domArr.includes(item.dom[0].parentNode)) {
+                        setTimeout(() => {
+                            this.$refs.allCharts.getElementsByClassName('move')[this.alltableObj.length - 1].appendChild(item.dom[0]);
+                            this.tempAddDbClickToFloat(item.dom[0]);
+                            item.render();
+                        }, 200);
                     }
                 });
             }
@@ -240,6 +241,7 @@
                 for (let i = 0; i < this.alltableObj.length; i++) {
                     let chartsItem = this.alltableObj[i];
                     this.$refs.allCharts.getElementsByClassName('move')[i].appendChild(chartsItem.dom[0]);
+                    this.tempAddDbClickToFloat(chartsItem.dom[0]);
                     chartsItem.render();
                 }
             }, 100);
@@ -437,7 +439,6 @@
                 chartsItem.height = parseInt(size[1]);
                 chartsItem.dom.attr('index', chartsId);
                 chartsItem.index = chartsId;
-                allEcharts[tableNum][chartsId] = chartsItem;
                 this.allTableDom[tableNum].alltableObj.push(chartsItem);
                 chartsItem.render();
                 chartsItem.myChart.resize();
@@ -558,7 +559,6 @@
                 }
                 for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
                     //绘制图表
-                    allEcharts[table_Num] = [];
                     this_.allTableDom[table_Num].alltableObj = [];
                     var tableObj = this.allFileData[table_Num];
                     if (tableObj.charts !== undefined) {
@@ -576,7 +576,6 @@
                                 chartsItem.index = chartsId;
                                 readyObj.bind(chartsItem);
                                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
-                                allEcharts[table_Num][chartsId] = chartsItem;
 
                             }
                         }

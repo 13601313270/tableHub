@@ -49,7 +49,7 @@
                     this.downY = this.$refs.move.offsetTop - event.pageY;
                     document.addEventListener("mousemove", this.mousemove);
                     document.addEventListener("mouseup", this.mouseup);
-                    event.preventDefault();
+                    // event.preventDefault();
                 }
             },
             mouseup(event) {
