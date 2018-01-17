@@ -248,6 +248,11 @@
         },
     };
 
+    function tableReady() {
+    }
+
+    tableReady.prototype = new obj();
+
     //表
     function tableClass(tableId, dbSave, hang, lie) {
         this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
@@ -330,8 +335,6 @@
         }
     }
 
-    echartsObj = echarts;
-
     //    import obj from '@/tools/obj.js'
     //    var a = new obj();
     //    var b = new obj();
@@ -400,7 +403,7 @@
                 } else {
                     thisTd.set(str);
                 }
-                readyObj.bind(thisTd);
+                this.readyObj.bind(thisTd);
             },
             changeChart(charts) {
                 var {tableNum, chartsIndex, content} = charts;
@@ -432,7 +435,7 @@
             insertChart(opt) {
                 var {tableNum, saveVlalue, chartsId, position, size} = opt;
                 var chartsItem = getEvalObj(tableNum, saveVlalue, true);
-                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
                 chartsItem.top = parseInt(position[0]);
                 chartsItem.left = parseInt(position[1]);
                 chartsItem.width = parseInt(size[0]);
@@ -567,14 +570,14 @@
                             let size = tableObj.charts[chartsId].size.split(',');
                             if (tableObj.charts[chartsId].value !== null) {
                                 let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
-                                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                                chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
                                 chartsItem.top = parseInt(position[0]);
                                 chartsItem.left = parseInt(position[1]);
                                 chartsItem.width = parseInt(size[0]);
                                 chartsItem.height = parseInt(size[1]);
                                 chartsItem.dom.attr('index', chartsId);
                                 chartsItem.index = chartsId;
-                                readyObj.bind(chartsItem);
+                                this_.readyObj.bind(chartsItem);
                                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
 
                             }
@@ -692,14 +695,14 @@
                         eventDom = eventDom[0]
                     }
                 }
-                beginSelect = [$(eventDom).attr('hang'), $(eventDom).attr('lie')];
-                isSelectDoms = true;
+                this.beginSelect = [$(eventDom).attr('hang'), $(eventDom).attr('lie')];
+                this.isSelectDoms = true;
                 event.preventDefault();
             },
 
             lastEnterTd: '',//用于记录最后一次出发的dom
             mouseenter_temp(event) {
-                if (isSelectDoms) {
+                if (this.isSelectDoms) {
                     if ($(event.target).is('.edit #myTabContent td')) {
                         var eventDom = event.target;
                     } else {
@@ -722,10 +725,10 @@
                     $('body .edit td').removeClass('editTdbottom');
                     $('body .edit td').removeClass('editTdleft');
                     $('body .edit td').removeClass('editTdright');
-                    var top = Math.min($(eventDom).attr('hang'), beginSelect[0]);
-                    var bottom = Math.max($(eventDom).attr('hang'), beginSelect[0]);
-                    var left = Math.min($(eventDom).attr('lie'), beginSelect[1]);
-                    var right = Math.max($(eventDom).attr('lie'), beginSelect[1]);
+                    var top = Math.min($(eventDom).attr('hang'), this.beginSelect[0]);
+                    var bottom = Math.max($(eventDom).attr('hang'), this.beginSelect[0]);
+                    var left = Math.min($(eventDom).attr('lie'), this.beginSelect[1]);
+                    var right = Math.max($(eventDom).attr('lie'), this.beginSelect[1]);
                     var tableid = this.tableNum;
                     for (let i = top; i <= bottom; i++) {
                         for (let j = left; j <= right; j++) {
@@ -749,7 +752,7 @@
                 }
             },
             mouseup_temp() {
-                isSelectDoms = false;
+                this.isSelectDoms = false;
             },
             changeTd(td) {
                 let {tableNum, pos, value, xfIndex} = td;
@@ -762,6 +765,9 @@
         data: function () {
             return {
                 title: '',
+                readyObj: new tableReady(),
+                beginSelect: [],
+                isSelectDoms: false,
                 getEvalObj: getEvalObj,
                 isMyTable: true,
                 isOpenEdit: false,
@@ -862,7 +868,7 @@
                 }
                 this.rewriteExcel(data.data);
                 //触发表格完成
-                readyObj.set(1);
+                this_.readyObj.set(1);
             });
             $('body').click(function () {
                 if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
