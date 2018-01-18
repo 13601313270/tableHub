@@ -20,15 +20,7 @@
                     </li>
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
-                <div id="myTabContent" ref="allPage" class="tab-content">
-                    <!--<table-vue-obj v-for="(item,key) in allTableDom" class="tab-pane fade"-->
-                    <!--:edit="isOpenEdit"-->
-                    <!--:key="key"-->
-                    <!--:class="{active:key===tableNum,in:key===tableNum}"-->
-                    <!--:data-tableid="key"-->
-                    <!--:table-obj="item"-->
-                    <!--:id="'table_' + key"></table-vue-obj>-->
-                </div>
+                <div id="myTabContent" ref="allPage" class="tab-content"></div>
             </div>
         </div>
         <bottom></bottom>
@@ -232,11 +224,9 @@
                 var domArr = Array.from(this.$refs.allCharts.children);
                 value.forEach((item) => {
                     if (!domArr.includes(item.dom[0].parentNode)) {
-                        setTimeout(() => {
-                            this.$refs.allCharts.getElementsByClassName('move')[this.alltableObj.length - 1].appendChild(item.dom[0]);
-                            this.tempAddDbClickToFloat(item.dom[0]);
-                            item.render();
-                        }, 200);
+                        this.$refs.allCharts.getElementsByClassName('move')[this.alltableObj.length - 1].append(item.dom[0]);
+                        this.tempAddDbClickToFloat(item.dom[0]);
+                        item.render();
                     }
                 });
             }
@@ -244,14 +234,14 @@
         mounted() {
             this.tableObj.dom = this.$el;
             this.tableObj.vueObj = this;
-            // setTimeout(() => {
-            //     for (let i = 0; i < this.alltableObj.length; i++) {
-            //         let chartsItem = this.alltableObj[i];
-            //         this.$refs.allCharts.getElementsByClassName('move')[i].appendChild(chartsItem.dom[0]);
-            //         this.tempAddDbClickToFloat(chartsItem.dom[0]);
-            //         chartsItem.render();
-            //     }
-            // }, 100);
+            setTimeout(() => {
+                for (let i = 0; i < this.alltableObj.length; i++) {
+                    let chartsItem = this.alltableObj[i];
+                    this.$refs.allCharts.getElementsByClassName('move')[i].append(chartsItem.dom[0]);
+                    this.tempAddDbClickToFloat(chartsItem.dom[0]);
+                    chartsItem.render();
+                }
+            }, 100);
         },
     });
 
@@ -260,12 +250,6 @@
         this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
         this.tdList = [];
         this.dom = document.createElement("div");
-        this._vueDom = new tableVueObj({
-            propsData: {
-                tableObj: this,
-                edit: true,
-            }
-        });
         this.active = function (val) {
             if (val === false) {
                 this._vueDom.$el.setAttribute('class', 'tab-pane fade');
@@ -331,8 +315,13 @@
             }
             return this.tdList[position[0] - 1][position[1] - 1];
         }
+        this._vueDom = new tableVueObj({
+            propsData: {
+                tableObj: this,
+                edit: true,
+            }
+        });
         this._vueDom.$mount(this.dom);
-
         this._vueDom.$el.setAttribute('id', 'table_' + tableId);
         this._vueDom.$el.setAttribute('class', 'tab-pane fade' + (tableId == 0 ? ' active in' : ''));
 
@@ -590,31 +579,27 @@
                     for (let i in tdData[table_Num].tableData) {
                         this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                     }
+                    //绘制图表，一定要排在td之后
+                    if (tableObj.charts !== undefined) {
+                        for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
+                            let position = tableObj.charts[chartsId].position.split(',');
+                            let size = tableObj.charts[chartsId].size.split(',');
+                            if (tableObj.charts[chartsId].value !== null) {
+                                let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
+                                chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
+                                chartsItem.top = parseInt(position[0]);
+                                chartsItem.left = parseInt(position[1]);
+                                chartsItem.width = parseInt(size[0]);
+                                chartsItem.height = parseInt(size[1]);
+                                chartsItem.dom.attr('index', chartsId);
+                                chartsItem.index = chartsId;
+                                this_.readyObj.bind(chartsItem);
+                                this_.allTableDom[table_Num].alltableObj.push(chartsItem);
+
+                            }
+                        }
+                    }
                 }
-                //绘制图表，一定要排在td之后
-                // for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
-                //     this_.allTableDom[table_Num].alltableObj = [];
-                //     var tableObj = this.allFileData[table_Num];
-                //     if (tableObj.charts !== undefined) {
-                //         for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
-                //             let position = tableObj.charts[chartsId].position.split(',');
-                //             let size = tableObj.charts[chartsId].size.split(',');
-                //             if (tableObj.charts[chartsId].value !== null) {
-                //                 let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
-                //                 chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
-                //                 chartsItem.top = parseInt(position[0]);
-                //                 chartsItem.left = parseInt(position[1]);
-                //                 chartsItem.width = parseInt(size[0]);
-                //                 chartsItem.height = parseInt(size[1]);
-                //                 chartsItem.dom.attr('index', chartsId);
-                //                 chartsItem.index = chartsId;
-                //                 this_.readyObj.bind(chartsItem);
-                //                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
-                //
-                //             }
-                //         }
-                //     }
-                // }
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
@@ -722,7 +707,6 @@
                 this.isSelectDoms = true;
                 event.preventDefault();
             },
-
             lastEnterTd: '',//用于记录最后一次出发的dom
             mouseenter_temp(event) {
                 if (this.isSelectDoms) {
