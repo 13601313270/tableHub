@@ -221,14 +221,18 @@
 </div>`,
         watch: {
             alltableObj(value) {
-                var domArr = Array.from(this.$refs.allCharts.children);
-                value.forEach((item) => {
-                    if (!domArr.includes(item.dom[0].parentNode)) {
-                        this.$refs.allCharts.getElementsByClassName('move')[this.alltableObj.length - 1].append(item.dom[0]);
-                        this.tempAddDbClickToFloat(item.dom[0]);
-                        item.render();
+                let domArr = Array.from(this.$refs.allCharts.children);
+                setTimeout(() => {
+                    for (let i = 0; i < value.length; i++) {
+                        let item = value[i];
+                        if (!domArr.includes(item.dom[0].parentNode)) {
+                            console.log(this.$refs.allCharts.getElementsByClassName('move'));
+                            this.$refs.allCharts.getElementsByClassName('move')[i].append(item.dom[0]);
+                            this.tempAddDbClickToFloat(item.dom[0]);
+                            item.render();
+                        }
                     }
-                });
+                }, 100);
             }
         },
         mounted() {
