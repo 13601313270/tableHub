@@ -20,14 +20,14 @@
                     </li>
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
-                <div id="myTabContent" class="tab-content">
-                    <table-vue-obj v-for="(item,key) in allTableDom" class="tab-pane fade"
-                                   :edit="isOpenEdit"
-                                   :key="key"
-                                   :class="{active:key===tableNum,in:key===tableNum}"
-                                   :data-tableid="key"
-                                   :table-obj="item"
-                                   :id="'table_' + key"></table-vue-obj>
+                <div id="myTabContent" ref="allPage" class="tab-content">
+                    <!--<table-vue-obj v-for="(item,key) in allTableDom" class="tab-pane fade"-->
+                    <!--:edit="isOpenEdit"-->
+                    <!--:key="key"-->
+                    <!--:class="{active:key===tableNum,in:key===tableNum}"-->
+                    <!--:data-tableid="key"-->
+                    <!--:table-obj="item"-->
+                    <!--:id="'table_' + key"></table-vue-obj>-->
                 </div>
             </div>
         </div>
@@ -54,7 +54,12 @@
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import absoluteMove from '@/components/widthMove.vue';
 
-    var tableVueObj = {
+
+    function tableReady() {
+    }
+
+    tableReady.prototype = new obj();
+    var tableVueObj = Vue.extend({
         props: ['tableObj', 'edit'],
         components: {absoluteMove},
         data() {
@@ -213,10 +218,9 @@
                         :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]"></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody ref="tableBody">
                 <tr v-for="i in tableObj.hang" :hang="i">
                     <td v-for="j in tableObj.lie" :hang="i" :lie="j">
-
                     </td>
                 </tr>
             </tbody>
@@ -238,26 +242,37 @@
             }
         },
         mounted() {
-            setTimeout(() => {
-                for (let i = 0; i < this.alltableObj.length; i++) {
-                    let chartsItem = this.alltableObj[i];
-                    this.$refs.allCharts.getElementsByClassName('move')[i].appendChild(chartsItem.dom[0]);
-                    this.tempAddDbClickToFloat(chartsItem.dom[0]);
-                    chartsItem.render();
-                }
-            }, 100);
+            this.tableObj.dom = this.$el;
+            this.tableObj.vueObj = this;
+            // setTimeout(() => {
+            //     for (let i = 0; i < this.alltableObj.length; i++) {
+            //         let chartsItem = this.alltableObj[i];
+            //         this.$refs.allCharts.getElementsByClassName('move')[i].appendChild(chartsItem.dom[0]);
+            //         this.tempAddDbClickToFloat(chartsItem.dom[0]);
+            //         chartsItem.render();
+            //     }
+            // }, 100);
         },
-    };
-
-    function tableReady() {
-    }
-
-    tableReady.prototype = new obj();
+    });
 
     //表
     function tableClass(tableId, dbSave, hang, lie) {
         this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
         this.tdList = [];
+        this.dom = document.createElement("div");
+        this._vueDom = new tableVueObj({
+            propsData: {
+                tableObj: this,
+                edit: true,
+            }
+        });
+        this.active = function (val) {
+            if (val === false) {
+                this._vueDom.$el.setAttribute('class', 'tab-pane fade');
+            } else {
+                this._vueDom.$el.setAttribute('class', 'tab-pane fade active in');
+            }
+        };
         this.tableId = tableId;
         this.dbSave = dbSave;
         this.hang = hang;
@@ -311,12 +326,16 @@
                 //新建td
                 var newTd = new td(this, positionStr);
                 this.tdList[position[0] - 1][position[1] - 1] = newTd;
-                $('#myTabContent>.tab-pane').eq(this.tableId).find('.tableBody tbody').find('>tr').eq(position[0] - 1).find('>td').eq(position[1] - 1).append(newTd.dom);
-                // this.tdList.splice(0, 0);//强行触发vue的事件
+                this.vueObj.$refs.tableBody.children[position[0] - 1].children[position[1] - 1].append(newTd.dom);
                 return newTd;
             }
             return this.tdList[position[0] - 1][position[1] - 1];
         }
+        this._vueDom.$mount(this.dom);
+
+        this._vueDom.$el.setAttribute('id', 'table_' + tableId);
+        this._vueDom.$el.setAttribute('class', 'tab-pane fade' + (tableId == 0 ? ' active in' : ''));
+
     }
 
     function selectTd2(temp, activeId) {
@@ -561,6 +580,8 @@
                     }
                     lie = Math.max(lie, 6);//至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
+                    this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
+
                     this_.allTableDom[table_Num].render();
                     this_.allTableDom[table_Num].initTdStyle();
                     //单元格合并
@@ -766,6 +787,17 @@
                 this.writeTd(tableNum, pos, value, xfIndex);
                 if (getCellTemp(pos)[0] > this.allTableDom[tableNum].hang) {
                     this.allTableDom[tableNum].addHang();
+                }
+            }
+        },
+        watch: {
+            tableNum(val) {
+                for (var i = 0; i < this.allTableDom.length; i++) {
+                    if (i === val) {
+                        this.allTableDom[i].active(true);
+                    } else {
+                        this.allTableDom[i].active(false);
+                    }
                 }
             }
         },
