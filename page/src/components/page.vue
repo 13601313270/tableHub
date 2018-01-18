@@ -586,6 +586,10 @@
                     this_.allTableDom[table_Num].initTdStyle();
                     //单元格合并
                     initMerge(table_Num, tdData[table_Num].mergeCells);
+
+                    for (let i in tdData[table_Num].tableData) {
+                        this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
+                    }
                 }
                 //绘制图表，一定要排在td之后
                 // for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
@@ -611,15 +615,6 @@
                 //         }
                 //     }
                 // }
-
-                //vue的dom渲染比jquery慢一点点
-                setTimeout(() => {
-                    for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
-                        for (let i in tdData[table_Num].tableData) {
-                            this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
-                        }
-                    }
-                }, 100);
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
