@@ -62,6 +62,7 @@
                 theadLeft: 0,
                 rowTop: 0,
                 alltableObj: this.tableObj.alltableObj,
+                tdList: this.tableObj.tdList,
             };
         },
         methods: {
@@ -256,7 +257,7 @@
     //表
     function tableClass(tableId, dbSave, hang, lie) {
         this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
-        this.tdList = {};
+        this.tdList = [];
         this.tableId = tableId;
         this.dbSave = dbSave;
         this.hang = hang;
@@ -264,7 +265,7 @@
         this.addMoreHang = 3;//编辑状态下额外添加的行的数量
         this.alltableObj = [];//保存图表charts
         this.addHang = function () {
-            for (var i = 0; i < this.addMoreHang; i++) {
+            for (let i = 0; i < this.addMoreHang; i++) {
                 this.hang++;
             }
         };
@@ -301,14 +302,20 @@
                 this.cssNod.innerHTML += str;
             }
         };
-        this.child = function (positionStr) {
-            return this.tdList[positionStr];
-        }
         this.findChild = function (positionStr) {
-            if (this.tdList[positionStr] === undefined) {
-                new td(this, positionStr);
+            var position = getCellTemp(positionStr);
+            if (this.tdList[position[0] - 1] === undefined) {
+                this.tdList[position[0] - 1] = [];
             }
-            return this.tdList[positionStr];
+            if (this.tdList[position[0] - 1][position[1] - 1] === undefined) {
+                //新建td
+                var newTd = new td(this, positionStr);
+                this.tdList[position[0] - 1][position[1] - 1] = newTd;
+                $('#myTabContent>.tab-pane').eq(this.tableId).find('.tableBody tbody').find('>tr').eq(position[0] - 1).find('>td').eq(position[1] - 1).append(newTd.dom);
+                // this.tdList.splice(0, 0);//强行触发vue的事件
+                return newTd;
+            }
+            return this.tdList[position[0] - 1][position[1] - 1];
         }
     }
 
@@ -559,30 +566,31 @@
                     //单元格合并
                     initMerge(table_Num, tdData[table_Num].mergeCells);
                 }
-                for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
-                    //绘制图表
-                    this_.allTableDom[table_Num].alltableObj = [];
-                    var tableObj = this.allFileData[table_Num];
-                    if (tableObj.charts !== undefined) {
-                        for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
-                            let position = tableObj.charts[chartsId].position.split(',');
-                            let size = tableObj.charts[chartsId].size.split(',');
-                            if (tableObj.charts[chartsId].value !== null) {
-                                let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
-                                chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
-                                chartsItem.top = parseInt(position[0]);
-                                chartsItem.left = parseInt(position[1]);
-                                chartsItem.width = parseInt(size[0]);
-                                chartsItem.height = parseInt(size[1]);
-                                chartsItem.dom.attr('index', chartsId);
-                                chartsItem.index = chartsId;
-                                this_.readyObj.bind(chartsItem);
-                                this_.allTableDom[table_Num].alltableObj.push(chartsItem);
+                //绘制图表，一定要排在td之后
+                // for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
+                //     this_.allTableDom[table_Num].alltableObj = [];
+                //     var tableObj = this.allFileData[table_Num];
+                //     if (tableObj.charts !== undefined) {
+                //         for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
+                //             let position = tableObj.charts[chartsId].position.split(',');
+                //             let size = tableObj.charts[chartsId].size.split(',');
+                //             if (tableObj.charts[chartsId].value !== null) {
+                //                 let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
+                //                 chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
+                //                 chartsItem.top = parseInt(position[0]);
+                //                 chartsItem.left = parseInt(position[1]);
+                //                 chartsItem.width = parseInt(size[0]);
+                //                 chartsItem.height = parseInt(size[1]);
+                //                 chartsItem.dom.attr('index', chartsId);
+                //                 chartsItem.index = chartsId;
+                //                 this_.readyObj.bind(chartsItem);
+                //                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
+                //
+                //             }
+                //         }
+                //     }
+                // }
 
-                            }
-                        }
-                    }
-                }
                 //vue的dom渲染比jquery慢一点点
                 setTimeout(() => {
                     for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {

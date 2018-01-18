@@ -10,7 +10,6 @@ tdValueList.prototype = new obj('tdValueList');
 
 function td(table, positionStr) {
     var tableId = table.tableId;
-    table.tdList[positionStr] = this;
     this.tableId = tableId;
     this.bindEvent = [];
     this.listening = [];
@@ -25,8 +24,7 @@ function td(table, positionStr) {
     this.hang = tdPos[0];
     this.lie = tdPos[1];
     this.xfIndex = 0;
-    this.dom = $('#myTabContent>.tab-pane').eq(this.tableId).find('.tableBody tbody').find('>tr').eq(this.hang - 1).find('>td').eq(this.lie - 1);
-    this.dom.data('obj', this);
+    this.dom = document.createElement("div");
     this.getNearFenshu = function (num, wei) {
         var numList = num.toString().split('.');
         num = '0.' + numList[1];
@@ -366,13 +364,21 @@ function td(table, positionStr) {
     };
     this.render = function () {
         if (this.value_ instanceof obj && this.value_.dom) {
-            if (this.value_.dom.parent() !== this.dom) {
+            var dom = this.value_.dom;
+            if (!(dom instanceof Element)) {
+                dom = dom[0];
+            }
+            var compareDom = dom.parentNode;
+            if (compareDom !== this.dom) {
                 //this.dom.html('');//清空再赋值,会造成新增加的元素,绑定的事件都没了
-                if (this.value_.dom.is('td')) {
-                    this.dom.html(this.value_.get());
-                } else {
-                    this.dom.append(this.value_.dom);
-                }
+
+                this.dom.innerHTML = this.value_.get();
+                //这块改乱了，后面清楚的时候再改，好像是输入控件的那部分
+                // if (dom.tagName === 'TD') {
+                //     this.dom.innerHTML = this.value_.get();
+                // } else {
+                //     this.dom.append(dom);
+                // }
             }
         } else {
             var getValue_ = this.get();
@@ -390,7 +396,7 @@ function td(table, positionStr) {
                                 '<div>' + valueArr[1] + '</div>' +
                                 '<div>' + valueArr[2] + '</div>' +
                                 '</div>';
-                            this.dom.html(insertHtml);
+                            this.dom.innerHtml = insertHtml;
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
                             if (this.table.child(tdPos) === undefined) {
@@ -412,10 +418,10 @@ function td(table, positionStr) {
                     '<div>' + valueArr[1] + '</div>' +
                     '<div>' + valueArr[2] + '</div>' +
                     '</div>';
-                this.dom.html(insertHtml);
+                this.dom.innerHTML = insertHtml;
             }
         }
-        this.dom.attr('cell_xf', this.xfIndex);
+        this.dom.setAttribute('cell_xf', this.xfIndex);
         td.prototype.render.call(this);
     }
     this.css = function (callFunc, style) {
@@ -448,7 +454,7 @@ function td(table, positionStr) {
     this.lock = function () {
         if (this.value_ instanceof obj && this.value_.dom) {
         } else {
-            this.dom.html('');
+            this.dom.innerHTML = '';
         }
         td.prototype.lock.call(this);
     };
