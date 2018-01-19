@@ -71,29 +71,6 @@ var tableVueObj = Vue.extend({
                 //initTdStyle(this_.tableNum);
             });
         },
-        tempAddDbClickToFloat(dom) {
-            var self = this;
-            $(dom).on('dblclick', function () {
-                let tableId = self.tableObj.tableId;
-                let chartsIndex = $(dom).attr('index');
-                $('#dataFloat').show();
-                $('#dataFloat .head').html('图表');
-
-                let allChartsName = [];
-                for (let i = 0; i < allChartFunction.length; i++) {
-                    allChartsName.push(allChartFunction[i].funcName);
-                }
-                $('#dataFloat .head').attr('action_type', 'CHARTS');
-                $('#dataFloat .head').attr('tableId', tableId);
-                $('#dataFloat .head').attr('chartsIndex', chartsIndex);
-                console.log(self);
-                console.log(self.$parent);
-                console.log(self.$parent.$refs);
-                console.log(self.$parent.$refs.float);
-                self.$parent.$refs.float.initFloatType2(tableId, self.alltableObj[chartsIndex], $('#dataFloat .content'));
-
-            });
-        },
         moveCharts(pos) {
             let chartsIndex = Array.from(pos.dom.parentNode.children).indexOf(pos.dom);
             if (this.alltableObj[chartsIndex].left !== pos.x || this.alltableObj[chartsIndex].top !== pos.y) {
@@ -181,7 +158,6 @@ var tableVueObj = Vue.extend({
                     if (!domArr.includes(item.dom[0].parentNode)) {
                         // console.log(this.$refs.allCharts.getElementsByClassName('move'));
                         this.$refs.allCharts.getElementsByClassName('move')[i].append(item.dom[0]);
-                        this.tempAddDbClickToFloat(item.dom[0]);
                         item.render();
                     }
                 }
@@ -195,7 +171,6 @@ var tableVueObj = Vue.extend({
             for (let i = 0; i < this.alltableObj.length; i++) {
                 let chartsItem = this.alltableObj[i];
                 this.$refs.allCharts.getElementsByClassName('move')[i].append(chartsItem.dom[0]);
-                this.tempAddDbClickToFloat(chartsItem.dom[0]);
                 chartsItem.render();
             }
         }, 100);
@@ -203,7 +178,7 @@ var tableVueObj = Vue.extend({
 });
 
 //表
-function tableClass(tableId, dbSave, hang, lie) {
+export default function (tableId, dbSave, hang, lie) {
     this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
     this.tdList = [];
     this.dom = document.createElement("div");
@@ -283,5 +258,3 @@ function tableClass(tableId, dbSave, hang, lie) {
     this._vueDom.$el.setAttribute('class', 'tab-pane fade' + (tableId == 0 ? ' active in' : ''));
 
 }
-
-export default tableClass;

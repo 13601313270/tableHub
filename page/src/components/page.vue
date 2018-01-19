@@ -302,6 +302,22 @@
                     for (let i in tdData[table_Num].tableData) {
                         this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                     }
+
+                    function tempAddDbClickToFloat(dom, chartsIndex) {
+                        $(dom).on('dblclick', function () {
+                            $('#dataFloat').show();
+                            $('#dataFloat .head').html('图表');
+                            let allChartsName = [];
+                            for (let i = 0; i < allChartFunction.length; i++) {
+                                allChartsName.push(allChartFunction[i].funcName);
+                            }
+                            $('#dataFloat .head').attr('action_type', 'CHARTS');
+                            $('#dataFloat .head').attr('tableId', table_Num);
+                            $('#dataFloat .head').attr('chartsIndex', chartsIndex);
+                            this_.$refs.float.initFloatType2(table_Num, this_.allTableDom[table_Num].alltableObj[chartsIndex], $('#dataFloat .content'));
+                        });
+                    }
+
                     //绘制图表，一定要排在td之后
                     if (tableObj.charts !== undefined) {
                         for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
@@ -317,6 +333,7 @@
                                 chartsItem.dom.attr('index', chartsId);
                                 chartsItem.index = chartsId;
                                 this_.readyObj.bind(chartsItem);
+                                tempAddDbClickToFloat(chartsItem.dom[0], chartsId);
                                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
 
                             }
