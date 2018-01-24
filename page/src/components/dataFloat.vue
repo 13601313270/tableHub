@@ -1,6 +1,6 @@
 <template>
     <absolute-move move="both" hander="head">
-        <div id="dataFloat">
+        <div id="dataFloat" v-show="show_">
             <div class="head" ref="head"></div>
             <div class="content"></div>
             <div class="contentText" style="border-top:solid 1px grey">
@@ -342,7 +342,7 @@
                 $('#dataFloat .head').html(selectPos);
                 $('#dataFloat .head').attr('action_type', 'td');
                 var thisTdData = tdData[activeId].tableData[selectPos];
-                $('#dataFloat').show();
+                this.show_ = true;
                 if (thisTdData === undefined) {
                     thisTdData = {
                         'value': '',
@@ -352,15 +352,28 @@
                 this.initFloatType2(activeId, tempValue, $('#dataFloat .content'));
                 $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
                 $('#dataFloat').removeClass('floatSingleValue');
+            },
+            show() {
+                this.show_ = true;
+            },
+            hide() {
+                this.show_ = false;
             }
         },
         props: ['fileId', 'table-num', 'get-eval-obj'],
         components: {absoluteMove},
+        data() {
+            return {
+                show_: false,
+            };
+        },
         mounted() {
             var self = this;
-            $('#myTabContent').on('click', '.active', function () {
-                $('#dataFloat').hide();
-            });
+            // $('#myTabContent').on('click', '.active', function () {
+            //     console.log('hide');
+            //     self.show_ = false;
+            //     // $('#dataFloat').hide();
+            // });
 
             $('#dataFloat').on('change', '[name=dataType]', function () {
                 var func = $(this).val();
@@ -507,7 +520,6 @@
         background-color: white;
         border: solid 1px black;
         width: 500px;
-        display: none;
     }
 
     #dataFloat .content {

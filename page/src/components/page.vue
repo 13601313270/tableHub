@@ -1,7 +1,6 @@
 <template>
     <div>
-        <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
-             @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
+        <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)">
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
                    @insertChart="insertChart"
@@ -27,7 +26,7 @@
         <dataFloat ref="float"
                    :fileId="this.fileId"
                    :table-num="this.tableNum"
-                   :get-eval-obj=this.getEvalObj
+                   :get-eval-obj="this.getEvalObj"
                    @change="changeTd"
                    @changeChart="changeChart"></dataFloat>
         <wrapper></wrapper>
@@ -228,7 +227,7 @@
                         });
                     }
                     $('#tablePanel').removeClass('edit');
-                    $('#dataFloat').hide();
+                    this.$refs.float.hide();
                 }
             },
             rewriteExcel(dataList) {
@@ -241,19 +240,34 @@
                         let beginAndEnd = i.split(':');
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
-
-                        this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
-                        this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
-                        this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom.addClass('mergeTd');
+                        console.log(this_.allTableDom[table_Num]);
+                        console.log(this_.allTableDom[table_Num].findChild(beginAndEnd[0]));
+                        var beginDom = this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom;
+                        if (beginDom instanceof jQuery) {
+                            beginDom = beginDom[0];
+                        }
+                        beginDom = beginDom.parentNode;
+                        beginDom.getAttribute('rowspan', end[0] - begin[0] + 1);
+                        var domTemp = this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom;
+                        if (domTemp instanceof jQuery) {
+                            domTemp = domTemp[0];
+                        }
+                        domTemp = domTemp.parentNode;
+                        domTemp.getAttribute('colspan', end[1] - begin[1] + 1);
+                        var beginClass = beginDom.className.split(' ');
+                        if (beginClass.includes('mergeTd')) {
+                            beginClass.push('mergeTd');
+                        }
+                        beginDom.className = 'mergeTd';//beginClass.join(' ');
 
                         for (let tr = begin[0]; tr <= end[0]; tr++) {
-                            let firstTdWidth = 0;
+                            // let firstTdWidth = 0;
                             for (let td = end[1]; td >= begin[1]; td--) {
-                                firstTdWidth += this_.allTableDom[table_Num].thead.find('thead th').eq(td - 1).outerWidth();
+                                // firstTdWidth += this_.allTableDom[table_Num].thead.find('thead th').eq(td - 1).outerWidth();
                                 if (tr === begin[0] && td === begin[1]) {
 
                                 } else {
-                                    this_.allTableDom[table_Num].td(getCellTemp2(tr, td)).dom.hide();
+                                    // this_.allTableDom[table_Num].td(getCellTemp2(tr, td)).dom.hide();
                                 }
                             }
                         }
@@ -304,8 +318,7 @@
                     }
 
                     function tempAddDbClickToFloat(dom, chartsIndex) {
-                        $(dom).on('dblclick', function () {
-                            $('#dataFloat').show();
+                        dom.addEventListener('dblclick', function (event) {
                             $('#dataFloat .head').html('图表');
                             let allChartsName = [];
                             for (let i = 0; i < allChartFunction.length; i++) {
@@ -315,6 +328,8 @@
                             $('#dataFloat .head').attr('tableId', table_Num);
                             $('#dataFloat .head').attr('chartsIndex', chartsIndex);
                             this_.$refs.float.initFloatType2(table_Num, this_.allTableDom[table_Num].alltableObj[chartsIndex], $('#dataFloat .content'));
+                            this_.$refs.float.show();
+                            console.log(event);
                         });
                     }
 
@@ -432,75 +447,6 @@
                     selectTd2(eventDom, this.tableNum);
                 }
             },
-            mousedown_temp(event) {
-                if ($(event.target).is('.edit #myTabContent td')) {
-                    var eventDom = event.target;
-                } else {
-                    var eventDom = $(event.target).parents('.edit #myTabContent td');
-                    if (eventDom.length === 0) {
-                        return
-                    } else {
-                        eventDom = eventDom[0]
-                    }
-                }
-                this.beginSelect = [$(eventDom).attr('hang'), $(eventDom).attr('lie')];
-                this.isSelectDoms = true;
-                event.preventDefault();
-            },
-            lastEnterTd: '',//用于记录最后一次出发的dom
-            mouseenter_temp(event) {
-                if (this.isSelectDoms) {
-                    if ($(event.target).is('.edit #myTabContent td')) {
-                        var eventDom = event.target;
-                    } else {
-                        var eventDom = $(event.target).parents('.edit #myTabContent td');
-                        if (eventDom.length === 0) {
-                            return
-                        } else {
-                            eventDom = eventDom[0]
-                        }
-                    }
-                    // 防止重复出发
-                    if (this.lastEnterTd === eventDom) {
-                        return;
-                    }
-                    this.lastEnterTd = eventDom;
-
-
-                    $('body .edit td').removeClass('editTd');
-                    $('body .edit td').removeClass('editTdtop');
-                    $('body .edit td').removeClass('editTdbottom');
-                    $('body .edit td').removeClass('editTdleft');
-                    $('body .edit td').removeClass('editTdright');
-                    var top = Math.min($(eventDom).attr('hang'), this.beginSelect[0]);
-                    var bottom = Math.max($(eventDom).attr('hang'), this.beginSelect[0]);
-                    var left = Math.min($(eventDom).attr('lie'), this.beginSelect[1]);
-                    var right = Math.max($(eventDom).attr('lie'), this.beginSelect[1]);
-                    var tableid = this.tableNum;
-                    for (let i = top; i <= bottom; i++) {
-                        for (let j = left; j <= right; j++) {
-                            if (i === top) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdtop');
-                            }
-                            if (i === bottom) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdbottom');
-                            }
-                            if (j === left) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdleft');
-                            }
-                            if (j === right) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdright');
-                            }
-                            this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTd');
-                        }
-                    }
-                    this.selectTd(undefined);
-                    selectTd2(window, this.tableNum);
-                }
-            },
-            mouseup_temp() {
-                this.isSelectDoms = false;
-            },
             changeTd(td) {
                 let {tableNum, pos, value, xfIndex} = td;
                 this.writeTd(tableNum, pos, value, xfIndex);
@@ -524,8 +470,6 @@
             return {
                 title: '',
                 readyObj: new tableReady(),
-                beginSelect: [],
-                isSelectDoms: false,
                 getEvalObj: getEvalObj,
                 isMyTable: true,
                 isOpenEdit: false,
@@ -710,8 +654,10 @@
                         event.stopPropagation();
                     });
                     inputTd.find('input').focus();
+                    this_.$refs.float.hide();
                 } else {
                     this_.$refs.float.initFloatDom(this, activeId, tempValue);
+                    this_.$refs.float.show();
                 }
             });
             $('body').on('keydown', '#myTabContent .floatSingleValueWrite .input input', function (e) {

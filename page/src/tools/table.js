@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import absoluteMove from '@/components/widthMove.vue';
+import ajax from '@/tools/ajax.js';
 
 var tableVueObj = Vue.extend({
     props: ['tableObj', 'edit'],
@@ -10,6 +11,15 @@ var tableVueObj = Vue.extend({
             rowTop: 0,
             alltableObj: this.tableObj.alltableObj,
             tdList: this.tableObj.tdList,
+            isSelectDoms: false,
+            beginSelect: [],
+            poiCenter: {
+                top: 2,
+                bottom: 4,
+                left: 1,
+                right: 3,
+            },//用于记录选择区间
+            lastEnterTd: [],//用于记录最后一次触发的坐标
         };
     },
     methods: {
@@ -92,7 +102,67 @@ var tableVueObj = Vue.extend({
                     //initTdStyle(this_.tableNum);
                 });
             }
-        }
+        },
+        mousedown_temp(hang, lie) {
+            if (this.edit) {
+                this.beginSelect = [hang, lie];
+                this.isSelectDoms = true;
+                event.preventDefault();
+            }
+        },
+        mouseenter_temp(hang, lie) {
+            // console.log(hang);
+            this.lastEnterTd = [hang, lie];
+            if (this.isSelectDoms) {
+                // 防止重复出发
+                // if (this.lastEnterTd[0] === hang && this.lastEnterTd[1] === lie) {
+                //     return;
+                // }
+                this.lastEnterTd = [hang, lie];
+
+
+                $('body .edit td').removeClass('editTd');
+                $('body .edit td').removeClass('editTdtop');
+                $('body .edit td').removeClass('editTdbottom');
+                $('body .edit td').removeClass('editTdleft');
+                $('body .edit td').removeClass('editTdright');
+                var top = Math.min(hang, this.beginSelect[0]);
+                var bottom = Math.max(hang, this.beginSelect[0]);
+                var left = Math.min(lie, this.beginSelect[1]);
+                var right = Math.max(lie, this.beginSelect[1]);
+                this.poiCenter.top = top;
+                this.poiCenter.bottom = bottom;
+                this.poiCenter.left = left;
+                this.poiCenter.right = right;
+                console.log(this.poiCenter.top, this.poiCenter.bottom, this.poiCenter.left, this.poiCenter.right);
+                for (let i = top; i <= bottom; i++) {
+                    for (let j = left; j <= right; j++) {
+                        this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className = '';
+                        if (i === top) {
+                            // console.log(this.tableObj);
+                            // console.log(this.tableObj.findChild(getCellTemp2(i, j)));
+                            // console.log(this.tableObj.findChild(getCellTemp2(i, j)).dom);
+                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className = 'editTdtop';
+                        }
+                        if (i === bottom) {
+                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTdbottom';
+                        }
+                        if (j === left) {
+                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTdleft';
+                        }
+                        if (j === right) {
+                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTdright';
+                        }
+                        this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTd';
+                    }
+                }
+                // this.selectTd(undefined);
+                // selectTd2(window, this.tableNum);
+            }
+        },
+        mouseup_temp() {
+            this.isSelectDoms = false;
+        },
     },
     template: `<div>
     <div class="tableThead">
@@ -142,8 +212,13 @@ var tableVueObj = Vue.extend({
             </thead>
             <tbody ref="tableBody">
                 <tr v-for="i in tableObj.hang" :hang="i">
-                    <td v-for="j in tableObj.lie" :hang="i" :lie="j">
-                    </td>
+                    <td v-for="j in tableObj.lie"
+                        :key="i+','+j"
+                        :hang="i"
+                        :lie="j" 
+                        @mousedown="mousedown_temp(i,j)" 
+                        @mouseover="mouseenter_temp(i,j)" 
+                        @mouseup="mouseup_temp"></td>
                 </tr>
             </tbody>
         </table>
