@@ -218,8 +218,6 @@
                         let beginAndEnd = i.split(':');
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
-                        console.log(this_.allTableDom[table_Num]);
-                        console.log(this_.allTableDom[table_Num].findChild(beginAndEnd[0]));
                         var beginDom = this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom;
                         if (beginDom instanceof jQuery) {
                             beginDom = beginDom[0];
@@ -232,7 +230,7 @@
                         }
                         domTemp = domTemp.parentNode;
                         domTemp.getAttribute('colspan', end[1] - begin[1] + 1);
-                        var beginClass = beginDom.className.split(' ');
+                        let beginClass = beginDom.className.split(' ');
                         if (beginClass.includes('mergeTd')) {
                             beginClass.push('mergeTd');
                         }
@@ -251,13 +249,6 @@
                         }
                     }
                 }
-
-                //样式
-                let nod = document.createElement("style");
-                nod.id = "tdWidthHeight";
-                nod.type = "text/css";
-                $(nod).attr('td_css_list', 1);
-                document.getElementsByTagName("head")[0].appendChild(nod);
 
                 td.config.params.tableId.select = {};
                 for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
@@ -282,13 +273,12 @@
                         hang = Math.max(hang, tdPos[0]);
                         lie = Math.max(lie, tdPos[1]);
                     }
+                    console.groupEnd();
                     lie = Math.max(lie, 6);//至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
                     this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
                         this_.cellXfInfo.font.bold = data.font.bold;
-                        console.log('selectTD');
                         this_.cellXfInfo = data;
-                        console.log(data);
                     });
                     this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
 

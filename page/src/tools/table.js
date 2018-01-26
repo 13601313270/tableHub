@@ -112,7 +112,6 @@ var tableVueObj = Vue.extend({
             }
         },
         mouseenter_temp(hang, lie) {
-            // console.log(hang);
             if (this.isSelectDoms) {
                 // 防止重复出发
                 if (this.lastEnterTd[0] === hang && this.lastEnterTd[1] === lie) {
@@ -151,22 +150,20 @@ var tableVueObj = Vue.extend({
                 alignment: {},
                 fill: {},
             };
-            console.log(cellXf_);
             if (cellXf_ === undefined) {
-                $('.toolsContent [data-name=color]').css('color', '');
+                cellXfInfo.font.color = '';
                 cellXfInfo.font.bold = false;
                 cellXfInfo.font.underline = false;
                 cellXfInfo.font.size = '';
                 cellXfInfo.font.italic = false;
                 cellXfInfo.alignment.horizontal = 'general';
                 cellXfInfo.fill.startColor = 'while';
-                // $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
                 $('.toolsContent [data-name=tdMerge]').removeClass('active');
             } else {
                 var cell_xf = getCellXfCollection[cellXf_];
                 if (cell_xf.font) {
                     if (cell_xf.font.color) {
-                        $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
+                        cellXfInfo.font.color = '#' + cell_xf.font.color.slice(2);
                     }
                     cellXfInfo.font.bold = (cell_xf.font.bold === 1);
                     if (cell_xf.font.size) {
@@ -310,7 +307,6 @@ var tableVueObj = Vue.extend({
                 for (let i = 0; i < value.length; i++) {
                     let item = value[i];
                     if (!domArr.includes(item.dom[0].parentNode)) {
-                        // console.log(this.$refs.allCharts.getElementsByClassName('move'));
                         this.$refs.allCharts.getElementsByClassName('move')[i].append(item.dom[0]);
                         item.render();
                     }
@@ -369,7 +365,7 @@ export default function (tableId, dbSave, hang, lie) {
     (function () {
         this.cssNod.id = "tdWidthHeight";
         this.cssNod.type = "text/css";
-        $(this.cssNod).attr('td_css_list', 1);
+        this.cssNod.setAttribute('td_css_list', 1);
         document.getElementsByTagName("head")[0].appendChild(this.cssNod);
     }).call(this);
     this.render = function (cssStr) {
@@ -400,17 +396,19 @@ export default function (tableId, dbSave, hang, lie) {
     };
     this.findChild = function (positionStr) {
         var position = getCellTemp(positionStr);
-        if (this.tdList[position[0] - 1] === undefined) {
-            this.tdList[position[0] - 1] = [];
+        var hang = Math.max(position[0] - 1, 0);
+        var lie = position[1] - 1;
+        if (this.tdList[hang] === undefined) {
+            this.tdList[hang] = [];
         }
-        if (this.tdList[position[0] - 1][position[1] - 1] === undefined) {
+        if (this.tdList[hang][lie] === undefined) {
             //新建td
             var newTd = new td(this, positionStr);
-            this.tdList[position[0] - 1][position[1] - 1] = newTd;
-            this.vueObj.$refs.tableBody.children[position[0] - 1].children[position[1] - 1].append(newTd.dom);
+            this.tdList[hang][lie] = newTd;
+            this.vueObj.$refs.tableBody.children[hang].children[lie].append(newTd.dom);
             return newTd;
         }
-        return this.tdList[position[0] - 1][position[1] - 1];
+        return this.tdList[hang][lie];
     }
     this._vueDom = new tableVueObj({
         propsData: {

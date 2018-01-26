@@ -67,7 +67,12 @@
                                 :style="{backgroundColor:this.cellXfInfo.fill&&this.cellXfInfo.fill.startColor}">
                             &#xe690;
                         </button>
-                        <button type="button" class="btn btn-default" data-name="color">&#xe613;</button>
+                        <button type="button"
+                                class="btn btn-default"
+                                data-name="color"
+                                :style="{color:this.cellXfInfo.fill&&this.cellXfInfo.font.color}">
+                            &#xe613;
+                        </button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default" data-name="fx" @click="this.fx">&#xe646;</button>
