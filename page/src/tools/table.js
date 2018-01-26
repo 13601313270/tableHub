@@ -2,6 +2,7 @@ import Vue from 'vue'
 import absoluteMove from '@/components/widthMove.vue';
 import ajax from '@/tools/ajax.js';
 
+var events = require("events");
 var tableVueObj = Vue.extend({
     props: ['tableObj', 'edit'],
     components: {absoluteMove},
@@ -13,13 +14,13 @@ var tableVueObj = Vue.extend({
             tdList: this.tableObj.tdList,
             isSelectDoms: false,
             beginSelect: [],
+            lastEnterTd: [],//用于记录最后一次触发的坐标
             poiCenter: {
                 top: 2,
-                bottom: 4,
-                left: 1,
-                right: 3,
+                bottom: 1,
+                left: 2,
+                right: 1,
             },//用于记录选择区间
-            lastEnterTd: [],//用于记录最后一次触发的坐标
         };
     },
     methods: {
@@ -112,56 +113,132 @@ var tableVueObj = Vue.extend({
         },
         mouseenter_temp(hang, lie) {
             // console.log(hang);
-            this.lastEnterTd = [hang, lie];
             if (this.isSelectDoms) {
                 // 防止重复出发
-                // if (this.lastEnterTd[0] === hang && this.lastEnterTd[1] === lie) {
-                //     return;
-                // }
+                if (this.lastEnterTd[0] === hang && this.lastEnterTd[1] === lie) {
+                    return;
+                }
                 this.lastEnterTd = [hang, lie];
-
-
-                $('body .edit td').removeClass('editTd');
-                $('body .edit td').removeClass('editTdtop');
-                $('body .edit td').removeClass('editTdbottom');
-                $('body .edit td').removeClass('editTdleft');
-                $('body .edit td').removeClass('editTdright');
                 var top = Math.min(hang, this.beginSelect[0]);
                 var bottom = Math.max(hang, this.beginSelect[0]);
                 var left = Math.min(lie, this.beginSelect[1]);
                 var right = Math.max(lie, this.beginSelect[1]);
-                this.poiCenter.top = top;
-                this.poiCenter.bottom = bottom;
-                this.poiCenter.left = left;
-                this.poiCenter.right = right;
-                console.log(this.poiCenter.top, this.poiCenter.bottom, this.poiCenter.left, this.poiCenter.right);
-                for (let i = top; i <= bottom; i++) {
-                    for (let j = left; j <= right; j++) {
-                        this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className = '';
-                        if (i === top) {
-                            // console.log(this.tableObj);
-                            // console.log(this.tableObj.findChild(getCellTemp2(i, j)));
-                            // console.log(this.tableObj.findChild(getCellTemp2(i, j)).dom);
-                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className = 'editTdtop';
-                        }
-                        if (i === bottom) {
-                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTdbottom';
-                        }
-                        if (j === left) {
-                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTdleft';
-                        }
-                        if (j === right) {
-                            this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTdright';
-                        }
-                        this.tableObj.findChild(getCellTemp2(i, j)).dom.parentNode.className += ' editTd';
-                    }
-                }
-                // this.selectTd(undefined);
-                // selectTd2(window, this.tableNum);
+                this.poiCenter = {
+                    top: top,
+                    bottom: bottom,
+                    left: left,
+                    right: right
+                };
+                // // this.selectTd(undefined, window, this.tableNum);
             }
+        },
+        setSelectClass(i, j) {
+            var inCenter = i >= this.poiCenter.top && i <= this.poiCenter.bottom && j >= this.poiCenter.left && j <= this.poiCenter.right;
+            return {
+                editTd: inCenter,
+                editTdtop: inCenter && i === this.poiCenter.top,
+                editTdbottom: inCenter && i === this.poiCenter.bottom,
+                editTdleft: inCenter && j === this.poiCenter.left,
+                editTdright: inCenter && j === this.poiCenter.right,
+            };
         },
         mouseup_temp() {
             this.isSelectDoms = false;
+        },
+        selectTd(cellXf_, temp, activeId) {
+            var cellXfInfo = {
+                font: {},
+                alignment: {},
+                fill: {},
+            };
+            console.log(cellXf_);
+            if (cellXf_ === undefined) {
+                $('.toolsContent [data-name=color]').css('color', '');
+                cellXfInfo.font.bold = false;
+                cellXfInfo.font.underline = false;
+                cellXfInfo.font.size = '';
+                cellXfInfo.font.italic = false;
+                cellXfInfo.alignment.horizontal = 'general';
+                cellXfInfo.fill.startColor = 'while';
+                // $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
+                $('.toolsContent [data-name=tdMerge]').removeClass('active');
+            } else {
+                var cell_xf = getCellXfCollection[cellXf_];
+                if (cell_xf.font) {
+                    if (cell_xf.font.color) {
+                        $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
+                    }
+                    cellXfInfo.font.bold = (cell_xf.font.bold === 1);
+                    if (cell_xf.font.size) {
+                        cellXfInfo.font.size = cell_xf.font.size;
+                    }
+                    if (cell_xf.font.underline === 'single') {
+                        cellXfInfo.font.underline = true;
+                    } else {
+                        cellXfInfo.font.underline = false;
+                    }
+                    if (cell_xf.font.italic === 1) {
+                        cellXfInfo.font.italic = true;
+                    } else {
+                        cellXfInfo.font.italic = false;
+                    }
+                }
+                if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
+                    cellXfInfo.fill.startColor = '#' + cell_xf.fill.startColor.slice(2);
+                }
+                else {
+                    cellXfInfo.fill.startColor = 'white';
+                }
+
+                if (cell_xf.alignment) {
+                    if (cell_xf.alignment.horizontal === 'left') {
+                        cellXfInfo.alignment.horizontal = 'left';
+                    } else if (cell_xf.alignment.horizontal === 'center') {
+                        cellXfInfo.alignment.horizontal = 'center';
+                    } else if (cell_xf.alignment.horizontal === 'right') {
+                        cellXfInfo.alignment.horizontal = 'right';
+                    } else if (cell_xf.alignment.horizontal === 'general') {
+                        cellXfInfo.alignment.horizontal = 'general';
+                    }
+                } else {
+                    cellXfInfo.alignment.horizontal = 'general';
+                }
+            }
+
+
+            if (temp !== window && !$(temp).is('.mergeTd')) {
+                //不能拆分
+                $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                $('.toolsContent [data-name=tdMerge]').addClass('disabled');
+            } else {
+                let isHasMerge = false;
+                for (let i in tdData[activeId].mergeCells) {
+                    if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
+                        isHasMerge = true;
+                        break;
+                    }
+                }
+                if (isHasMerge) {
+                    $('.toolsContent [data-name=tdMerge]').addClass('active');
+                } else {
+                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                }
+                $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
+            }
+
+            this.tableObj.events_.emit("tdSelect", cellXfInfo);
+        },
+        selectTd_temp(hang, lie) {
+            this.poiCenter = {
+                top: hang,
+                bottom: hang,
+                left: lie,
+                right: lie
+            };
+            var td = this.tableObj.tdList[hang - 1][lie - 1];
+            if (td !== undefined) {
+                this.selectTd(td.xfIndex, td.dom, this.tableNum);
+            }
         },
     },
     template: `<div>
@@ -213,9 +290,11 @@ var tableVueObj = Vue.extend({
             <tbody ref="tableBody">
                 <tr v-for="i in tableObj.hang" :hang="i">
                     <td v-for="j in tableObj.lie"
+                        @click="selectTd_temp(i,j)"
                         :key="i+','+j"
                         :hang="i"
                         :lie="j" 
+                        :class="setSelectClass(i,j)" 
                         @mousedown="mousedown_temp(i,j)" 
                         @mouseover="mouseenter_temp(i,j)" 
                         @mouseup="mouseup_temp"></td>
@@ -256,10 +335,21 @@ var tableVueObj = Vue.extend({
 export default function (tableId, dbSave, hang, lie) {
     this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
     this.tdList = [];
+    //事件监听
+    this.events_ = new events.EventEmitter();
+    this.addListener = function (eventName, callBack) {
+        this.events_.addListener(eventName, callBack);
+    }
     this.dom = document.createElement("div");
     this.active = function (val) {
         if (val === false) {
             this._vueDom.$el.setAttribute('class', 'tab-pane fade');
+            this._vueDom.poiCenter = {
+                top: 2,
+                bottom: 1,
+                left: 2,
+                right: 1,
+            };
         } else {
             this._vueDom.$el.setAttribute('class', 'tab-pane fade active in');
         }

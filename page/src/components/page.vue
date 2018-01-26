@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)">
+        <div id="tablePanel" :class="{edit:isOpenEdit}">
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
                    @insertChart="insertChart"
@@ -48,28 +48,6 @@
     }
 
     tableReady.prototype = new obj();
-
-    function selectTd2(temp, activeId) {
-        if (temp !== window && !$(temp).is('.mergeTd')) {
-            //不能拆分
-            $('.toolsContent [data-name=tdMerge]').removeClass('active');
-            $('.toolsContent [data-name=tdMerge]').addClass('disabled');
-        } else {
-            let isHasMerge = false;
-            for (let i in tdData[activeId].mergeCells) {
-                if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
-                    isHasMerge = true;
-                    break;
-                }
-            }
-            if (isHasMerge) {
-                $('.toolsContent [data-name=tdMerge]').addClass('active');
-            } else {
-                $('.toolsContent [data-name=tdMerge]').removeClass('active');
-            }
-            $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
-        }
-    }
 
     //    import obj from '@/tools/obj.js'
     //    var a = new obj();
@@ -306,6 +284,12 @@
                     }
                     lie = Math.max(lie, 6);//至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
+                    this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
+                        this_.cellXfInfo.font.bold = data.font.bold;
+                        console.log('selectTD');
+                        this_.cellXfInfo = data;
+                        console.log(data);
+                    });
                     this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
 
                     this_.allTableDom[table_Num].render();
@@ -375,76 +359,6 @@
                             location.href = location.href;//很多情况下无法刷新
                         }
                     });
-                }
-            },
-            selectTd(cellXf_) {
-                if (cellXf_ === undefined) {
-                    $('.toolsContent [data-name=color]').css('color', '');
-                    this.cellXfInfo.font.bold = false;
-                    this.cellXfInfo.font.underline = false;
-                    this.cellXfInfo.font.italic = false;
-                    this.cellXfInfo.alignment.horizontal = 'general';
-                    $('.toolsContent [data-name=size]').val('');
-                    $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
-                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                } else {
-                    var cell_xf = getCellXfCollection[cellXf_];
-                    if (cell_xf.font) {
-                        if (cell_xf.font.color) {
-                            $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
-                        }
-                        this.cellXfInfo.font.bold = (cell_xf.font.bold === 1);
-                        if (cell_xf.font.size) {
-                            $('.toolsContent [data-name=size]').val(cell_xf.font.size);
-                        }
-                        if (cell_xf.font.underline === 'single') {
-                            this.cellXfInfo.font.underline = true;
-                        } else {
-                            this.cellXfInfo.font.underline = false;
-                        }
-                        if (cell_xf.font.italic === 1) {
-                            this.cellXfInfo.font.italic = true;
-                        } else {
-                            this.cellXfInfo.font.italic = false;
-                        }
-                    }
-                    if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
-                        $('.toolsContent [data-name=fill]').css('backgroundColor', '#' + cell_xf.fill.startColor.slice(2));
-                    }
-                    else {
-                        $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
-                    }
-
-                    if (cell_xf.alignment) {
-                        if (cell_xf.alignment.horizontal === 'left') {
-                            this.cellXfInfo.alignment.horizontal = 'left';
-                        } else if (cell_xf.alignment.horizontal === 'center') {
-                            this.cellXfInfo.alignment.horizontal = 'center';
-                        } else if (cell_xf.alignment.horizontal === 'right') {
-                            this.cellXfInfo.alignment.horizontal = 'right';
-                        } else if (cell_xf.alignment.horizontal === 'general') {
-                            this.cellXfInfo.alignment.horizontal = 'general';
-                        }
-                    } else {
-                        this.cellXfInfo.alignment.horizontal = 'general';
-                    }
-                }
-            },
-            selectTd_temp(event) {
-                if ($(event.target).is('.edit #myTabContent td')) {
-                    var eventDom = event.target;
-                } else {
-                    var eventDom = $(event.target).parents('.edit #myTabContent td');
-                    if (eventDom.length === 0) {
-                        return
-                    } else {
-                        eventDom = eventDom[0]
-                    }
-                }
-                if (!$(eventDom).is('.idNum')) {
-                    setTdSelectState.call(eventDom);
-                    this.selectTd($(eventDom).attr('cell_xf'));
-                    selectTd2(eventDom, this.tableNum);
                 }
             },
             changeTd(td) {
@@ -1013,29 +927,15 @@
     }
 
     .table td .tdInsertDiv {
-        display: table;
+        display: flex;
         width: 100%;
-        > div {
-            display: table-cell;
-        }
-
+        height: 100%;
+        align-items: stretch;
         > div:nth-child(2) {
-            white-space: normal;
-            display: block;
-            height: 1rem;
-        }
-
-        > div:nth-child(2) > span {
-            /*max-width: 100px;*/
-            display: inline-block;
-        }
-
-        > div:first-child {
-            text-align: left;
-        }
-
-        > div:last-child {
-            text-align: right;
+            flex-grow: 1;
+            > span {
+                display: inline-block;
+            }
         }
     }
 </style>
@@ -1208,32 +1108,5 @@
         background-color: #e6e6e6;
         border: solid 1px #b5b5b5;
         border-radius: 2px;
-    }
-
-    .table td .tdInsertDiv {
-        display: table;
-        width: 100%;
-    }
-
-    .table td .tdInsertDiv > div {
-        display: table-cell;
-    }
-
-    .table td .tdInsertDiv > div:nth-child(2) {
-        white-space: normal;
-        display: block;
-    }
-
-    .table td .tdInsertDiv > div:nth-child(2) > span {
-        /*max-width: 100px;*/
-        display: inline-block;
-    }
-
-    .table td .tdInsertDiv > div:first-child {
-        text-align: left;
-    }
-
-    .table td .tdInsertDiv > div:last-child {
-        text-align: right;
     }
 </style>

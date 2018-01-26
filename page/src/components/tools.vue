@@ -54,12 +54,19 @@
                     <div class="btn-group">
                         <div class="input-group" style="width: 110px;">
                             <div class="input-group-addon">&#xe715;</div>
-                            <input type="number" @change="rewriteStyle" class="form-control" data-name="size"
+                            <input type="number"
+                                   @change="rewriteStyle" v-model="this.cellXfInfo.font.size"
+                                   class="form-control" data-name="size"
                                    placeholder="字号">
                         </div>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="fill">&#xe690;</button>
+                        <button type="button"
+                                class="btn btn-default"
+                                data-name="fill"
+                                :style="{backgroundColor:this.cellXfInfo.fill&&this.cellXfInfo.fill.startColor}">
+                            &#xe690;
+                        </button>
                         <button type="button" class="btn btn-default" data-name="color">&#xe613;</button>
                     </div>
                     <div class="btn-group">

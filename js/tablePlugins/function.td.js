@@ -25,6 +25,7 @@ function td(table, positionStr) {
     this.lie = tdPos[1];
     this.xfIndex = 0;
     this.dom = document.createElement("div");
+    this.dom.className = "tdInsertDiv";
     this.getNearFenshu = function (num, wei) {
         var numList = num.toString().split('.');
         num = '0.' + numList[1];
@@ -391,11 +392,9 @@ function td(table, positionStr) {
                     for (let j = 0; j < getValue[i].length; j++) {
                         if (i === 0 && j === 0) {
                             var valueArr = this.formatCode(getValue[i][j]);
-                            var insertHtml = '<div class="tdInsertDiv">' +
-                                '<div>' + valueArr[0] + '</div>' +
+                            var insertHtml = '<div>' + valueArr[0] + '</div>' +
                                 '<div>' + valueArr[1] + '</div>' +
-                                '<div>' + valueArr[2] + '</div>' +
-                                '</div>';
+                                '<div>' + valueArr[2] + '</div>';
                             this.dom.innerHtml = insertHtml;
                         } else {
                             var tdPos = getCellTemp2(this.hang + i, this.lie + j);
@@ -413,11 +412,9 @@ function td(table, positionStr) {
                 }
             } else {
                 var valueArr = this.formatCode(getValue);
-                var insertHtml = '<div class="tdInsertDiv">' +
-                    '<div>' + valueArr[0] + '</div>' +
+                var insertHtml = '<div>' + valueArr[0] + '</div>' +
                     '<div>' + valueArr[1] + '</div>' +
-                    '<div>' + valueArr[2] + '</div>' +
-                    '</div>';
+                    '<div>' + valueArr[2] + '</div>';
                 this.dom.innerHTML = insertHtml;
             }
         }
