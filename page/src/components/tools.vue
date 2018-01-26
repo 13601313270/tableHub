@@ -210,10 +210,7 @@
                 if (this_.length !== 1) {
                     return;
                 }
-                this.$emit('fx', {
-                    tableNum: this.tableNum,
-                    td: this_[0]
-                });
+                this.$emit('fx');
             },
             rewriteStyle(event) {
                 var self = this;

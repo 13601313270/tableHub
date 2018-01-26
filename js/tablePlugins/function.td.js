@@ -164,7 +164,6 @@ function td(table, positionStr) {
                     code = code.replace(/^\[\$\S-804\]/, '');
                     returnHtml += findStr;
                 } else {
-
                 }
             }
             else if (temp == '#' || temp == '0' || temp == '?') {

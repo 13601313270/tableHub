@@ -101,10 +101,15 @@
     export default {
         name: 'page',
         methods: {
-            fx(obj) {
-                var selectPos = getCellTemp2(parseInt($(obj.td).attr('hang')), parseInt($(obj.td).attr('lie')));
-                var tempValue = this.allTableDom[obj.tableNum].findChild(selectPos).value_;
-                this.$refs.float.initFloatDom(obj.td, obj.tableNum, tempValue);
+            fx() {
+                var this_ = $('.editTd');
+                if (this_.length !== 1) {
+                    return;
+                }
+                var selectTd = this_[0];
+                var selectPos = getCellTemp2(parseInt($(selectTd).attr('hang')), parseInt($(selectTd).attr('lie')));
+                var tempValue = this.allTableDom[this.tableNum].findChild(selectPos).value_;
+                this.$refs.float.initFloatDom(selectTd, this.tableNum, tempValue);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
                 var thisTd = this.allTableDom[tableNum].findChild(tdPos);
@@ -629,7 +634,7 @@
     .floatSingleValueWrite {
         height: 1px;
         width: 1px;
-        position: relative;
+        position: absolute;
         margin-top: -2px;
         .input {
             position: absolute;
@@ -668,6 +673,41 @@
             width: 100px;
             overflow: hidden;
         }
+        th, td {
+            text-align: center;
+        }
+
+        > tbody > tr {
+            height: 37px;
+            > td {
+                min-width: 60px;
+                border: 1px solid #ddd;
+                white-space: nowrap;
+                vertical-align: middle;
+                padding: 0;
+                height: 37px;
+            }
+            > .mergeTd {
+                white-space: initial
+            }
+        }
+
+        > thead {
+            background-color: #c3c3c3;
+        }
+
+        td .tdInsertDiv {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            > div:nth-child(2) {
+                flex-grow: 1;
+                > span {
+                    display: inline-block;
+                }
+            }
+        }
     }
 
     .idNum {
@@ -693,15 +733,6 @@
         }
     }
 
-    .edit .tableBody {
-        margin-left: 80px;
-        width: calc(~"100% - 80px");
-        height: calc(~"100% - 39px");
-        overflow: scroll;
-        margin-top: 39px;
-        cursor: cell;
-    }
-
     .tableRow {
         display: none;
         position: absolute;
@@ -723,6 +754,34 @@
 
         .tableThead {
             display: block;
+        }
+        .tableBody {
+            margin-left: 80px;
+            width: calc(~"100% - 80px");
+            height: calc(~"100% - 39px");
+            overflow: scroll;
+            margin-top: 39px;
+            cursor: cell;
+        }
+        .editTd {
+            background-color: #e5f2ff;
+            /*border:solid 2px #0000b8;*/
+        }
+
+        .editTdtop {
+            border-top: solid 2px #0000b8;
+        }
+
+        .editTdbottom {
+            border-bottom: solid 2px #0000b8;
+        }
+
+        .editTdleft {
+            border-left: solid 2px #0000b8;
+        }
+
+        .editTdright {
+            border-right: solid 2px #0000b8;
         }
     }
 
@@ -774,51 +833,7 @@
         content: '+';
     }
 
-    .table th, .table td {
-        text-align: center;
-    }
-
-    .table > tbody > tr {
-        height: 37px;
-    }
-
-    .table > thead {
-        background-color: #c3c3c3;
-    }
-
-    .edit {
-        .editTd {
-            background-color: #e5f2ff;
-            /*border:solid 2px #0000b8;*/
-        }
-
-        .editTdtop {
-            border-top: solid 2px #0000b8;
-        }
-
-        .editTdbottom {
-            border-bottom: solid 2px #0000b8;
-        }
-
-        .editTdleft {
-            border-left: solid 2px #0000b8;
-        }
-
-        .editTdright {
-            border-right: solid 2px #0000b8;
-        }
-    }
-
     .tableThead thead > tr > th {
-        min-width: 60px;
-        border: 1px solid #ddd;
-        white-space: nowrap;
-        vertical-align: middle;
-        padding: 0;
-        height: 37px;
-    }
-
-    .table > tbody > tr > td {
         min-width: 60px;
         border: 1px solid #ddd;
         white-space: nowrap;
@@ -849,10 +864,6 @@
         }
     }
 
-    .table > tbody > tr > .mergeTd {
-        white-space: initial
-    }
-
     .tableBody {
         tr {
             background-color: white;
@@ -873,190 +884,6 @@
         .table > thead > tr > th {
             border-bottom: none;
         }
-    }
-
-    .styleAllSelect {
-        float: left;
-        width: 60px;
-        height: 20px;
-        margin: 2px;
-        background-color: white;
-    }
-
-    .styleSelect {
-        border: solid 1px black;
-    }
-
-    .idNumOn {
-        background-color: #a7a7a7 !important;
-        box-shadow: inset 6px -1px 20px 1px #909090;
-        color: #e8e8e8;
-    }
-
-    .lieNumOn {
-        background-color: #a7a7a7 !important;
-        box-shadow: inset 0px 6px 20px 3px #909090;
-        color: #e8e8e8;
-    }
-
-    .addTable {
-        font-family: iconfont;
-        line-height: 40px;
-        border: solid 1px rgba(255, 255, 255, 0);
-        border-left: solid 1px #bdbdbd;
-        width: 50px;
-        font-size: 18px;
-        text-align: center;
-        cursor: pointer;
-    }
-
-    .addTable:hover {
-        background-color: #e6e6e6;
-        border: solid 1px #b5b5b5;
-        border-radius: 2px;
-    }
-
-    .table td .tdInsertDiv {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        align-items: stretch;
-        > div:nth-child(2) {
-            flex-grow: 1;
-            > span {
-                display: inline-block;
-            }
-        }
-    }
-</style>
-<style>
-    .trMain {
-        background-color: white;
-    }
-
-    .trTwo {
-        display: none;
-        background-color: #eeeeee;
-    }
-
-    .trThree {
-        background-color: #e8e8e8;
-    }
-
-    .addButton {
-        float: right;
-    }
-
-    .addButton:after {
-        content: '+';
-    }
-
-    .table th, .table td {
-        text-align: center;
-    }
-
-    .table > tbody > tr {
-        height: 37px;
-    }
-
-    .table > thead {
-        background-color: #c3c3c3;
-    }
-
-    .edit .editTd {
-        background-color: #e5f2ff;
-        /*border:solid 2px #0000b8;*/
-    }
-
-    .edit .editTdtop {
-        border-top: solid 2px #0000b8;
-    }
-
-    .edit .editTdbottom {
-        border-bottom: solid 2px #0000b8;
-    }
-
-    .edit .editTdleft {
-        border-left: solid 2px #0000b8;
-    }
-
-    .edit .editTdright {
-        border-right: solid 2px #0000b8;
-    }
-
-    .tableThead thead > tr > th {
-        min-width: 60px;
-        border: 1px solid #ddd;
-        white-space: nowrap;
-        vertical-align: middle;
-        padding: 0;
-        height: 37px;
-    }
-
-    .table > thead > tr > th {
-        width: 100px;
-    }
-
-    .table > tbody > tr > td {
-        position: relative;
-        width: 100px;
-        overflow: hidden;
-        min-width: 60px;
-        border: 1px solid #ddd;
-        white-space: nowrap;
-        vertical-align: middle;
-        padding: 0;
-        height: 37px;
-    }
-
-    .tableRow .table > tbody > tr > td > div {
-        cursor: ns-resize !important;
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        height: 5px;
-        width: 100%;
-    }
-
-    .tableThead > thead th {
-        border-bottom: solid 3px #929292 !important;
-    }
-
-    .tableThead .table > thead > tr > .lieNum {
-        position: relative;
-    }
-
-    .tableThead .table > thead > tr > .lieNum > div {
-        cursor: ew-resize;
-        position: absolute;
-        right: 0;
-        top: 0;
-        height: 100%;
-        width: 5px;
-    }
-
-    .table > tbody > tr > .mergeTd {
-        white-space: initial
-    }
-
-    .tableBody tr {
-        background-color: white;
-    }
-
-    .tableBody thead {
-        height: 20px;
-    }
-
-    .tableBody thead [lienum] {
-        padding: 0;
-    }
-
-    .tableBody .table {
-        margin-top: -1px;
-    }
-
-    .tableBody .table > thead > tr > th {
-        border-bottom: none;
     }
 
     .styleAllSelect {
