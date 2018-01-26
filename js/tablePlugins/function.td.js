@@ -418,7 +418,11 @@ function td(table, positionStr) {
                 this.dom.innerHTML = insertHtml;
             }
         }
-        this.dom.setAttribute('cell_xf', this.xfIndex);
+        if (this.xfIndex) {
+            this.dom.setAttribute('cell_xf', this.xfIndex);
+        } else {
+            this.dom.removeAttribute('cell_xf');
+        }
         td.prototype.render.call(this);
     }
     this.css = function (callFunc, style) {
