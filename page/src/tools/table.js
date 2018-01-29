@@ -229,7 +229,7 @@ var tableVueObj = Vue.extend({
                     cellXfInfo.alignment.horizontal = 'general';
                 }
             }
-            this.tableObj.events_.emit("tdSelect", cellXfInfo);
+            return cellXfInfo;
         },
         selectTd_temp(hang, lie) {
             this.poiCenter = {
@@ -240,7 +240,9 @@ var tableVueObj = Vue.extend({
             };
             var td = this.tableObj.tdList[hang - 1][lie - 1];
             if (td !== undefined) {
-                this.selectTd(td.xfIndex);
+                this.tableObj.events_.emit("tdSelect", {
+                    xf: this.selectTd(td.xfIndex)
+                });
                 let isHasMerge = false;//选择的td是不是merge的td
                 for (let cell in this.tableObj.mergeCells) {
                     if (cell.split(":")[0] === getCellTemp2(hang, lie)) {

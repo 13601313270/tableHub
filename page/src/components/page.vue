@@ -287,8 +287,8 @@
                     lie = Math.max(lie, 6);//至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
                     this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
-                        this_.cellXfInfo.font.bold = data.font.bold;
-                        this_.cellXfInfo = data;
+                        this_.cellXfInfo.font.bold = data.xf.font.bold;
+                        this_.cellXfInfo = data.xf;
                     });
                     this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
 
@@ -394,12 +394,9 @@
                 cellXfInfo: {
                     font: {
                         bold: false,
-                        underline:
-                            false,
-                        italic:
-                            false,
-                    }
-                    ,
+                        underline: false,
+                        italic: false,
+                    },
                     alignment: {
                         horizontal: 'general'
                     }
