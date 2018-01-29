@@ -256,7 +256,6 @@ var tableVueObj = Vue.extend({
                     $('.toolsContent [data-name=tdMerge]').removeClass('active');
                     $('.toolsContent [data-name=tdMerge]').addClass('disabled');
                 }
-                console.groupEnd();
             }
         },
     },
