@@ -224,31 +224,36 @@
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
                         var beginDom = this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom;
+
                         if (beginDom instanceof jQuery) {
                             beginDom = beginDom[0];
                         }
                         beginDom = beginDom.parentNode;
-                        beginDom.getAttribute('rowspan', end[0] - begin[0] + 1);
+                        console.log(beginDom);
+                        beginDom.setAttribute('rowspan', end[0] - begin[0] + 1);
                         var domTemp = this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom;
                         if (domTemp instanceof jQuery) {
                             domTemp = domTemp[0];
                         }
                         domTemp = domTemp.parentNode;
-                        domTemp.getAttribute('colspan', end[1] - begin[1] + 1);
+                        domTemp.setAttribute('colspan', end[1] - begin[1] + 1);
                         let beginClass = beginDom.className.split(' ');
                         if (beginClass.includes('mergeTd')) {
                             beginClass.push('mergeTd');
                         }
-                        beginDom.className = 'mergeTd';//beginClass.join(' ');
+                        // beginDom.className = 'mergeTd';//beginClass.join(' ');
 
                         for (let tr = begin[0]; tr <= end[0]; tr++) {
-                            // let firstTdWidth = 0;
                             for (let td = end[1]; td >= begin[1]; td--) {
-                                // firstTdWidth += this_.allTableDom[table_Num].thead.find('thead th').eq(td - 1).outerWidth();
                                 if (tr === begin[0] && td === begin[1]) {
-
+                                    // if (end[1] > begin[1]) {
+                                    //     this_.allTableDom[table_Num].findChild(getCellTemp2(tr, td)).dom.parentNode.setAttribute('colspan', end[1] - begin[1] + 1);
+                                    // }
+                                    // if (end[0] > begin[0]) {
+                                    //     this_.allTableDom[table_Num].findChild(getCellTemp2(tr, td)).dom.parentNode.setAttribute('rowspan', end[0] - begin[0] + 1);
+                                    // }
                                 } else {
-                                    // this_.allTableDom[table_Num].td(getCellTemp2(tr, td)).dom.hide();
+                                    this_.allTableDom[table_Num].findChild(getCellTemp2(tr, td)).dom.parentNode.style.display = 'none';
                                 }
                             }
                         }
@@ -264,7 +269,7 @@
                     tdData[table_Num] = {
                         tableTitle: tableTitle,
                         tableData: tableObj.tableValue,
-                        mergeCells: tableObj.mergeCells,
+                        // mergeCells: tableObj.mergeCells,
                     };
                     //获取宽高
                     var hang = 0;
@@ -290,7 +295,7 @@
                     this_.allTableDom[table_Num].render();
                     this_.allTableDom[table_Num].initTdStyle();
                     //单元格合并
-                    initMerge(table_Num, tdData[table_Num].mergeCells);
+                    initMerge(table_Num, this_.allTableDom[table_Num].mergeCells);
 
                     for (let i in tdData[table_Num].tableData) {
                         this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);

@@ -64,7 +64,7 @@ var tableVueObj = Vue.extend({
                     'width': (width / 10).toFixed(1)
                 }
             }).then((data) => {
-                //initTdStyle(this_.tableNum);
+                //initTdStyle(this_.tableObj.tableId);
             });
         },
         Ymouseup(e) {
@@ -79,7 +79,7 @@ var tableVueObj = Vue.extend({
                     'height': parseInt(e.y)
                 }
             }).then(() => {
-                //initTdStyle(this_.tableNum);
+                //initTdStyle(this_.tableObj.tableId);
             });
         },
         moveCharts(pos) {
@@ -100,7 +100,7 @@ var tableVueObj = Vue.extend({
                 }).then((data) => {
                     this.alltableObj[chartsIndex].left = pos.x;
                     this.alltableObj[chartsIndex].top = pos.y;
-                    //initTdStyle(this_.tableNum);
+                    //initTdStyle(this_.tableObj.tableId);
                 });
             }
         },
@@ -128,12 +128,41 @@ var tableVueObj = Vue.extend({
                     left: left,
                     right: right
                 };
-                // // this.selectTd(undefined, window, this.tableNum);
+                // // this.selectTd(undefined, window, this.tableObj.tableId);
+                // let temp = window;
+                // let activeId = this.tableObj.tableId;
+                // if (temp !== window && !$(temp).is('.mergeTd')) {
+                //     //不能拆分
+                //     $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                //     $('.toolsContent [data-name=tdMerge]').addClass('disabled');
+                // } else {
+                //     let isHasMerge = false;
+                //     for (let i in this.tableObj.mergeCells) {
+                //         if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
+                //             isHasMerge = true;
+                //             break;
+                //         }
+                //     }
+                //     if (isHasMerge) {
+                //         $('.toolsContent [data-name=tdMerge]').addClass('active');
+                //     } else {
+                //         $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                //     }
+                //     $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
+                // }
             }
         },
         setSelectClass(i, j) {
             var inCenter = i >= this.poiCenter.top && i <= this.poiCenter.bottom && j >= this.poiCenter.left && j <= this.poiCenter.right;
+            let isHasMerge = false;
+            for (let cell in this.tableObj.mergeCells) {
+                if (cell.split(":")[0] === getCellTemp2(i, j)) {
+                    isHasMerge = true;
+                    break;
+                }
+            }
             return {
+                mergeTd: isHasMerge,
                 editTd: inCenter,
                 editTdtop: inCenter && i === this.poiCenter.top,
                 editTdbottom: inCenter && i === this.poiCenter.bottom,
@@ -144,7 +173,7 @@ var tableVueObj = Vue.extend({
         mouseup_temp() {
             this.isSelectDoms = false;
         },
-        selectTd(cellXf_, temp, activeId) {
+        selectTd(cellXf_) {
             var cellXfInfo = {
                 font: {},
                 alignment: {},
@@ -158,7 +187,6 @@ var tableVueObj = Vue.extend({
                 cellXfInfo.font.italic = false;
                 cellXfInfo.alignment.horizontal = 'general';
                 cellXfInfo.fill.startColor = 'while';
-                $('.toolsContent [data-name=tdMerge]').removeClass('active');
             } else {
                 var cell_xf = getCellXfCollection[cellXf_];
                 if (cell_xf.font) {
@@ -201,28 +229,6 @@ var tableVueObj = Vue.extend({
                     cellXfInfo.alignment.horizontal = 'general';
                 }
             }
-
-
-            if (temp !== window && !$(temp).is('.mergeTd')) {
-                //不能拆分
-                $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                $('.toolsContent [data-name=tdMerge]').addClass('disabled');
-            } else {
-                let isHasMerge = false;
-                for (let i in tdData[activeId].mergeCells) {
-                    if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
-                        isHasMerge = true;
-                        break;
-                    }
-                }
-                if (isHasMerge) {
-                    $('.toolsContent [data-name=tdMerge]').addClass('active');
-                } else {
-                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                }
-                $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
-            }
-
             this.tableObj.events_.emit("tdSelect", cellXfInfo);
         },
         selectTd_temp(hang, lie) {
@@ -234,7 +240,23 @@ var tableVueObj = Vue.extend({
             };
             var td = this.tableObj.tdList[hang - 1][lie - 1];
             if (td !== undefined) {
-                this.selectTd(td.xfIndex, td.dom, this.tableNum);
+                this.selectTd(td.xfIndex);
+                let isHasMerge = false;//选择的td是不是merge的td
+                for (let cell in this.tableObj.mergeCells) {
+                    if (cell.split(":")[0] === getCellTemp2(hang, lie)) {
+                        isHasMerge = true;
+                        break;
+                    }
+                }
+                if (isHasMerge) {
+                    $('.toolsContent [data-name=tdMerge]').addClass('active');
+                    $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
+                } else {
+                    //不能拆分
+                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                    $('.toolsContent [data-name=tdMerge]').addClass('disabled');
+                }
+                console.groupEnd();
             }
         },
     },
@@ -331,6 +353,7 @@ var tableVueObj = Vue.extend({
 export default function (tableId, dbSave, hang, lie) {
     this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
     this.tdList = [];
+    this.mergeCells = dbSave.mergeCells;
     //事件监听
     this.events_ = new events.EventEmitter();
     this.addListener = function (eventName, callBack) {
@@ -409,7 +432,7 @@ export default function (tableId, dbSave, hang, lie) {
             return newTd;
         }
         return this.tdList[hang][lie];
-    }
+    };
     this._vueDom = new tableVueObj({
         propsData: {
             tableObj: this,

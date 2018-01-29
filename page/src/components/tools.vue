@@ -215,7 +215,6 @@
             rewriteStyle(event) {
                 var self = this;
                 let thisDom = event.srcElement;
-                console.log(thisDom);
                 if ($(thisDom).is('.disabled')) {
                     return;
                 }
@@ -397,7 +396,7 @@
                                 $(this_).eq(0).attr('rowspan', bottom - top + 1);
                                 $(this_).eq(0).attr('colspan', right - left + 1);
                                 var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
-                                tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;
+                                // tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;//属性已经不存在this_.allTableDom[table_Num].mergeCells
                                 $('.toolsContent [data-name=' + actionType + ']').addClass('active');
                             } else {
                                 alert('样式服务器同步失败');
