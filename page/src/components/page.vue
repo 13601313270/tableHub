@@ -5,6 +5,7 @@
                    @fx="fx"
                    @insertChart="insertChart"
                    :cellXfInfo="cellXfInfo"
+                   :selectMergeState="selectMergeState"
                    :title="title"
                    :isMyTable="isMyTable"
                    :isOpenEdit="isOpenEdit"
@@ -289,6 +290,7 @@
                     this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
                         this_.cellXfInfo.font.bold = data.xf.font.bold;
                         this_.cellXfInfo = data.xf;
+                        this_.selectMergeState = data.selectMergeState;
                     });
                     this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
 
@@ -391,6 +393,7 @@
                 allTableTitle: [],
                 fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
                 allFileData: [],
+                selectMergeState: false,
                 cellXfInfo: {
                     font: {
                         bold: false,

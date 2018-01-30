@@ -47,7 +47,9 @@
                         </button>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="tdMerge" @click="rewriteStyle">
+                        <button type="button" class="btn btn-default"
+                                :class="{active:selectMergeState=='down',disabled:selectMergeState=='disable'}"
+                                data-name="tdMerge" @click="rewriteStyle">
                             &#xe60f;
                         </button>
                     </div>
@@ -170,7 +172,7 @@
     }
 
     export default {
-        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num'],
+        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num', 'selectMergeState'],
         methods: {
             stateChange() {
                 this.isOpenEdit_ = !this.isOpenEdit_;

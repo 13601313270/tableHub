@@ -128,28 +128,10 @@ var tableVueObj = Vue.extend({
                     left: left,
                     right: right
                 };
-                // // this.selectTd(undefined, window, this.tableObj.tableId);
-                // let temp = window;
-                // let activeId = this.tableObj.tableId;
-                // if (temp !== window && !$(temp).is('.mergeTd')) {
-                //     //不能拆分
-                //     $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                //     $('.toolsContent [data-name=tdMerge]').addClass('disabled');
-                // } else {
-                //     let isHasMerge = false;
-                //     for (let i in this.tableObj.mergeCells) {
-                //         if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
-                //             isHasMerge = true;
-                //             break;
-                //         }
-                //     }
-                //     if (isHasMerge) {
-                //         $('.toolsContent [data-name=tdMerge]').addClass('active');
-                //     } else {
-                //         $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                //     }
-                //     $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
-                // }
+                this.tableObj.events_.emit("tdSelect", {
+                    xf: this.selectTd(),
+                    selectMergeState: 'up',
+                });
             }
         },
         setSelectClass(i, j) {
@@ -240,9 +222,6 @@ var tableVueObj = Vue.extend({
             };
             var td = this.tableObj.tdList[hang - 1][lie - 1];
             if (td !== undefined) {
-                this.tableObj.events_.emit("tdSelect", {
-                    xf: this.selectTd(td.xfIndex)
-                });
                 let isHasMerge = false;//选择的td是不是merge的td
                 for (let cell in this.tableObj.mergeCells) {
                     if (cell.split(":")[0] === getCellTemp2(hang, lie)) {
@@ -251,12 +230,15 @@ var tableVueObj = Vue.extend({
                     }
                 }
                 if (isHasMerge) {
-                    $('.toolsContent [data-name=tdMerge]').addClass('active');
-                    $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
+                    this.tableObj.events_.emit("tdSelect", {
+                        xf: this.selectTd(td.xfIndex),
+                        selectMergeState: 'down',
+                    });
                 } else {
-                    //不能拆分
-                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                    $('.toolsContent [data-name=tdMerge]').addClass('disabled');
+                    this.tableObj.events_.emit("tdSelect", {
+                        xf: this.selectTd(td.xfIndex),
+                        selectMergeState: 'disable',
+                    });
                 }
             }
         },
