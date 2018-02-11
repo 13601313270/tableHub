@@ -129,6 +129,7 @@ var tableVueObj = Vue.extend({
                     right: right
                 };
                 this.tableObj.events_.emit("tdSelect", {
+                    pos: getCellTemp2(hang, lie),
                     xf: this.selectTd(),
                     selectMergeState: 'up',
                 });
@@ -175,20 +176,17 @@ var tableVueObj = Vue.extend({
                     if (cell_xf.font.color) {
                         cellXfInfo.font.color = '#' + cell_xf.font.color.slice(2);
                     }
-                    cellXfInfo.font.bold = (cell_xf.font.bold === 1);
+                    cellXfInfo.font.bold = (cell_xf.font.bold === 1 ? 1 : 0);
                     if (cell_xf.font.size) {
                         cellXfInfo.font.size = cell_xf.font.size;
                     }
                     if (cell_xf.font.underline === 'single') {
-                        cellXfInfo.font.underline = true;
+                        cellXfInfo.font.underline = cell_xf.font.underline;
                     } else {
-                        cellXfInfo.font.underline = false;
+                        cellXfInfo.font.underline = 'none';
                     }
-                    if (cell_xf.font.italic === 1) {
-                        cellXfInfo.font.italic = true;
-                    } else {
-                        cellXfInfo.font.italic = false;
-                    }
+                    cellXfInfo.font.italic = cell_xf.font.italic === 1 ? 1 : 0;
+                    cellXfInfo.font.size = cell_xf.font.size;
                 }
                 if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
                     cellXfInfo.fill.startColor = '#' + cell_xf.fill.startColor.slice(2);
@@ -231,11 +229,13 @@ var tableVueObj = Vue.extend({
                 }
                 if (isHasMerge) {
                     this.tableObj.events_.emit("tdSelect", {
+                        pos: getCellTemp2(hang, lie),
                         xf: this.selectTd(td.xfIndex),
                         selectMergeState: 'down',
                     });
                 } else {
                     this.tableObj.events_.emit("tdSelect", {
+                        pos: getCellTemp2(hang, lie),
                         xf: this.selectTd(td.xfIndex),
                         selectMergeState: 'disable',
                     });

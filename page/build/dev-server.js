@@ -81,6 +81,7 @@ var server
 var portfinder = require('portfinder')
 portfinder.basePort = port
 
+var hostsUri = 'http://dev.tablehub.cn:8080/#/table/37.html';
 console.log('> Starting dev server...')
 devMiddleware.waitUntilValid(() => {
   portfinder.getPort((err, port) => {
@@ -89,10 +90,12 @@ devMiddleware.waitUntilValid(() => {
     }
     process.env.PORT = port
     var uri = 'http://localhost:' + port
+    console.log('本地调试tablehub项目中\n')
     console.log('> Listening at ' + uri + '\n')
     // when env is testing, don't need open it
     if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
-      opn(uri)
+      // opn(uri)
+      opn(hostsUri)
     }
     server = app.listen(port)
     _resolve()

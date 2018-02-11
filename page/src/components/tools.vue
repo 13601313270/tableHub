@@ -18,38 +18,38 @@
                      style="width: 812px;">
                     <div class="btn-group">
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.bold}" data-name="bold"
-                                @click="rewriteStyle">&#xe63f;
+                                @click="cellXfInfo.font.bold = (!cellXfInfo.font.bold ? 1 : 0),setStyle()">&#xe63f;
                         </button>
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.italic}" data-name="italic"
-                                @click="rewriteStyle">&#xe60d;
+                                @click="cellXfInfo.font.italic = (!cellXfInfo.font.italic ? 1 : 0),setStyle()">&#xe60d;
                         </button>
-                        <button class="btn btn-default" :class="{active:this.cellXfInfo.font.underline}"
-                                data-name="underline" @click="rewriteStyle">&#xe614;
+                        <button class="btn btn-default" :class="{active:this.cellXfInfo.font.underline=='single'}"
+                                data-name="underline" @click="cellXfInfo.font.underline==('single'?'none':'single'),setStyle()">&#xe614;
                         </button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'left'}"
                                 data-name="horizontal_left"
-                                @click.self="rewriteStyle">
+                                @click="cellXfInfo.alignment.horizontal = 'left',setStyle()">
                             <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
                         </button>
                         <button type="button" class="btn btn-default"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'center'}"
                                 data-name="horizontal_center"
-                                @click.self="rewriteStyle">
+                                @click="cellXfInfo.alignment.horizontal = 'center',setStyle()">
                             <span class="glyphicon glyphicon-align-center" aria-hidden="true"></span>
                         </button>
                         <button type="button" class="btn btn-default" data-name="horizontal_right"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'right'}"
-                                @click.self="rewriteStyle">
+                                @click="cellXfInfo.alignment.horizontal = 'right',setStyle()">
                             <span class="glyphicon glyphicon-align-right" aria-hidden="true"></span>
                         </button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default"
                                 :class="{active:selectMergeState=='down',disabled:selectMergeState=='disable'}"
-                                data-name="tdMerge" @click="rewriteStyle">
+                                data-name="tdMerge" @click="tdMerge()">
                             &#xe60f;
                         </button>
                     </div>
@@ -57,7 +57,8 @@
                         <div class="input-group" style="width: 110px;">
                             <div class="input-group-addon">&#xe715;</div>
                             <input type="number"
-                                   @change="rewriteStyle" v-model="this.cellXfInfo.font.size"
+                                   @change="size"
+                                   v-model="cellXfInfo.font.size"
                                    class="form-control" data-name="size"
                                    placeholder="字号">
                         </div>
@@ -172,7 +173,7 @@
     }
 
     export default {
-        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num', 'selectMergeState'],
+        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num', 'selectMergeState','selectPos'],
         methods: {
             stateChange() {
                 this.isOpenEdit_ = !this.isOpenEdit_;
@@ -208,207 +209,141 @@
                 });
             },
             fx() {
-                var this_ = $('.editTd');
-                if (this_.length !== 1) {
-                    return;
-                }
                 this.$emit('fx');
             },
-            rewriteStyle(event) {
+            setStyle(){
+                var cell_xf = this.cellXfInfo;
+                let isExist = false;//是否已经存在一个这样样式的id
+                let isExistId = -1;
+                for (let i = 0; i < getCellXfCollection.length; i++) {
+                    if (JSON.stringify(getCellXfCollection[i]) === JSON.stringify(cell_xf)) {
+                        isExistId = i;
+                        isExist = true;
+                        break;
+                    }
+                }
+                if (isExist) {
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            'function': 'updateTdXf',
+                            fileId: this.fileId,
+                            tableNum: this.tableNum,
+                            pos: this.selectPos,
+                            xfIndex: isExistId
+                        }
+                    }).then((data) => {
+                        if (data !== '-1') {
+                            this.$emit('setCellXf', isExistId);
+                        } else {
+                            alert('样式服务器同步失败');
+                        }
+                    });
+                }
+                else {
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            'function': 'updateTdXf',
+                            fileId: this.fileId,
+                            tableNum: this.tableNum,
+                            pos: this.selectPos,
+                            value: cell_xf,
+                        }
+                    }).then((data) => {
+                        let cssstr = createCss(data, cell_xf);
+                        this.$emit('setCellXf', data);
+                        $('style[td_css_list]').append(cssstr);
+                        getCellXfCollection[data] = cell_xf;
+                    });
+                }
+            },
+            size(value) {
+                console.log(value.target.value);
+                this.cellXfInfo.font.size = parseInt(value.target.value);
+                this.setStyle();
+            },
+            tdMerge() {
                 var self = this;
-                let thisDom = event.srcElement;
-                if ($(thisDom).is('.disabled')) {
-                    return;
-                }
-                if ($(thisDom).is('[data-name=fill]')) {
-                    return;
-                }
-                if ($(thisDom).is('[data-name=fx]')) {
-                    return;
-                }
-                let actionType = $(thisDom).data('name');
-                console.log(actionType);
-                let isActive = $(thisDom).is('.active');
-                let value = $(thisDom).val();
-//        console.log(this);
-                let this_ = $('.editTd');
-                if (this_.length === 0) {
-                    return;
-                }
-                let cell_xf = $(this_).attr('cell_xf');
-                console.log(cell_xf);
-                let pos = getCellTemp2($(this_).attr('hang'), $(this_).attr('lie'));
+                if (this.selectMergeState === 'down') {
+                    console.log(this.cellXfInfo);
+                    let this_ = $('.editTd');
+                    if (this_.length === 0) {
+                        return;
+                    }
+                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
+                    let lie = $(this_).attr('lie');
+                    let colspan = $(this_).attr('colspan');
 
-                function run() {
-                    let isExist = false;//是否已经存在一个这样样式的id
-                    let isExistId = -1;
-                    for (let i = 0; i < getCellXfCollection.length; i++) {
-                        if (JSON.stringify(getCellXfCollection[i]) === JSON.stringify(cell_xf)) {
-                            isExistId = i;
-                            isExist = true;
-                            break;
+                    let hang = $(this_).attr('hang');
+                    let rowspan = $(this_).attr('rowspan');
+
+                    ajax({
+                        type: 'POST',
+                        data: {
+                            'function': 'mergeCancel',
+                            fileId: self.fileId,
+                            tableNum: self.tableNum,
+                            pos: self.selectPos
                         }
-                    }
-                    if (isExist) {
-                        if (parseInt($(this_).attr('cell_xf')) !== isExistId) {
-                            ajax({
-                                url: 'http://www.tablehub.cn/action/table.html',
-                                type: 'POST',
-                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                                data: {
-                                    'function': 'updateTdXf',
-                                    fileId: self.fileId,
-                                    tableNum: self.tableNum,
-                                    pos: pos,
-                                    xfIndex: isExistId,
+                    }).then((data) => {
+                        if (data !== '-1') {
+                            $(this_).attr('colspan', '');
+                            $(this_).attr('rowspan', '');
+                            $(this_).removeClass('mergeTd');
+
+                            let tableDom = $(this_).parents('tbody');
+                            for (let i = hang; i < hang + rowspan; i++) {
+                                let hangTr = tableDom.find('tr[hang=' + i + ']');
+                                for (let j = lie; j < lie + colspan; j++) {
+                                    hangTr.find('[lie=' + j + ']').show();
                                 }
-                            }).then((data) => {
-                                if (data !== '-1') {
-                                    $(this_).attr('cell_xf', data);
-                                } else {
-                                    alert('样式服务器同步失败');
-                                }
-                            });
-                        }
-                    }
-                    else {
-                        ajax({
-                            url: 'http://www.tablehub.cn/action/table.html',
-                            type: 'POST',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            data: {
-                                'function': 'updateTdXf',
-                                fileId: self.fileId,
-                                tableNum: self.tableNum,
-                                pos: pos,
-                                value: cell_xf,
                             }
-                        }).then((data) => {
-                            let cssstr = createCss(data, cell_xf);
-                            $('style[td_css_list]').append(cssstr);
-                            $(this_).attr('cell_xf', data);
-                            getCellXfCollection[data] = cell_xf;
-                        });
-                    }
-                }
-
-                if (cell_xf !== undefined) {
-                    cell_xf = JSON.parse(JSON.stringify(getCellXfCollection[cell_xf]));//clone成一个新对象
+                        } else {
+                            alert('样式服务器同步失败');
+                        }
+                    });
                 } else {
-                    cell_xf = {
-                        font: {}
-                    };
+                    let top = $('.editTdtop').attr('hang');
+                    let bottom = $('.editTdbottom').attr('hang');
+                    let left = $('.editTdleft').attr('lie');
+                    let right = $('.editTdright').attr('lie');
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            'function': 'mergeAdd',
+                            fileId: self.fileId,
+                            tableNum: self.tableNum,
+                            top: top,
+                            bottom: bottom,
+                            left: left,
+                            right: right,
+                        }
+                    }).then((data) => {
+                        if (data !== '-1') {
+                            // 全部都隐藏
+                            $(this_).css('display', 'none')
+                                .removeClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
+                            // 只有第一个显示
+                            $(this_).eq(0).show()
+                                .addClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
+                            $(this_).eq(0).attr('rowspan', bottom - top + 1);
+                            $(this_).eq(0).attr('colspan', right - left + 1);
+                            var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
+                            // tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;//属性已经不存在this_.allTableDom[table_Num].mergeCells
+                            $('.toolsContent [data-name=tdMerge]').addClass('active');
+                        } else {
+                            alert('样式服务器同步失败');
+                        }
+                    });
                 }
-                if (cell_xf.alignment === undefined) {
-                    cell_xf.alignment = {};
-                }
-                if (['bold', 'italic'].indexOf(actionType) > -1) {
-                    if (isActive) {
-                        $('.toolsContent [data-name=' + actionType + ']').removeClass('active');
-                    } else {
-                        $('.toolsContent [data-name=' + actionType + ']').addClass('active');
-                    }
-                    cell_xf.font[actionType] = (!isActive) ? 1 : 0;
-                }
-                else if (actionType === 'underline') {
-                    if (isActive) {
-                        $('.toolsContent [data-name=' + actionType + ']').removeClass('active');
-                        cell_xf.font[actionType] = 'none';
-                    } else {
-                        $('.toolsContent [data-name=' + actionType + ']').addClass('active');
-                        cell_xf.font[actionType] = 'single';
-                    }
-                }
-                else if (['horizontal_left', 'horizontal_center', 'horizontal_right'].indexOf(actionType) > -1) {
-                    $('.toolsContent [data-name=horizontal_left]').removeClass('active');
-                    $('.toolsContent [data-name=horizontal_center]').removeClass('active');
-                    $('.toolsContent [data-name=horizontal_right]').removeClass('active');
-                    $('.toolsContent [data-name=' + actionType + ']').addClass('active');
-                    if (actionType === 'horizontal_left') {
-                        cell_xf.alignment.horizontal = 'left';
-                    } else if (actionType === 'horizontal_center') {
-                        cell_xf.alignment.horizontal = 'center';
-                    } else if (actionType === 'horizontal_right') {
-                        cell_xf.alignment.horizontal = 'right';
-                    }
-                }
-                else if (actionType === 'size') {
-                    cell_xf.font.size = parseInt(value);
-                }
-                else if (actionType === 'tdMerge') {
-                    if (isActive) {
-                        $('.toolsContent [data-name=' + actionType + ']').removeClass('active');
-                        let lie = $(this_).attr('lie');
-                        let colspan = $(this_).attr('colspan');
-
-                        let hang = $(this_).attr('hang');
-                        let rowspan = $(this_).attr('rowspan');
-
-                        ajax({
-                            type: 'POST',
-                            data: {
-                                'function': 'mergeCancel',
-                                fileId: self.fileId,
-                                tableNum: self.tableNum,
-                                pos: pos
-                            }
-                        }).then((data) => {
-                            if (data !== '-1') {
-                                $(this_).attr('colspan', '');
-                                $(this_).attr('rowspan', '');
-                                $(this_).removeClass('mergeTd');
-
-                                let tableDom = $(this_).parents('tbody');
-                                for (let i = hang; i < hang + rowspan; i++) {
-                                    let hangTr = tableDom.find('tr[hang=' + i + ']');
-                                    for (let j = lie; j < lie + colspan; j++) {
-                                        hangTr.find('[lie=' + j + ']').show();
-                                    }
-                                }
-                            } else {
-                                alert('样式服务器同步失败');
-                            }
-                        });
-                    } else {
-                        let top = $('.editTdtop').attr('hang');
-                        let bottom = $('.editTdbottom').attr('hang');
-                        let left = $('.editTdleft').attr('lie');
-                        let right = $('.editTdright').attr('lie');
-                        ajax({
-                            url: 'http://www.tablehub.cn/action/table.html',
-                            type: 'POST',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            data: {
-                                'function': 'mergeAdd',
-                                fileId: self.fileId,
-                                tableNum: self.tableNum,
-                                top: top,
-                                bottom: bottom,
-                                left: left,
-                                right: right,
-                            }
-                        }).then((data) => {
-                            if (data !== '-1') {
-                                //全部都隐藏
-                                $(this_).css('display', 'none')
-                                    .removeClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
-                                //只有第一个显示
-                                $(this_).eq(0).show()
-                                    .addClass('editTdtop editTdbottom editTdleft editTdright editTd mergeTd');
-                                $(this_).eq(0).attr('rowspan', bottom - top + 1);
-                                $(this_).eq(0).attr('colspan', right - left + 1);
-                                var mergeStr = getCellTemp2(top, left) + ":" + getCellTemp2(bottom, right);
-                                // tdData[self.tableNum].mergeCells[mergeStr] = mergeStr;//属性已经不存在this_.allTableDom[table_Num].mergeCells
-                                $('.toolsContent [data-name=' + actionType + ']').addClass('active');
-                            } else {
-                                alert('样式服务器同步失败');
-                            }
-                        });
-                    }
-                    return;
-                }
-                run();
-                console.log(cell_xf);
+                this.setStyle();
             },
         },
         components: {
@@ -416,8 +351,6 @@
         },
         mounted() {
             var self = this;
-//            $('#tools .toolsContent [data-name]button').click(this.rewriteStyle);
-//            $('#tools .toolsContent [data-name=size]').change(this.rewriteStyle);
             $("[data-name=fill],[data-name=color]").spectrum({
                 showPalette: true,
                 hide: function (color) {

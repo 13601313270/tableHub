@@ -4,8 +4,10 @@
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
                    @insertChart="insertChart"
+                   @setCellXf="setCellXf"
                    :cellXfInfo="cellXfInfo"
                    :selectMergeState="selectMergeState"
+                   :selectPos="selectPos"
                    :title="title"
                    :isMyTable="isMyTable"
                    :isOpenEdit="isOpenEdit"
@@ -35,13 +37,13 @@
 </template>
 
 <script>
-    import bottom from '@/components/bottom.vue'
-    import tools from '@/components/tools.vue'
-    import dataFloat from '@/components/dataFloat.vue'
-    import wrapper from '@/components/wrapper.vue'
-    import pageFloatPanel from '@/components/pageFloatPanel.vue'
-    import ajax from '@/tools/ajax.js'
-    import echarts from 'echarts'
+    import bottom from '@/components/bottom.vue';
+    import tools from '@/components/tools.vue';
+    import dataFloat from '@/components/dataFloat.vue';
+    import wrapper from '@/components/wrapper.vue';
+    import pageFloatPanel from '@/components/pageFloatPanel.vue';
+    import ajax from '@/tools/ajax.js';
+    import echarts from 'echarts';
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import tableClass from '@/tools/table';
 
@@ -105,6 +107,7 @@
             fx() {
                 var this_ = $('.editTd');
                 if (this_.length !== 1) {
+                    console.log('asdfds');
                     return;
                 }
                 var selectTd = this_[0];
@@ -288,9 +291,9 @@
                     lie = Math.max(lie, 6);//至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
                     this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
-                        this_.cellXfInfo.font.bold = data.xf.font.bold;
                         this_.cellXfInfo = data.xf;
                         this_.selectMergeState = data.selectMergeState;
+                        this_.selectPos = data.pos;
                     });
                     this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
 
@@ -341,6 +344,10 @@
                         }
                     }
                 }
+            },
+            setCellXf(id) {
+                this.allTableDom[this.tableNum].findChild(this.selectPos).xfIndex = id;
+                this.allTableDom[this.tableNum].findChild(this.selectPos).render();
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
@@ -393,6 +400,7 @@
                 allTableTitle: [],
                 fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
                 allFileData: [],
+                selectPos: '',
                 selectMergeState: false,
                 cellXfInfo: {
                     font: {
