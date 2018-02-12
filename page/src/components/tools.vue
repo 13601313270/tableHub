@@ -78,7 +78,12 @@
                         </button>
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-default" data-name="fx" @click="this.fx">&#xe646;</button>
+                        <button type="button"
+                                class="btn btn-default"
+                                data-name="fx"
+                                @click="this.fx"
+                                :class="{disabled:selectPos==''}"
+                        >&#xe646;</button>
                     </div>
                     <div class="btn-group" style="display: none">
                         <div class="input-group disabled" style="width: 150px;">

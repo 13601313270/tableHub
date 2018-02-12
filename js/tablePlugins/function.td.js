@@ -507,7 +507,7 @@ function tdList(begin, end) {
             }
         }
         return returnList;
-    }
+    };
 }
 
 tdList.prototype = new obj('tdList');

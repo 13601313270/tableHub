@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div @click="selectPos=''">
         <div id="tablePanel" :class="{edit:isOpenEdit}">
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
