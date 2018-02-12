@@ -47,7 +47,7 @@
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import tableClass from '@/tools/table';
 
-    function tableReady() {
+    function tableReady () {
     }
 
     tableReady.prototype = new obj();
@@ -62,7 +62,7 @@
     //    b.value = 111;// = 100;
     //    console.log("====3======");
 
-    function createCss(i, item) {
+    function createCss (i, item) {
         var strItem = "[cell_xf=\"" + i + "\"]{\n";
         if (item.font) {
             if (item.font.color) {
@@ -220,7 +220,7 @@
                 //单元格数据
                 this.allFileData = dataList;
 
-                function initMerge(table_Num, mergeData) {
+                function initMerge (table_Num, mergeData) {
                     for (let i in mergeData) {
                         let beginAndEnd = i.split(':');
                         let begin = getCellTemp(beginAndEnd[0]);
@@ -304,7 +304,7 @@
                         this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
                     }
 
-                    function tempAddDbClickToFloat(dom, chartsIndex) {
+                    function tempAddDbClickToFloat (dom, chartsIndex) {
                         dom.addEventListener('dblclick', function (event) {
                             $('#dataFloat .head').html('图表');
                             let allChartsName = [];
@@ -314,7 +314,7 @@
                             $('#dataFloat .head').attr('action_type', 'CHARTS');
                             $('#dataFloat .head').attr('tableId', table_Num);
                             $('#dataFloat .head').attr('chartsIndex', chartsIndex);
-                            this_.$refs.float.initFloatType2(table_Num, this_.allTableDom[table_Num].alltableObj[chartsIndex], $('#dataFloat .content'));
+                            this_.$refs.float.initFloatType2(table_Num, this_.allTableDom[table_Num].alltableObj[chartsIndex]);
                             this_.$refs.float.show();
                             console.log(event);
                         });
@@ -497,7 +497,7 @@
                     $('.floatSingleValueWrite .input input[pos]').each(function () {
                         var inputDom = this;
 
-                        function afterUpdate() {
+                        function afterUpdate () {
                             this_.writeTd($(inputDom).attr('tableid'),
                                 $(inputDom).attr('pos'),
                                 $(inputDom).val(),
@@ -544,7 +544,7 @@
                 var tempValue = this_.allTableDom[activeId].findChild(selectPos).value_;
                 if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
                     //计算宽度
-                    function getTrueWidth(str, xf) {
+                    function getTrueWidth (str, xf) {
                         var span = $('<span></span>');
                         span.attr('cell_xf', xf);
                         span.html(str);
@@ -587,7 +587,7 @@
                     let tableId = $(inputDom).attr('tableid');
                     let posId = $(inputDom).attr('pos');
 
-                    function turnNewTD() {
+                    function turnNewTD () {
                         this_.changeTd({
                             tableNum: tableId,
                             pos: posId,

@@ -4,7 +4,7 @@
             <div class="head" ref="head"></div>
             <div class="content"></div>
             <div class="contentText" style="border-top:solid 1px grey">
-                <textarea style="width: 100%;"></textarea>
+                <textarea style="width: 100%;" @keyup="contentTextChange"></textarea>
             </div>
             <div class="action">
                 <input type="button" class="btn save" value="确定"/>
@@ -133,7 +133,7 @@
         insertDom.data('select', select);
         insertDom.html('');
         insertDom.removeClass('dataBaseItemSingle dataBaseItemNoParam dataBaseItemChild');
-        //调用普通的系统函数
+        // 调用普通的系统函数
         if (typeof window[type] === 'function' && window[type].config === undefined) {
             type = '=';
         }
@@ -219,7 +219,7 @@
                                         'false': '否'
                                     };
                                 }
-                                //如果配置中这个类型的dataType是个对象,则进行递归
+                                // 如果配置中这个类型的dataType是个对象,则进行递归
                                 _initFloatType(tableid, evalObj[i][j], dom.find('>div'), config[i][0].select);
                                 insertDom.append(dom);
                             }
@@ -236,7 +236,7 @@
                                 'false': '否'
                             };
                         }
-                        //如果配置中这个类型的dataType是个对象,则进行递归
+                        // 如果配置中这个类型的dataType是个对象,则进行递归
                         _initFloatType(tableid, evalObj[i], dom.find('>div'), config[i].select);
                         insertDom.append(dom);
                     }
@@ -298,6 +298,16 @@
 
     export default {
         methods: {
+            contentTextChange(value) {
+                var tempValue = value.target.value;
+                if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
+                    let temp = tempValue.match(/=(.+)$/);
+                    let evalObj = this.getEvalObj(this.tableNum, temp[1], false);
+                    _initFloatType(this.tableNum, evalObj, $('#dataFloat .content'));
+                } else {
+                    _initFloatType(this.tableNum, tempValue, $('#dataFloat .content'));
+                }
+            },
             updateTextareaText (tableId) {
                 let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
                 if (typeof evalObj === 'object') {
@@ -307,19 +317,10 @@
                     $('#dataFloat .contentText textarea').val(evalObj);
                 }
             },
-            initFloatType2(tableNum, tempValue, insertDom, select) {
+            initFloatType2(tableNum, tempValue) {
                 var this_ = this;
                 _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
-                $('#dataFloat .contentText textarea').keyup(function () {
-                    tempValue = $(this).val();
-                    if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
-                        let temp = tempValue.match(/=(.+)$/);
-                        let evalObj = this_.getEvalObj(tableNum, temp[1], false);
-                        _initFloatType(tableNum, evalObj, $('#dataFloat .content'));
-                    } else {
-                        _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
-                    }
-                });
+
                 $('#dataFloat>.content').on('keyup', 'input', function (e) {
                     this_.updateTextareaText(tableNum);
                 });
@@ -347,7 +348,7 @@
                         xfIndex: 0,
                     };
                 }
-                this.initFloatType2(activeId, tempValue, $('#dataFloat .content'));
+                this.initFloatType2(activeId, tempValue);
                 $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
                 $('#dataFloat').removeClass('floatSingleValue');
             },
