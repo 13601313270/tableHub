@@ -750,7 +750,7 @@
         position: absolute;
         left: 0;
         width: 80px;
-        top: 37px;
+        top: 39px;
         height: calc(~"100% - 39px");
         overflow: hidden;
     }
@@ -762,6 +762,17 @@
 
         .tableRow {
             display: block;
+            .table > tbody > tr > .idNum {
+                position: relative;
+                > div {
+                    cursor: ns-resize;
+                    position: absolute;
+                    left: 0;
+                    bottom: 0;
+                    height: 5px;
+                    width: 100%;
+                }
+            }
         }
 
         .tableThead {

@@ -17,7 +17,7 @@
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import absoluteMove from '@/components/widthMove.vue';
 
-    function getStrByEvalObj(tableNum, beRunObj) {
+    function getStrByEvalObj (tableNum, beRunObj) {
         var returnStr = '';
         if (beRunObj instanceof td) {
             if (beRunObj.tableId === tableNum) {
@@ -62,7 +62,7 @@
                 }
             }
             return beRunObj.className + '(' + saveParams.join(',') + ')';
-        } else if (typeof beRunObj === 'object' && beRunObj.name) {//此对象是编辑器dataFloat的getSaveObj方法产生的临时对象
+        } else if (typeof beRunObj === 'object' && beRunObj.name) { // 此对象是编辑器dataFloat的getSaveObj方法产生的临时对象
             if (beRunObj.name === '=') {
                 return beRunObj.params[0];
             } else if (beRunObj.name === 'td') {
@@ -115,7 +115,7 @@
         }
     }
 
-    function _initFloatType(tableid, evalObj, insertDom, select) {
+    function _initFloatType (tableid, evalObj, insertDom, select) {
         if (evalObj instanceof __runObj__) {
             var type = evalObj.funcName;
             if (type === '') {
@@ -245,17 +245,7 @@
         })();
     }
 
-    function updateTextareaText(tableId) {
-        let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
-        if (typeof evalObj === 'object') {
-            let saveStr = getStrByEvalObj(tdData[tableId].tableTitle, evalObj);
-            $('#dataFloat .contentText textarea').val('=' + saveStr);
-        } else {
-            $('#dataFloat .contentText textarea').val(evalObj);
-        }
-    }
-
-    function getSaveObj(dom) {
+    function getSaveObj (dom) {
         if ($(dom).is('.dataBaseItemSingle')) {
             let temp = $(dom).find('[name=value]').val();
             if (temp === null) {
@@ -308,6 +298,15 @@
 
     export default {
         methods: {
+            updateTextareaText (tableId) {
+                let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
+                if (typeof evalObj === 'object') {
+                    let saveStr = getStrByEvalObj(tdData[tableId].tableTitle, evalObj);
+                    $('#dataFloat .contentText textarea').val('=' + saveStr);
+                } else {
+                    $('#dataFloat .contentText textarea').val(evalObj);
+                }
+            },
             initFloatType2(tableNum, tempValue, insertDom, select) {
                 var this_ = this;
                 _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
@@ -322,17 +321,17 @@
                     }
                 });
                 $('#dataFloat>.content').on('keyup', 'input', function (e) {
-                    updateTextareaText(tableNum);
+                    this_.updateTextareaText(tableNum);
                 });
 
                 $('#dataFloat>.content').on('change', '[name=value]', function () {
-                    updateTextareaText(tableNum);
+                    this_.updateTextareaText(tableNum);
                 });
-                updateTextareaText(tableNum);
+                this.updateTextareaText(tableNum);
             },
             initFloatDom(td, activeId, tempValue) {
                 setTdSelectState.call(td);
-                //看看当前单元格是否有合并
+                // 看看当前单元格是否有合并
                 $('.table tbody .idNum').removeClass('idNumOn');
                 $('.table tbody .idNum').eq(parseInt(td.hang) - 1).addClass('idNumOn');
                 $('.table thead .lieNum').removeClass('lieNumOn');
@@ -418,7 +417,7 @@
                 var dom = $(this).parents('.dataBaseItem').eq(0);
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');
                 _initFloatType(self.tableNum, evalObj, dom, select);
-                updateTextareaText(self.tableNum);
+                self.updateTextareaText(self.tableNum);
             });
             $('#dataFloat .action .save').click(function () {
                 var contentDivs = $(this).parents('#dataFloat').find('>.content');
@@ -509,7 +508,7 @@
                     '</div>');
                 _initFloatType(self.tableNum, '', dom.find('>div'));
                 $('.addMore').before(dom);
-                updateTextareaText(self.tableNum);
+                self.updateTextareaText(self.tableNum);
             });
         }
     }

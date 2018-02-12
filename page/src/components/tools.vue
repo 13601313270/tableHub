@@ -18,38 +18,38 @@
                      style="width: 812px;">
                     <div class="btn-group">
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.bold}" data-name="bold"
-                                @click="cellXfInfo.font.bold = (!cellXfInfo.font.bold ? 1 : 0),setStyle()">&#xe63f;
+                                @click.stop="cellXfInfo.font.bold = (!cellXfInfo.font.bold ? 1 : 0),setStyle()">&#xe63f;
                         </button>
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.italic}" data-name="italic"
-                                @click="cellXfInfo.font.italic = (!cellXfInfo.font.italic ? 1 : 0),setStyle()">&#xe60d;
+                                @click.stop="cellXfInfo.font.italic = (!cellXfInfo.font.italic ? 1 : 0),setStyle()">&#xe60d;
                         </button>
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.underline=='single'}"
-                                data-name="underline" @click="cellXfInfo.font.underline==('single'?'none':'single'),setStyle()">&#xe614;
+                                data-name="underline" @click.stop="cellXfInfo.font.underline==('single'?'none':'single'),setStyle()">&#xe614;
                         </button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'left'}"
                                 data-name="horizontal_left"
-                                @click="cellXfInfo.alignment.horizontal = 'left',setStyle()">
+                                @click.stop="cellXfInfo.alignment.horizontal = 'left',setStyle()">
                             <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
                         </button>
                         <button type="button" class="btn btn-default"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'center'}"
                                 data-name="horizontal_center"
-                                @click="cellXfInfo.alignment.horizontal = 'center',setStyle()">
+                                @click.stop="cellXfInfo.alignment.horizontal = 'center',setStyle()">
                             <span class="glyphicon glyphicon-align-center" aria-hidden="true"></span>
                         </button>
                         <button type="button" class="btn btn-default" data-name="horizontal_right"
                                 :class="{active:this.cellXfInfo.alignment.horizontal === 'right'}"
-                                @click="cellXfInfo.alignment.horizontal = 'right',setStyle()">
+                                @click.stop="cellXfInfo.alignment.horizontal = 'right',setStyle()">
                             <span class="glyphicon glyphicon-align-right" aria-hidden="true"></span>
                         </button>
                     </div>
                     <div class="btn-group">
                         <button type="button" class="btn btn-default"
                                 :class="{active:selectMergeState=='down',disabled:selectMergeState=='disable'}"
-                                data-name="tdMerge" @click="tdMerge()">
+                                data-name="tdMerge" @click.stop="tdMerge()">
                             &#xe60f;
                         </button>
                     </div>
@@ -241,7 +241,7 @@
                         }
                     }).then((data) => {
                         if (data !== '-1') {
-                            this.$emit('setCellXf', isExistId);
+                            this.$emit('setCellXf', data);
                         } else {
                             alert('样式服务器同步失败');
                         }
@@ -449,9 +449,9 @@
             return {
                 tabState: 1,
                 isOpenEdit_: this.isOpenEdit
-            }
+            };
         }
-    }
+    };
 </script>
 
 <style scoped lang="less">
