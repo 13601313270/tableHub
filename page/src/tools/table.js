@@ -267,12 +267,6 @@ var tableVueObj = Vue.extend({
         </table>
     </div>
     <div class="tableBody" @scroll="scroll($event)">
-        <div class="floatSingleValueWrite">
-            <div class="input">
-                <input/>
-            </div>
-            <div class="span"></div>
-        </div>
         <div class="allCharts" ref="allCharts">
             <absolute-move
                 :key="key"

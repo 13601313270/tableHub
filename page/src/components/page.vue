@@ -23,6 +23,12 @@
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
                 <div id="myTabContent" ref="allPage" class="tab-content"></div>
+                <div class="floatSingleValueWrite" v-show="userValueWriteIsShow">
+                    <div class="input">
+                        <input @keydown="userValueWrite"/>
+                    </div>
+                    <div class="span"></div>
+                </div>
             </div>
         </div>
         <bottom></bottom>
@@ -374,6 +380,64 @@
                 if (getCellTemp(pos)[0] > this.allTableDom[tableNum].hang) {
                     this.allTableDom[tableNum].addHang();
                 }
+            },
+            userValueWrite(value) {
+                var key = value.key;
+                var this_ = this;
+                if (['Enter', 'ArrowRight'].indexOf(key) > -1) {
+                    let inputDom = this;
+                    let tableId = this.tableNum;
+                    let posId = this.selectPos;
+
+                    function turnNewTD () {
+                        this_.changeTd({
+                            tableNum: tableId,
+                            pos: posId,
+                            value: value.target.value,
+                            xfIndex: this_.allTableDom[this_.tableNum].findChild(this_.selectPos).xfIndex
+                        });
+//                        $(inputDom).removeAttr('tableid');
+//                        $(inputDom).removeAttr('pos');
+//                        $(inputDom).removeAttr('cell_xf');
+//                        $(inputDom).val('');
+                        this_.userValueWriteIsShow = false;
+//                        $(inputDom).parent().hide();
+//                        let temp = getCellTemp(posId);
+//                        if (key === 'Enter') {
+//
+//                        } else {
+//                            //键盘向右箭头
+//                            if (key === 'ArrowRight') {
+//                                temp[1]++;
+//                            }
+//                            let rightDom = this_.allTableDom[getCellTemp2(temp[0], temp[1])].findChild(getCellTemp2(temp[0], temp[1])).dom;
+//                            $(rightDom).trigger('dblclick');
+//                        }
+                    }
+
+                    if (this.allTableDom[this.tableNum].findChild(this.selectPos).get().toString() !== value.target.value) {
+                        ajax({
+                            url: 'http://www.tablehub.cn/action/table.html',
+                            type: 'POST',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            data: {
+                                function: 'updateTdValue',
+                                fileId: this.fileId,
+                                tableNum: tableId,
+                                pos: posId,
+                                value: value.target.value
+                            }
+                        }).then((data) => {
+                            if (data === 1) {
+                                turnNewTD();
+                            } else {
+                                alert('样式服务器同步失败');
+                            }
+                        });
+                    } else {
+                        turnNewTD();
+                    }
+                }
             }
         },
         watch: {
@@ -396,6 +460,7 @@
                 isOpenEdit: false,
                 tableNum: 0,//表序列
                 allTableTitle: [],
+                userValueWriteIsShow: false,
                 fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
                 allFileData: [],
                 selectPos: '',
@@ -495,17 +560,20 @@
             $('body').click(function () {
                 if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
                     $('.floatSingleValueWrite .input input[pos]').each(function () {
+                        console.log(1);
                         var inputDom = this;
 
                         function afterUpdate () {
-                            this_.writeTd($(inputDom).attr('tableid'),
+                            this_.writeTd(
+                                $(inputDom).attr('tableid'),
                                 $(inputDom).attr('pos'),
                                 $(inputDom).val(),
-                                $(inputDom).attr('cell_xf'));
+                                $(inputDom).attr('cell_xf')
+                            );
                             $(inputDom).removeAttr('tableid');
                             $(inputDom).removeAttr('pos');
                             $(inputDom).removeAttr('cell_xf');
-                            $(inputDom).parent().hide();
+                            this_.userValueWriteIsShow = false;
                             $(inputDom).val('');
                         }
 
@@ -538,31 +606,31 @@
 
             $('body').on('dblclick', '.edit #myTabContent td', function () {
                 setTdSelectState.call(this);
-                //看看当前单元格是否有合并
+                // 看看当前单元格是否有合并
                 var activeId = this_.tableNum;
                 var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
                 var tempValue = this_.allTableDom[activeId].findChild(selectPos).value_;
                 if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
-                    //计算宽度
+                    // 计算宽度
                     function getTrueWidth (str, xf) {
                         var span = $('<span></span>');
                         span.attr('cell_xf', xf);
                         span.html(str);
-                        $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
+                        $('.floatSingleValueWrite .span').html('').append(span);
                         return span.width() + 8;
                     }
 
                     $('.tableBody').eq(activeId).scrollTop();
                     var position = $(this).position();
-                    var inputTd = $(this).parents('.tableBody').find('.floatSingleValueWrite .input');
-                    inputTd.show();
+                    var inputTd = $('.floatSingleValueWrite .input');
+                    this_.userValueWriteIsShow = true;
                     inputTd.find('input').val(tempValue);
                     inputTd.find('input').attr('cell_xf', $(this).attr('cell_xf'));
                     inputTd.find('input').attr('tableId', activeId);
                     inputTd.find('input').attr('pos', getCellTemp2($(this).attr('hang'), $(this).attr('lie')));
                     inputTd.find('input').attr('oldValue', tempValue);
-                    inputTd.css('left', position.left - parseInt($(this).parents('.tableBody').css('marginLeft')) + $('.tableBody').eq(activeId).scrollLeft() - 1);
-                    inputTd.css('top', position.top - parseInt($(this).parents('.tableBody').css('marginTop')) + $('.tableBody').eq(activeId).scrollTop());
+                    inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
+                    inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
                     inputTd.css('height', $(this).outerHeight() + 2);
                     inputTd.css('min-width', $(this).outerWidth() + 3);
                     inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
@@ -576,64 +644,10 @@
                     inputTd.find('input').focus();
                     this_.$refs.float.hide();
                 } else {
+                    this_.userValueWriteIsShow = false;
                     var tempTd = this_.allTableDom[this_.tableNum].findChild(this_.selectPos);
                     this_.$refs.float.initFloatDom(tempTd, activeId, tempValue);
                     this_.$refs.float.show();
-                }
-            });
-            $('body').on('keydown', '#myTabContent .floatSingleValueWrite .input input', function (e) {
-                if (['Enter', 'ArrowRight'].indexOf(e.key) > -1) {    //'ArrowRight',
-                    let inputDom = this;
-                    let tableId = $(inputDom).attr('tableid');
-                    let posId = $(inputDom).attr('pos');
-
-                    function turnNewTD () {
-                        this_.changeTd({
-                            tableNum: tableId,
-                            pos: posId,
-                            value: $(inputDom).val(),
-                            xfIndex: $(inputDom).attr('cell_xf')
-                        });
-                        $(inputDom).removeAttr('tableid');
-                        $(inputDom).removeAttr('pos');
-                        $(inputDom).removeAttr('cell_xf');
-                        $(inputDom).val('');
-                        $(inputDom).parent().hide();
-                        let temp = getCellTemp(posId);
-                        if (e.key === 'Enter') {
-
-                        } else {
-                            //键盘向右箭头
-                            if (e.key === 'ArrowRight') {
-                                temp[1]++;
-                            }
-                            let rightDom = this_.allTableDom[getCellTemp2(temp[0], temp[1])].findChild(getCellTemp2(temp[0], temp[1])).dom;
-                            $(rightDom).trigger('dblclick');
-                        }
-                    }
-
-                    if ($(this).attr('oldValue') !== $(this).val()) {
-                        ajax({
-                            url: 'http://www.tablehub.cn/action/table.html',
-                            type: 'POST',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            data: {
-                                function: 'updateTdValue',
-                                fileId: this_.fileId,
-                                tableNum: $(this).attr('tableid'),
-                                pos: $(this).attr('pos'),
-                                value: $(this).val()
-                            }
-                        }).then((data) => {
-                            if (data === 1) {
-                                turnNewTD();
-                            } else {
-                                alert('样式服务器同步失败');
-                            }
-                        });
-                    } else {
-                        turnNewTD();
-                    }
                 }
             });
         }
@@ -647,11 +661,11 @@
         height: 1px;
         width: 1px;
         position: absolute;
-        margin-top: -2px;
+        top: 42px;
+        margin-top: -1px;
         .input {
             position: absolute;
             z-index: 2;
-            display: none;
             background-color: rgb(255, 255, 255);
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.63);
         }
