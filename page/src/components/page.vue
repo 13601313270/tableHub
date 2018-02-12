@@ -105,15 +105,13 @@
         name: 'page',
         methods: {
             fx() {
-                var this_ = $('.editTd');
-                if (this_.length !== 1) {
-                    console.log('asdfds');
+                if (this.selectPos === '') {
                     return;
                 }
-                var selectTd = this_[0];
-                var selectPos = getCellTemp2(parseInt($(selectTd).attr('hang')), parseInt($(selectTd).attr('lie')));
-                var tempValue = this.allTableDom[this.tableNum].findChild(selectPos).value_;
-                this.$refs.float.initFloatDom(selectTd, this.tableNum, tempValue);
+                var tempValue = this.allTableDom[this.tableNum].findChild(this.selectPos).value_;
+
+                var tempTd = this.allTableDom[this.tableNum].findChild(this.selectPos);
+                this.$refs.float.initFloatDom(tempTd, this.tableNum, tempValue);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
                 var thisTd = this.allTableDom[tableNum].findChild(tdPos);
@@ -171,7 +169,7 @@
             },
             isOpenEditSet(state) {
                 this.isOpenEdit = state;
-                let lieAddCount = 2;//增加
+                let lieAddCount = 2;// 增加
                 if (this.isOpenEdit) {
                     if (lieAddCount > 0) {
                         $('#myTabContent .tab-pane').each(function () {
@@ -578,7 +576,8 @@
                     inputTd.find('input').focus();
                     this_.$refs.float.hide();
                 } else {
-                    this_.$refs.float.initFloatDom(this, activeId, tempValue);
+                    var tempTd = this_.allTableDom[this_.tableNum].findChild(this_.selectPos);
+                    this_.$refs.float.initFloatDom(tempTd, activeId, tempValue);
                     this_.$refs.float.show();
                 }
             });

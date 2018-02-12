@@ -81,7 +81,7 @@
                         <button type="button"
                                 class="btn btn-default"
                                 data-name="fx"
-                                @click="this.fx"
+                                @click.stop="fx"
                                 :class="{disabled:selectPos==''}"
                         >&#xe646;</button>
                     </div>

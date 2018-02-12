@@ -292,7 +292,7 @@ var tableVueObj = Vue.extend({
             <tbody ref="tableBody">
                 <tr v-for="i in tableObj.hang" :hang="i">
                     <td v-for="j in tableObj.lie"
-                        @click="selectTd_temp(i,j)"
+                        @click.stop="selectTd_temp(i,j)"
                         :key="i+','+j"
                         :hang="i"
                         :lie="j" 

@@ -331,14 +331,13 @@
                 updateTextareaText(tableNum);
             },
             initFloatDom(td, activeId, tempValue) {
-                var this_ = td;
-                setTdSelectState.call(this_);
+                setTdSelectState.call(td);
                 //看看当前单元格是否有合并
                 $('.table tbody .idNum').removeClass('idNumOn');
-                $('.table tbody .idNum').eq(parseInt($(this_).attr('hang')) - 1).addClass('idNumOn');
+                $('.table tbody .idNum').eq(parseInt(td.hang) - 1).addClass('idNumOn');
                 $('.table thead .lieNum').removeClass('lieNumOn');
-                $('.table thead .lieNum').eq(parseInt($(this_).attr('lie')) - 1).addClass('lieNumOn');
-                var selectPos = getCellTemp2(parseInt($(this_).attr('hang')), parseInt($(this_).attr('lie')));
+                $('.table thead .lieNum').eq(parseInt(td.lie) - 1).addClass('lieNumOn');
+                var selectPos = getCellTemp2(parseInt(td.hang), parseInt(td.lie));
                 $('#dataFloat .head').html(selectPos);
                 $('#dataFloat .head').attr('action_type', 'td');
                 var thisTdData = tdData[activeId].tableData[selectPos];
