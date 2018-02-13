@@ -1,8 +1,8 @@
-import Vue from 'vue'
+import Vue from 'vue';
 import absoluteMove from '@/components/widthMove.vue';
 import ajax from '@/tools/ajax.js';
 
-var events = require("events");
+var events = require('events');
 var tableVueObj = Vue.extend({
     props: ['tableObj', 'edit'],
     components: {absoluteMove},
@@ -14,13 +14,13 @@ var tableVueObj = Vue.extend({
             tdList: this.tableObj.tdList,
             isSelectDoms: false,
             beginSelect: [],
-            lastEnterTd: [],//用于记录最后一次触发的坐标
+            lastEnterTd: [],// 用于记录最后一次触发的坐标
             poiCenter: {
                 top: 2,
                 bottom: 1,
                 left: 2,
                 right: 1,
-            },//用于记录选择区间
+            },// 用于记录选择区间
         };
     },
     methods: {
@@ -128,7 +128,7 @@ var tableVueObj = Vue.extend({
                     left: left,
                     right: right
                 };
-                this.tableObj.events_.emit("tdSelect", {
+                this.tableObj.events_.emit('tdSelect', {
                     pos: getCellTemp2(hang, lie),
                     xf: this.selectTd(),
                     selectMergeState: 'up',
@@ -139,7 +139,7 @@ var tableVueObj = Vue.extend({
             var inCenter = i >= this.poiCenter.top && i <= this.poiCenter.bottom && j >= this.poiCenter.left && j <= this.poiCenter.right;
             let isHasMerge = false;
             for (let cell in this.tableObj.mergeCells) {
-                if (cell.split(":")[0] === getCellTemp2(i, j)) {
+                if (cell.split(':')[0] === getCellTemp2(i, j)) {
                     isHasMerge = true;
                     break;
                 }
@@ -211,37 +211,48 @@ var tableVueObj = Vue.extend({
             }
             return cellXfInfo;
         },
+
+        ddd: false,
         selectTd_temp(hang, lie) {
-            this.poiCenter = {
-                top: hang,
-                bottom: hang,
-                left: lie,
-                right: lie
-            };
-            var td = this.tableObj.tdList[hang - 1][lie - 1];
-            if (td !== undefined) {
-                let isHasMerge = false;//选择的td是不是merge的td
-                for (let cell in this.tableObj.mergeCells) {
-                    if (cell.split(":")[0] === getCellTemp2(hang, lie)) {
-                        isHasMerge = true;
-                        break;
+            this.ddd = true;
+            setTimeout(() => {
+                if (this.ddd === true) {
+                    this.poiCenter = {
+                        top: hang,
+                        bottom: hang,
+                        left: lie,
+                        right: lie
+                    };
+                    var td = this.tableObj.tdList[hang - 1][lie - 1];
+                    if (td !== undefined) {
+                        let isHasMerge = false;// 选择的td是不是merge的td
+                        for (let cell in this.tableObj.mergeCells) {
+                            if (cell.split(':')[0] === getCellTemp2(hang, lie)) {
+                                isHasMerge = true;
+                                break;
+                            }
+                        }
+                        if (isHasMerge) {
+                            this.tableObj.events_.emit('tdSelect', {
+                                pos: getCellTemp2(hang, lie),
+                                xf: this.selectTd(td.xfIndex),
+                                selectMergeState: 'down',
+                            });
+                        } else {
+                            this.tableObj.events_.emit('tdSelect', {
+                                pos: getCellTemp2(hang, lie),
+                                xf: this.selectTd(td.xfIndex),
+                                selectMergeState: 'disable',
+                            });
+                        }
                     }
                 }
-                if (isHasMerge) {
-                    this.tableObj.events_.emit("tdSelect", {
-                        pos: getCellTemp2(hang, lie),
-                        xf: this.selectTd(td.xfIndex),
-                        selectMergeState: 'down',
-                    });
-                } else {
-                    this.tableObj.events_.emit("tdSelect", {
-                        pos: getCellTemp2(hang, lie),
-                        xf: this.selectTd(td.xfIndex),
-                        selectMergeState: 'disable',
-                    });
-                }
-            }
+            }, 1);
         },
+        dbselectTd_temp(hang, lie) {
+            this.ddd = false;
+            this.tableObj.events_.emit('dblclick', getCellTemp2(hang, lie));
+        }
     },
     template: `<div>
     <div class="tableThead">
@@ -287,6 +298,7 @@ var tableVueObj = Vue.extend({
                 <tr v-for="i in tableObj.hang" :hang="i">
                     <td v-for="j in tableObj.lie"
                         @click.stop="selectTd_temp(i,j)"
+                        @dblclick.stop="dbselectTd_temp(i,j)"
                         :key="i+','+j"
                         :hang="i"
                         :lie="j" 
@@ -335,8 +347,8 @@ export default function (tableId, dbSave, hang, lie) {
     this.events_ = new events.EventEmitter();
     this.addListener = function (eventName, callBack) {
         this.events_.addListener(eventName, callBack);
-    }
-    this.dom = document.createElement("div");
+    };
+    this.dom = document.createElement('div');
     this.active = function (val) {
         if (val === false) {
             this._vueDom.$el.setAttribute('class', 'tab-pane fade');
@@ -361,12 +373,12 @@ export default function (tableId, dbSave, hang, lie) {
             this.hang++;
         }
     };
-    this.cssNod = document.createElement("style");
+    this.cssNod = document.createElement('style');
     (function () {
-        this.cssNod.id = "tdWidthHeight";
-        this.cssNod.type = "text/css";
+        this.cssNod.id = 'tdWidthHeight';
+        this.cssNod.type = 'text/css';
         this.cssNod.setAttribute('td_css_list', 1);
-        document.getElementsByTagName("head")[0].appendChild(this.cssNod);
+        document.getElementsByTagName('head')[0].appendChild(this.cssNod);
     }).call(this);
     this.render = function (cssStr) {
     };
@@ -374,18 +386,18 @@ export default function (tableId, dbSave, hang, lie) {
         var column = this.dbSave.column;
         var row = this.dbSave.row;
         //单元格列宽
-        let str = "";
+        let str = '';
         for (let i in column) {
             let thNum = getCellTemp(i + '1')[1];
-            let strItem = "#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [lienum=\"" + i + "\"]{\n";
+            let strItem = '#myTabContent>.tab-pane:nth-child(' + (this.tableId + 1) + ') [lie="' + thNum + '"],#myTabContent>.tab-pane:nth-child(' + (this.tableId + 1) + ') [lienum="' + i + '"]{\n';
             strItem += 'width:' + column[i].width * 10 + 'px;\n';
-            strItem += "}\n";
+            strItem += '}\n';
             str += strItem;
         }
         for (let i in row) {
-            let strItem = "#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [hang=\"" + i + "\"],#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [hang=\"" + i + "\"]{\n";
+            let strItem = '#myTabContent>.tab-pane:nth-child(' + (this.tableId + 1) + ') [hang="' + i + '"],#myTabContent>.tab-pane:nth-child(' + (this.tableId + 1) + ') [hang="' + i + '"]{\n';
             strItem += 'height:' + (row[i].height) + 'px;\n';
-            strItem += "}\n";
+            strItem += '}\n';
             str += strItem;
         }
         if (this.cssNod.styleSheet) { //ie下

@@ -223,7 +223,7 @@
             },
             rewriteExcel(dataList) {
                 var this_ = this;
-                //单元格数据
+                // 单元格数据
                 this.allFileData = dataList;
 
                 function initMerge (table_Num, mergeData) {
@@ -279,7 +279,7 @@
                         tableData: tableObj.tableValue,
                         // mergeCells: tableObj.mergeCells,
                     };
-                    //获取宽高
+                    // 获取宽高123
                     var hang = 0;
                     var lie = 0;
                     for (let i in tdData[table_Num].tableData) {
@@ -292,18 +292,73 @@
                         lie = Math.max(lie, tdPos[1]);
                     }
                     console.groupEnd();
-                    lie = Math.max(lie, 6);//至少补充到6列
+                    lie = Math.max(lie, 6);// 至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
                     this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
-                        this_.cellXfInfo = data.xf;
-                        this_.selectMergeState = data.selectMergeState;
-                        this_.selectPos = data.pos;
+                        if (this_.isOpenEdit) {
+                            console.log('select');
+                            this_.cellXfInfo = data.xf;
+                            this_.selectMergeState = data.selectMergeState;
+                            this_.selectPos = data.pos;
+//                        this_.userValueWriteIsShow = false;
+                        }
                     });
+                    this_.allTableDom[table_Num].addListener('dblclick', (pos) => {
+                        if (this_.isOpenEdit) {
+                            var clickTd = this.allTableDom[this.tableNum].findChild(pos).dom.parentNode;
+
+                            setTdSelectState.call(this);
+//                            // 看看当前单元格是否有合并
+                            var activeId = this.tableNum;
+                            var tempValue = this_.allTableDom[activeId].findChild(pos).value_;
+                            if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
+                                // 计算宽度
+                                function getTrueWidth (str, xf) {
+                                    var span = $('<span></span>');
+                                    span.attr('cell_xf', xf);
+                                    span.html(str);
+                                    $('.floatSingleValueWrite .span').html('').append(span);
+                                    return span.width() + 8;
+                                }
+
+                                $('.tableBody').eq(activeId).scrollTop();
+                                var position = $(clickTd).position();
+                                this_.userValueWriteIsShow = true;
+                                this_.userValueWriteValue = tempValue;
+
+                                var inputTd = $('.floatSingleValueWrite .input');
+                                inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
+                                inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
+                                inputTd.css('height', $(clickTd).outerHeight() + 2);
+                                inputTd.css('min-width', $(clickTd).outerWidth() + 3);
+                                inputTd.css('width', getTrueWidth.call(clickTd, tempValue, $(clickTd).attr('cell_xf')) + 1);
+                                var this2_ = clickTd;
+                                inputTd.find('input').on('input', function () {
+                                    inputTd.css('width', getTrueWidth.call(this2_, $(clickTd).val(), $(this2_).attr('cell_xf')));
+                                });
+                                inputTd.find('input').click(function (event) {
+                                    event.stopPropagation();
+                                });
+                                setTimeout(function () {
+                                    inputTd.find('input').focus();
+                                }, 100);
+                                inputTd.find('input').focus();
+                                this_.$refs.float.hide();
+                            } else {
+                                this_.userValueWriteIsShow = false;
+                                var tempTd = this_.allTableDom[this_.tableNum].findChild(pos);
+                                this_.$refs.float.initFloatDom(tempTd, activeId, tempValue);
+                                this_.$refs.float.show();
+                            }
+
+                        }
+                    });
+
                     this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
 
                     this_.allTableDom[table_Num].render();
                     this_.allTableDom[table_Num].initTdStyle();
-                    //单元格合并
+                    // 单元格合并
                     initMerge(table_Num, this_.allTableDom[table_Num].mergeCells);
 
                     for (let i in tdData[table_Num].tableData) {
@@ -326,7 +381,7 @@
                         });
                     }
 
-                    //绘制图表，一定要排在td之后
+                    // 绘制图表，一定要排在td之后
                     if (tableObj.charts !== undefined) {
                         for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
                             let position = tableObj.charts[chartsId].position.split(',');
@@ -420,7 +475,6 @@
                             }
                         });
                     } else {
-                        console.log('no');
                         afterUpdate();
                     }
                 } else {
@@ -598,49 +652,6 @@
                 this.rewriteExcel(data.data);
                 //触发表格完成
                 this_.readyObj.set(1);
-            });
-
-            $('body').on('dblclick', '.edit #myTabContent td', function () {
-                setTdSelectState.call(this);
-                // 看看当前单元格是否有合并
-                var activeId = this_.tableNum;
-                var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
-                var tempValue = this_.allTableDom[activeId].findChild(selectPos).value_;
-                if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
-                    // 计算宽度
-                    function getTrueWidth (str, xf) {
-                        var span = $('<span></span>');
-                        span.attr('cell_xf', xf);
-                        span.html(str);
-                        $('.floatSingleValueWrite .span').html('').append(span);
-                        return span.width() + 8;
-                    }
-
-                    $('.tableBody').eq(activeId).scrollTop();
-                    var position = $(this).position();
-                    var inputTd = $('.floatSingleValueWrite .input');
-                    this_.userValueWriteIsShow = true;
-                    this_.userValueWriteValue = tempValue;
-                    inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
-                    inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
-                    inputTd.css('height', $(this).outerHeight() + 2);
-                    inputTd.css('min-width', $(this).outerWidth() + 3);
-                    inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
-                    var this2_ = this;
-                    inputTd.find('input').on('input', function () {
-                        inputTd.css('width', getTrueWidth.call(this2_, $(this).val(), $(this2_).attr('cell_xf')));
-                    });
-                    inputTd.find('input').click(function (event) {
-                        event.stopPropagation();
-                    });
-                    inputTd.find('input').focus();
-                    this_.$refs.float.hide();
-                } else {
-                    this_.userValueWriteIsShow = false;
-                    var tempTd = this_.allTableDom[this_.tableNum].findChild(this_.selectPos);
-                    this_.$refs.float.initFloatDom(tempTd, activeId, tempValue);
-                    this_.$refs.float.show();
-                }
             });
         }
     }
