@@ -534,7 +534,7 @@
         },
         watch: {
             tableNum(val) {
-                for (var i = 0; i < this.allTableDom.length; i++) {
+                for (let i = 0; i < this.allTableDom.length; i++) {
                     if (i === val) {
                         this.allTableDom[i].active(true);
                     } else {
