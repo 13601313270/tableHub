@@ -1,10 +1,10 @@
 <template>
     <absolute-move move="both" hander="head">
-        <div id="dataFloat">
+        <div id="dataFloat" v-show="show_">
             <div class="head" ref="head"></div>
             <div class="content"></div>
             <div class="contentText" style="border-top:solid 1px grey">
-                <textarea style="width: 100%;"></textarea>
+                <textarea style="width: 100%;" @keyup="contentTextChange"></textarea>
             </div>
             <div class="action">
                 <input type="button" class="btn save" value="确定"/>
@@ -17,7 +17,7 @@
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import absoluteMove from '@/components/widthMove.vue';
 
-    function getStrByEvalObj(tableNum, beRunObj) {
+    function getStrByEvalObj (tableNum, beRunObj) {
         var returnStr = '';
         if (beRunObj instanceof td) {
             if (beRunObj.tableId === tableNum) {
@@ -62,7 +62,7 @@
                 }
             }
             return beRunObj.className + '(' + saveParams.join(',') + ')';
-        } else if (typeof beRunObj === 'object' && beRunObj.name) {//此对象是编辑器dataFloat的getSaveObj方法产生的临时对象
+        } else if (typeof beRunObj === 'object' && beRunObj.name) { // 此对象是编辑器dataFloat的getSaveObj方法产生的临时对象
             if (beRunObj.name === '=') {
                 return beRunObj.params[0];
             } else if (beRunObj.name === 'td') {
@@ -115,7 +115,7 @@
         }
     }
 
-    function _initFloatType(tableid, evalObj, insertDom, select) {
+    function _initFloatType (tableid, evalObj, insertDom, select) {
         if (evalObj instanceof __runObj__) {
             var type = evalObj.funcName;
             if (type === '') {
@@ -133,7 +133,7 @@
         insertDom.data('select', select);
         insertDom.html('');
         insertDom.removeClass('dataBaseItemSingle dataBaseItemNoParam dataBaseItemChild');
-        //调用普通的系统函数
+        // 调用普通的系统函数
         if (typeof window[type] === 'function' && window[type].config === undefined) {
             type = '=';
         }
@@ -219,7 +219,7 @@
                                         'false': '否'
                                     };
                                 }
-                                //如果配置中这个类型的dataType是个对象,则进行递归
+                                // 如果配置中这个类型的dataType是个对象,则进行递归
                                 _initFloatType(tableid, evalObj[i][j], dom.find('>div'), config[i][0].select);
                                 insertDom.append(dom);
                             }
@@ -236,7 +236,7 @@
                                 'false': '否'
                             };
                         }
-                        //如果配置中这个类型的dataType是个对象,则进行递归
+                        // 如果配置中这个类型的dataType是个对象,则进行递归
                         _initFloatType(tableid, evalObj[i], dom.find('>div'), config[i].select);
                         insertDom.append(dom);
                     }
@@ -245,17 +245,7 @@
         })();
     }
 
-    function updateTextareaText(tableId) {
-        let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
-        if (typeof evalObj === 'object') {
-            let saveStr = getStrByEvalObj(tdData[tableId].tableTitle, evalObj);
-            $('#dataFloat .contentText textarea').val('=' + saveStr);
-        } else {
-            $('#dataFloat .contentText textarea').val(evalObj);
-        }
-    }
-
-    function getSaveObj(dom) {
+    function getSaveObj (dom) {
         if ($(dom).is('.dataBaseItemSingle')) {
             let temp = $(dom).find('[name=value]').val();
             if (temp === null) {
@@ -308,59 +298,81 @@
 
     export default {
         methods: {
-            initFloatType2(tableNum, tempValue, insertDom, select) {
+            contentTextChange(value) {
+                var tempValue = value.target.value;
+                if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
+                    let temp = tempValue.match(/=(.+)$/);
+                    let evalObj = this.getEvalObj(this.tableNum, temp[1], false);
+                    _initFloatType(this.tableNum, evalObj, $('#dataFloat .content'));
+                } else {
+                    _initFloatType(this.tableNum, tempValue, $('#dataFloat .content'));
+                }
+            },
+            updateTextareaText (tableId) {
+                let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
+                if (typeof evalObj === 'object') {
+                    let saveStr = getStrByEvalObj(tdData[tableId].tableTitle, evalObj);
+                    $('#dataFloat .contentText textarea').val('=' + saveStr);
+                } else {
+                    $('#dataFloat .contentText textarea').val(evalObj);
+                }
+            },
+            initFloatType2(tableNum, tempValue) {
                 var this_ = this;
                 _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
-                $('#dataFloat .contentText textarea').keyup(function () {
-                    tempValue = $(this).val();
-                    if (typeof tempValue === 'string' && tempValue.substr(0, 1) === '=') {
-                        let temp = tempValue.match(/=(.+)$/);
-                        let evalObj = this_.getEvalObj(tableNum, temp[1], false);
-                        _initFloatType(tableNum, evalObj, $('#dataFloat .content'));
-                    } else {
-                        _initFloatType(tableNum, tempValue, $('#dataFloat .content'));
-                    }
-                });
+
                 $('#dataFloat>.content').on('keyup', 'input', function (e) {
-                    updateTextareaText(tableNum);
+                    this_.updateTextareaText(tableNum);
                 });
 
                 $('#dataFloat>.content').on('change', '[name=value]', function () {
-                    updateTextareaText(tableNum);
+                    this_.updateTextareaText(tableNum);
                 });
-                updateTextareaText(tableNum);
+                this.updateTextareaText(tableNum);
             },
             initFloatDom(td, activeId, tempValue) {
-                var this_ = td;
-                setTdSelectState.call(this_);
-                //看看当前单元格是否有合并
+                setTdSelectState.call(td);
+                // 看看当前单元格是否有合并
                 $('.table tbody .idNum').removeClass('idNumOn');
-                $('.table tbody .idNum').eq(parseInt($(this_).attr('hang')) - 1).addClass('idNumOn');
+                $('.table tbody .idNum').eq(parseInt(td.hang) - 1).addClass('idNumOn');
                 $('.table thead .lieNum').removeClass('lieNumOn');
-                $('.table thead .lieNum').eq(parseInt($(this_).attr('lie')) - 1).addClass('lieNumOn');
-                var selectPos = getCellTemp2(parseInt($(this_).attr('hang')), parseInt($(this_).attr('lie')));
+                $('.table thead .lieNum').eq(parseInt(td.lie) - 1).addClass('lieNumOn');
+                var selectPos = getCellTemp2(parseInt(td.hang), parseInt(td.lie));
                 $('#dataFloat .head').html(selectPos);
                 $('#dataFloat .head').attr('action_type', 'td');
                 var thisTdData = tdData[activeId].tableData[selectPos];
-                $('#dataFloat').show();
+                this.show_ = true;
                 if (thisTdData === undefined) {
                     thisTdData = {
                         'value': '',
                         xfIndex: 0,
                     };
                 }
-                this.initFloatType2(activeId, tempValue, $('#dataFloat .content'));
+                this.initFloatType2(activeId, tempValue);
                 $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
                 $('#dataFloat').removeClass('floatSingleValue');
+            },
+            show() {
+                this.show_ = true;
+            },
+            hide() {
+                this.show_ = false;
             }
         },
         props: ['fileId', 'table-num', 'get-eval-obj'],
         components: {absoluteMove},
+        data() {
+            return {
+                show_: false,
+            };
+        },
         mounted() {
             var self = this;
-            $('#myTabContent').on('click', '.active', function () {
-                $('#dataFloat').hide();
-            });
+            // $('#myTabContent').on('click', '.active', function () {
+            //     console.log('hide');
+            //     self.show_ = false;
+            //     // $('#dataFloat').hide();
+            // });
 
             $('#dataFloat').on('change', '[name=dataType]', function () {
                 var func = $(this).val();
@@ -406,7 +418,7 @@
                 var dom = $(this).parents('.dataBaseItem').eq(0);
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');
                 _initFloatType(self.tableNum, evalObj, dom, select);
-                updateTextareaText(self.tableNum);
+                self.updateTextareaText(self.tableNum);
             });
             $('#dataFloat .action .save').click(function () {
                 var contentDivs = $(this).parents('#dataFloat').find('>.content');
@@ -497,7 +509,7 @@
                     '</div>');
                 _initFloatType(self.tableNum, '', dom.find('>div'));
                 $('.addMore').before(dom);
-                updateTextareaText(self.tableNum);
+                self.updateTextareaText(self.tableNum);
             });
         }
     }
@@ -507,7 +519,6 @@
         background-color: white;
         border: solid 1px black;
         width: 500px;
-        display: none;
     }
 
     #dataFloat .content {

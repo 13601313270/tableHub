@@ -1,11 +1,13 @@
 <template>
-    <div>
-        <div id="tablePanel" :class="{edit:isOpenEdit}" @click="selectTd_temp($event)"
-             @mousedown="mousedown_temp($event)" @mouseover="mouseenter_temp($event)" @mouseup="mouseup_temp">
+    <div @click="bodyClick">
+        <div id="tablePanel" :class="{edit:isOpenEdit}">
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
                    @insertChart="insertChart"
+                   @setCellXf="setCellXf"
                    :cellXfInfo="cellXfInfo"
+                   :selectMergeState="selectMergeState"
+                   :selectPos="selectPos"
                    :title="title"
                    :isMyTable="isMyTable"
                    :isOpenEdit="isOpenEdit"
@@ -20,14 +22,12 @@
                     </li>
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
-                <div id="myTabContent" class="tab-content">
-                    <table-vue-obj v-for="(item,key) in allTableDom" class="tab-pane fade"
-                                   :edit="isOpenEdit"
-                                   :key="key"
-                                   :class="{active:key===tableNum,in:key===tableNum}"
-                                   :data-tableid="key"
-                                   :table-obj="item"
-                                   :id="'table_' + key"></table-vue-obj>
+                <div id="myTabContent" ref="allPage" class="tab-content"></div>
+                <div class="floatSingleValueWrite" v-show="userValueWriteIsShow">
+                    <div class="input">
+                        <input @keydown="userValueWrite" v-model="userValueWriteValue"/>
+                    </div>
+                    <div class="span"></div>
                 </div>
             </div>
         </div>
@@ -35,7 +35,7 @@
         <dataFloat ref="float"
                    :fileId="this.fileId"
                    :table-num="this.tableNum"
-                   :get-eval-obj=this.getEvalObj
+                   :get-eval-obj="this.getEvalObj"
                    @change="changeTd"
                    @changeChart="changeChart"></dataFloat>
         <wrapper></wrapper>
@@ -43,294 +43,19 @@
 </template>
 
 <script>
-    import bottom from '@/components/bottom.vue'
-    import tools from '@/components/tools.vue'
-    import dataFloat from '@/components/dataFloat.vue'
-    import wrapper from '@/components/wrapper.vue'
-    import pageFloatPanel from '@/components/pageFloatPanel.vue'
-    import ajax from '@/tools/ajax.js'
-    import Vue from 'vue'
-    import echarts from 'echarts'
-    import setTdSelectState from '@/tools/setTdSelectState.js';
-    import absoluteMove from '@/components/widthMove.vue';
+    import bottom from '@/components/bottom.vue';
+    import tools from '@/components/tools.vue';
+    import dataFloat from '@/components/dataFloat.vue';
+    import wrapper from '@/components/wrapper.vue';
+    import pageFloatPanel from '@/components/pageFloatPanel.vue';
+    import ajax from '@/tools/ajax.js';
+    import echarts from 'echarts';
+    import tableClass from '@/tools/table';
 
-    var tableVueObj = {
-        props: ['tableObj', 'edit'],
-        components: {absoluteMove},
-        data() {
-            return {
-                theadLeft: 0,
-                rowTop: 0,
-                alltableObj: this.tableObj.alltableObj,
-            };
-        },
-        methods: {
-            getCellTemp2(trNum, tdNum) {
-                var result = '';
-                do {
-                    var append = String.fromCharCode(tdNum % 26 + 64);
-                    if (append === '@') {
-                        append = 'Z';
-                        tdNum -= 26;
-                    }
-                    result = append + '' + result;
-                    tdNum = parseInt(tdNum / 26);
-                } while (tdNum > 0);
-                return result + trNum;
-            },
-            scroll(event) {
-                this.theadLeft = event.target.scrollLeft;
-                this.rowTop = event.target.scrollTop;
-            },
-            Xmousemove(e) {
-                let thNum = e.dom.parentNode.getAttribute('lienum');
-                this.tableObj.dbSave.column[thNum].width = (e.x + 5) / 10;
-                this.tableObj.initTdStyle();
-            },
-            Ymousemove(e) {
-                let thNum = e.dom.parentNode.getAttribute('hang');
-                this.tableObj.dbSave.row[thNum].height = e.y;
-                this.tableObj.initTdStyle();
-            },
-            Xmouseup(e) {
-                let thNum = e.dom.parentNode.getAttribute('lienum');
-                let width = e.x + 5;
-                ajax({
-                    type: 'POST',
-                    data: {
-                        'function': 'updateWidth',
-                        'fileId': this.tableObj.fileId,
-                        'tableNum': this.tableObj.tableId,
-                        'lienum': thNum,
-                        'width': (width / 10).toFixed(1)
-                    }
-                }).then((data) => {
-                    //initTdStyle(this_.tableNum);
-                });
-            },
-            Ymouseup(e) {
-                let row = e.dom.parentNode.getAttribute('hang');
-                ajax({
-                    type: 'POST',
-                    data: {
-                        'function': 'updateHeight',
-                        'fileId': this.tableObj.fileId,
-                        'tableNum': this.tableObj.tableId,
-                        'row': row,
-                        'height': parseInt(e.y)
-                    }
-                }).then(() => {
-                    //initTdStyle(this_.tableNum);
-                });
-            },
-            tempAddDbClickToFloat(dom) {
-                var self = this;
-                $(dom).on('dblclick', function () {
-                    let tableId = self.tableObj.tableId;
-                    let chartsIndex = $(dom).attr('index');
-                    $('#dataFloat').show();
-                    $('#dataFloat .head').html('图表');
-
-                    let allChartsName = [];
-                    for (let i = 0; i < allChartFunction.length; i++) {
-                        allChartsName.push(allChartFunction[i].funcName);
-                    }
-                    $('#dataFloat .head').attr('action_type', 'CHARTS');
-                    $('#dataFloat .head').attr('tableId', tableId);
-                    $('#dataFloat .head').attr('chartsIndex', chartsIndex);
-                    console.log(self.$parent.$refs.float);
-                    self.$parent.$refs.float.initFloatType2(tableId, self.alltableObj[chartsIndex], $('#dataFloat .content'));
-
-                });
-            },
-            moveCharts(pos) {
-                let chartsIndex = Array.from(pos.dom.parentNode.children).indexOf(pos.dom);
-                if (this.alltableObj[chartsIndex].left !== pos.x || this.alltableObj[chartsIndex].top !== pos.y) {
-                    ajax({
-                        type: 'POST',
-                        data: {
-                            function: 'updateChartsPos',
-                            fileId: this.tableObj.fileId,
-                            tableNum: this.tableObj.tableId,
-                            chartsIndex: chartsIndex,
-                            top: pos.y,
-                            left: pos.x,
-                            width: this.alltableObj[chartsIndex].width,
-                            height: this.alltableObj[chartsIndex].height,
-                        }
-                    }).then((data) => {
-                        this.alltableObj[chartsIndex].left = pos.x;
-                        this.alltableObj[chartsIndex].top = pos.y;
-                        //initTdStyle(this_.tableNum);
-                    });
-                }
-            }
-        },
-        template: `<div>
-    <div class="tableThead">
-        <table class="table" :style="{marginLeft:theadLeft*-1+'px'}">
-        <thead>
-            <tr>
-                <th v-for="i in tableObj.lie" class="lieNum"
-                    :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]">{{getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]}}
-                    <absolute-move @mousemove="Xmousemove" @mouseup="Xmouseup" move="x"></absolute-move>
-                </th>
-            </tr>
-        </thead></table>
-    </div>
-    <div class="tableRow">
-        <table class="table" :style="{marginTop:rowTop*-1+'px'}">
-        <tbody>
-            <tr v-for="i in tableObj.hang">
-                <td class="idNum" :hang="i" style="width: 80px;">{{i}}
-                    <absolute-move @mousemove="Ymousemove" @mouseup="Ymouseup" move="y"></absolute-move>
-                </td>
-            </tr>
-        </tbody>
-        </table>
-    </div>
-    <div class="tableBody" @scroll="scroll($event)">
-        <div class="floatSingleValueWrite">
-            <div class="input">
-                <input/>
-            </div>
-            <div class="span"></div>
-        </div>
-        <div class="allCharts" ref="allCharts">
-            <absolute-move
-                :key="key"
-                :move="edit?'both':'none'"
-                @mouseup="moveCharts"
-                v-for="item,key in this.alltableObj"
-                :left="item.left"
-                :top="item.top"></absolute-move>
-        </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th v-for="i in tableObj.lie" class="lienum"
-                        :lienum="getCellTemp2(0, i).match(/([A-Z]*)(\\d+)/)[1]"></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="i in tableObj.hang" :hang="i">
-                    <td v-for="j in tableObj.lie" :hang="i" :lie="j">
-
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>`,
-        watch: {
-            alltableObj(value) {
-                var domArr = Array.from(this.$refs.allCharts.children);
-                value.forEach((item) => {
-                    if (!domArr.includes(item.dom[0].parentNode)) {
-                        setTimeout(() => {
-                            this.$refs.allCharts.getElementsByClassName('move')[this.alltableObj.length - 1].appendChild(item.dom[0]);
-                            this.tempAddDbClickToFloat(item.dom[0]);
-                            item.render();
-                        }, 200);
-                    }
-                });
-            }
-        },
-        mounted() {
-            setTimeout(() => {
-                for (let i = 0; i < this.alltableObj.length; i++) {
-                    let chartsItem = this.alltableObj[i];
-                    this.$refs.allCharts.getElementsByClassName('move')[i].appendChild(chartsItem.dom[0]);
-                    this.tempAddDbClickToFloat(chartsItem.dom[0]);
-                    chartsItem.render();
-                }
-            }, 100);
-        },
-    };
-
-    //表
-    function tableClass(tableId, dbSave, hang, lie) {
-        this.fileId = parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]);
-        // this.table = $('<table class="table"><thead></thead></table>');
-        this.tdList = {};
-        this.tableId = tableId;
-        this.dbSave = dbSave;
-        this.hang = hang;
-        this.lie = lie;
-        this.addMoreHang = 3;//编辑状态下额外添加的行的数量
-        this.alltableObj = [];//保存图表charts
-        this.addHang = function () {
-            for (var i = 0; i < this.addMoreHang; i++) {
-                this.hang++;
-            }
-        };
-        this.cssNod = document.createElement("style");
-        (function () {
-            this.cssNod.id = "tdWidthHeight";
-            this.cssNod.type = "text/css";
-            $(this.cssNod).attr('td_css_list', 1);
-            document.getElementsByTagName("head")[0].appendChild(this.cssNod);
-        }).call(this);
-        this.render = function (cssStr) {
-        };
-        this.initTdStyle = function () {
-            var column = this.dbSave.column;
-            var row = this.dbSave.row;
-            //单元格列宽
-            let str = "";
-            for (let i in column) {
-                let thNum = getCellTemp(i + '1')[1];
-                let strItem = "#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [lie=\"" + thNum + "\"],#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [lienum=\"" + i + "\"]{\n";
-                strItem += 'width:' + column[i].width * 10 + 'px;\n';
-                strItem += "}\n";
-                str += strItem;
-            }
-            for (let i in row) {
-                let strItem = "#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [hang=\"" + i + "\"],#myTabContent>.tab-pane:nth-child(" + (this.tableId + 1) + ") [hang=\"" + i + "\"]{\n";
-                strItem += 'height:' + (row[i].height) + 'px;\n';
-                strItem += "}\n";
-                str += strItem;
-            }
-            if (this.cssNod.styleSheet) { //ie下
-                this.cssNod.styleSheet.cssText = str;
-            } else {
-                this.cssNod.innerHTML += str;
-            }
-        };
-        this.child = function (positionStr) {
-            return this.tdList[positionStr];
-        }
-        this.findChild = function (positionStr) {
-            if (this.tdList[positionStr] === undefined) {
-                new td(this, positionStr);
-            }
-            return this.tdList[positionStr];
-        }
+    function tableReady () {
     }
 
-    function selectTd2(temp, activeId) {
-        if (temp !== window && !$(temp).is('.mergeTd')) {
-            //不能拆分
-            $('.toolsContent [data-name=tdMerge]').removeClass('active');
-            $('.toolsContent [data-name=tdMerge]').addClass('disabled');
-        } else {
-            let isHasMerge = false;
-            for (let i in tdData[activeId].mergeCells) {
-                if (i.split(":")[0] == getCellTemp2($(temp).attr('hang'), $(temp).attr('lie'))) {
-                    isHasMerge = true;
-                    break;
-                }
-            }
-            if (isHasMerge) {
-                $('.toolsContent [data-name=tdMerge]').addClass('active');
-            } else {
-                $('.toolsContent [data-name=tdMerge]').removeClass('active');
-            }
-            $('.toolsContent [data-name=tdMerge]').removeClass('disabled');
-        }
-    }
-
-    echartsObj = echarts;
+    tableReady.prototype = new obj();
 
     //    import obj from '@/tools/obj.js'
     //    var a = new obj();
@@ -342,7 +67,7 @@
     //    b.value = 111;// = 100;
     //    console.log("====3======");
 
-    function createCss(i, item) {
+    function createCss (i, item) {
         var strItem = "[cell_xf=\"" + i + "\"]{\n";
         if (item.font) {
             if (item.font.color) {
@@ -367,13 +92,13 @@
             }
         }
         if (item.alignment) {
-            if (item.alignment.horizontal == 'left') {
+            if (item.alignment.horizontal === 'left') {
                 strItem += 'text-align: left!important;\n';
-            } else if (item.alignment.horizontal == 'right') {
+            } else if (item.alignment.horizontal === 'right') {
                 strItem += 'text-align: right!important;\n';
-            } else if (item.alignment.horizontal == 'center') {
+            } else if (item.alignment.horizontal === 'center') {
                 strItem += 'text-align: center!important;\n';
-            } else if (item.alignment.horizontal == 'general') {
+            } else if (item.alignment.horizontal === 'general') {
 //                    strItem+='text-align: center;\n';
             }
         }
@@ -384,10 +109,14 @@
     export default {
         name: 'page',
         methods: {
-            fx(obj) {
-                var selectPos = getCellTemp2(parseInt($(obj.td).attr('hang')), parseInt($(obj.td).attr('lie')));
-                var tempValue = this.allTableDom[obj.tableNum].findChild(selectPos).value_;
-                this.$refs.float.initFloatDom(obj.td, obj.tableNum, tempValue);
+            fx() {
+                if (this.selectPos === '') {
+                    return;
+                }
+                var tempValue = this.allTableDom[this.tableNum].findChild(this.selectPos).value_;
+
+                var tempTd = this.allTableDom[this.tableNum].findChild(this.selectPos);
+                this.$refs.float.initFloatDom(tempTd, this.tableNum, tempValue);
             },
             writeTd(tableNum, tdPos, str, xfIndex) {
                 var thisTd = this.allTableDom[tableNum].findChild(tdPos);
@@ -400,7 +129,7 @@
                 } else {
                     thisTd.set(str);
                 }
-                readyObj.bind(thisTd);
+                this.readyObj.bind(thisTd);
             },
             changeChart(charts) {
                 var {tableNum, chartsIndex, content} = charts;
@@ -432,7 +161,7 @@
             insertChart(opt) {
                 var {tableNum, saveVlalue, chartsId, position, size} = opt;
                 var chartsItem = getEvalObj(tableNum, saveVlalue, true);
-                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
                 chartsItem.top = parseInt(position[0]);
                 chartsItem.left = parseInt(position[1]);
                 chartsItem.width = parseInt(size[0]);
@@ -445,7 +174,7 @@
             },
             isOpenEditSet(state) {
                 this.isOpenEdit = state;
-                let lieAddCount = 2;//增加
+                let lieAddCount = 2;// 增加
                 if (this.isOpenEdit) {
                     if (lieAddCount > 0) {
                         $('#myTabContent .tab-pane').each(function () {
@@ -488,44 +217,55 @@
                         });
                     }
                     $('#tablePanel').removeClass('edit');
-                    $('#dataFloat').hide();
+                    this.$refs.float.hide();
                 }
             },
             rewriteExcel(dataList) {
                 var this_ = this;
-                //单元格数据
+                // 单元格数据
                 this.allFileData = dataList;
 
-                function initMerge(table_Num, mergeData) {
+                function initMerge (table_Num, mergeData) {
                     for (let i in mergeData) {
                         let beginAndEnd = i.split(':');
                         let begin = getCellTemp(beginAndEnd[0]);
                         let end = getCellTemp(beginAndEnd[1]);
+                        var beginDom = this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom;
 
-                        this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom.attr('rowspan', end[0] - begin[0] + 1);
-                        this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom.attr('colspan', end[1] - begin[1] + 1);
-                        this_.allTableDom[table_Num].findChild(beginAndEnd[0]).dom.addClass('mergeTd');
+                        if (beginDom instanceof jQuery) {
+                            beginDom = beginDom[0];
+                        }
+                        beginDom = beginDom.parentNode;
+                        console.log(beginDom);
+                        beginDom.setAttribute('rowspan', end[0] - begin[0] + 1);
+                        var domTemp = this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom;
+                        if (domTemp instanceof jQuery) {
+                            domTemp = domTemp[0];
+                        }
+                        domTemp = domTemp.parentNode;
+                        domTemp.setAttribute('colspan', end[1] - begin[1] + 1);
+                        let beginClass = beginDom.className.split(' ');
+                        if (beginClass.includes('mergeTd')) {
+                            beginClass.push('mergeTd');
+                        }
+                        // beginDom.className = 'mergeTd';//beginClass.join(' ');
 
                         for (let tr = begin[0]; tr <= end[0]; tr++) {
-                            let firstTdWidth = 0;
                             for (let td = end[1]; td >= begin[1]; td--) {
-                                firstTdWidth += this_.allTableDom[table_Num].thead.find('thead th').eq(td - 1).outerWidth();
                                 if (tr === begin[0] && td === begin[1]) {
-
+                                    // if (end[1] > begin[1]) {
+                                    //     this_.allTableDom[table_Num].findChild(getCellTemp2(tr, td)).dom.parentNode.setAttribute('colspan', end[1] - begin[1] + 1);
+                                    // }
+                                    // if (end[0] > begin[0]) {
+                                    //     this_.allTableDom[table_Num].findChild(getCellTemp2(tr, td)).dom.parentNode.setAttribute('rowspan', end[0] - begin[0] + 1);
+                                    // }
                                 } else {
-                                    this_.allTableDom[table_Num].td(getCellTemp2(tr, td)).dom.hide();
+                                    this_.allTableDom[table_Num].findChild(getCellTemp2(tr, td)).dom.parentNode.style.display = 'none';
                                 }
                             }
                         }
                     }
                 }
-
-                //样式
-                let nod = document.createElement("style");
-                nod.id = "tdWidthHeight";
-                nod.type = "text/css";
-                $(nod).attr('td_css_list', 1);
-                document.getElementsByTagName("head")[0].appendChild(nod);
 
                 td.config.params.tableId.select = {};
                 for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
@@ -536,9 +276,9 @@
                     tdData[table_Num] = {
                         tableTitle: tableTitle,
                         tableData: tableObj.tableValue,
-                        mergeCells: tableObj.mergeCells,
+                        // mergeCells: tableObj.mergeCells,
                     };
-                    //获取宽高
+                    // 获取宽高123
                     var hang = 0;
                     var lie = 0;
                     for (let i in tdData[table_Num].tableData) {
@@ -550,45 +290,120 @@
                         hang = Math.max(hang, tdPos[0]);
                         lie = Math.max(lie, tdPos[1]);
                     }
-                    lie = Math.max(lie, 6);//至少补充到6列
+                    console.groupEnd();
+                    lie = Math.max(lie, 6);// 至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
+                    this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
+                        if (this_.isOpenEdit) {
+                            console.log('select');
+                            this_.cellXfInfo = data.xf;
+                            this_.selectMergeState = data.selectMergeState;
+                            this_.selectPos = data.pos;
+//                        this_.userValueWriteIsShow = false;
+                        }
+                    });
+                    this_.allTableDom[table_Num].addListener('dblclick', (pos) => {
+                        if (this_.isOpenEdit) {
+                            var td = this.allTableDom[this.tableNum].findChild(pos);
+//                            // 看看当前单元格是否有合并
+                            var activeId = this.tableNum;
+                            var tempValue = this_.allTableDom[activeId].findChild(pos).value_;
+                            if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
+                                // 计算宽度
+                                function getTrueWidth (str, xf) {
+                                    var span = $('<span></span>');
+                                    span.attr('cell_xf', xf);
+                                    span.html(str);
+                                    $('.floatSingleValueWrite .span').html('').append(span);
+                                    return span.width() + 8;
+                                }
+
+                                $('.tableBody').eq(activeId).scrollTop();
+                                this_.userValueWriteIsShow = true;
+                                this_.userValueWriteValue = tempValue;
+
+                                var inputTd = $('.floatSingleValueWrite .input');
+                                var clickTd = td.dom.parentNode;
+                                var position = $(clickTd).position();
+                                inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
+                                inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
+                                inputTd.css('height', $(clickTd).outerHeight() + 2);
+                                inputTd.css('min-width', $(clickTd).outerWidth() + 3);
+                                inputTd.css('width', getTrueWidth(tempValue, td.xfIndex) + 1);
+                                inputTd.find('input').on('input', function () {
+                                    inputTd.css('width', getTrueWidth($(clickTd).val(), td.xfIndex));
+                                });
+                                inputTd.find('input').click(function (event) {
+                                    event.stopPropagation();
+                                });
+                                setTimeout(function () {
+                                    inputTd.find('input').focus();
+                                }, 100);
+                                inputTd.find('input').focus();
+                                this_.$refs.float.hide();
+                            } else {
+                                this_.userValueWriteIsShow = false;
+                                var tempTd = this_.allTableDom[this_.tableNum].findChild(pos);
+                                this_.$refs.float.initFloatDom(tempTd, activeId, tempValue);
+                                this_.$refs.float.show();
+                            }
+
+                        }
+                    });
+
+                    this_.$refs.allPage.append(this_.allTableDom[table_Num].dom);
+
                     this_.allTableDom[table_Num].render();
                     this_.allTableDom[table_Num].initTdStyle();
-                    //单元格合并
-                    initMerge(table_Num, tdData[table_Num].mergeCells);
-                }
-                for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
-                    //绘制图表
-                    this_.allTableDom[table_Num].alltableObj = [];
-                    var tableObj = this.allFileData[table_Num];
+                    // 单元格合并
+                    initMerge(table_Num, this_.allTableDom[table_Num].mergeCells);
+
+                    for (let i in tdData[table_Num].tableData) {
+                        this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
+                    }
+
+                    function tempAddDbClickToFloat (dom, chartsIndex) {
+                        dom.addEventListener('dblclick', function (event) {
+                            $('#dataFloat .head').html('图表');
+                            let allChartsName = [];
+                            for (let i = 0; i < allChartFunction.length; i++) {
+                                allChartsName.push(allChartFunction[i].funcName);
+                            }
+                            $('#dataFloat .head').attr('action_type', 'CHARTS');
+                            $('#dataFloat .head').attr('tableId', table_Num);
+                            $('#dataFloat .head').attr('chartsIndex', chartsIndex);
+                            this_.$refs.float.initFloatType2(table_Num, this_.allTableDom[table_Num].alltableObj[chartsIndex]);
+                            this_.$refs.float.show();
+                            console.log(event);
+                        });
+                    }
+
+                    // 绘制图表，一定要排在td之后
                     if (tableObj.charts !== undefined) {
                         for (let chartsId = 0; chartsId < tableObj.charts.length; chartsId++) {
                             let position = tableObj.charts[chartsId].position.split(',');
                             let size = tableObj.charts[chartsId].size.split(',');
                             if (tableObj.charts[chartsId].value !== null) {
                                 let chartsItem = getEvalObj(table_Num, tableObj.charts[chartsId].value, true);
-                                chartsItem.myChart = echartsObj.init(chartsItem.dom.find('>div')[0], 'macarons');
+                                chartsItem.myChart = echarts.init(chartsItem.dom.find('>div')[0], 'macarons');
                                 chartsItem.top = parseInt(position[0]);
                                 chartsItem.left = parseInt(position[1]);
                                 chartsItem.width = parseInt(size[0]);
                                 chartsItem.height = parseInt(size[1]);
                                 chartsItem.dom.attr('index', chartsId);
                                 chartsItem.index = chartsId;
-                                readyObj.bind(chartsItem);
+                                this_.readyObj.bind(chartsItem);
+                                tempAddDbClickToFloat(chartsItem.dom[0], chartsId);
                                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
 
                             }
                         }
                     }
                 }
-                //vue的dom渲染比jquery慢一点点
-                setTimeout(() => {
-                    for (let table_Num = 0; table_Num < this.allFileData.length; table_Num++) {
-                        for (let i in tdData[table_Num].tableData) {
-                            this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
-                        }
-                    }
-                }, 100);
+            },
+            setCellXf(id) {
+                this.allTableDom[this.tableNum].findChild(this.selectPos).xfIndex = id;
+                this.allTableDom[this.tableNum].findChild(this.selectPos).render();
             },
             addTable() {
                 var name = window.prompt('请输入工作表名称');
@@ -611,173 +426,144 @@
                     });
                 }
             },
-            selectTd(cellXf_) {
-                if (cellXf_ === undefined) {
-                    $('.toolsContent [data-name=color]').css('color', '');
-                    this.cellXfInfo.font.bold = false;
-                    this.cellXfInfo.font.underline = false;
-                    this.cellXfInfo.font.italic = false;
-                    this.cellXfInfo.alignment.horizontal = 'general';
-                    $('.toolsContent [data-name=size]').val('');
-                    $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
-                    $('.toolsContent [data-name=tdMerge]').removeClass('active');
-                } else {
-                    var cell_xf = getCellXfCollection[cellXf_];
-                    if (cell_xf.font) {
-                        if (cell_xf.font.color) {
-                            $('.toolsContent [data-name=color]').css('color', '#' + cell_xf.font.color.slice(2));
-                        }
-                        this.cellXfInfo.font.bold = (cell_xf.font.bold === 1);
-                        if (cell_xf.font.size) {
-                            $('.toolsContent [data-name=size]').val(cell_xf.font.size);
-                        }
-                        if (cell_xf.font.underline === 'single') {
-                            this.cellXfInfo.font.underline = true;
-                        } else {
-                            this.cellXfInfo.font.underline = false;
-                        }
-                        if (cell_xf.font.italic === 1) {
-                            this.cellXfInfo.font.italic = true;
-                        } else {
-                            this.cellXfInfo.font.italic = false;
-                        }
-                    }
-                    if (cell_xf.fill && cell_xf.fill.fillType !== 'none') {
-                        $('.toolsContent [data-name=fill]').css('backgroundColor', '#' + cell_xf.fill.startColor.slice(2));
-                    }
-                    else {
-                        $('.toolsContent [data-name=fill]').css('backgroundColor', 'white');
-                    }
-
-                    if (cell_xf.alignment) {
-                        if (cell_xf.alignment.horizontal === 'left') {
-                            this.cellXfInfo.alignment.horizontal = 'left';
-                        } else if (cell_xf.alignment.horizontal === 'center') {
-                            this.cellXfInfo.alignment.horizontal = 'center';
-                        } else if (cell_xf.alignment.horizontal === 'right') {
-                            this.cellXfInfo.alignment.horizontal = 'right';
-                        } else if (cell_xf.alignment.horizontal === 'general') {
-                            this.cellXfInfo.alignment.horizontal = 'general';
-                        }
-                    } else {
-                        this.cellXfInfo.alignment.horizontal = 'general';
-                    }
-                }
-            },
-            selectTd_temp(event) {
-                if ($(event.target).is('.edit #myTabContent td')) {
-                    var eventDom = event.target;
-                } else {
-                    var eventDom = $(event.target).parents('.edit #myTabContent td');
-                    if (eventDom.length === 0) {
-                        return
-                    } else {
-                        eventDom = eventDom[0]
-                    }
-                }
-                if (!$(eventDom).is('.idNum')) {
-                    setTdSelectState.call(eventDom);
-                    this.selectTd($(eventDom).attr('cell_xf'));
-                    selectTd2(eventDom, this.tableNum);
-                }
-            },
-            mousedown_temp(event) {
-                if ($(event.target).is('.edit #myTabContent td')) {
-                    var eventDom = event.target;
-                } else {
-                    var eventDom = $(event.target).parents('.edit #myTabContent td');
-                    if (eventDom.length === 0) {
-                        return
-                    } else {
-                        eventDom = eventDom[0]
-                    }
-                }
-                beginSelect = [$(eventDom).attr('hang'), $(eventDom).attr('lie')];
-                isSelectDoms = true;
-                event.preventDefault();
-            },
-
-            lastEnterTd: '',//用于记录最后一次出发的dom
-            mouseenter_temp(event) {
-                if (isSelectDoms) {
-                    if ($(event.target).is('.edit #myTabContent td')) {
-                        var eventDom = event.target;
-                    } else {
-                        var eventDom = $(event.target).parents('.edit #myTabContent td');
-                        if (eventDom.length === 0) {
-                            return
-                        } else {
-                            eventDom = eventDom[0]
-                        }
-                    }
-                    // 防止重复出发
-                    if (this.lastEnterTd === eventDom) {
-                        return;
-                    }
-                    this.lastEnterTd = eventDom;
-
-
-                    $('body .edit td').removeClass('editTd');
-                    $('body .edit td').removeClass('editTdtop');
-                    $('body .edit td').removeClass('editTdbottom');
-                    $('body .edit td').removeClass('editTdleft');
-                    $('body .edit td').removeClass('editTdright');
-                    var top = Math.min($(eventDom).attr('hang'), beginSelect[0]);
-                    var bottom = Math.max($(eventDom).attr('hang'), beginSelect[0]);
-                    var left = Math.min($(eventDom).attr('lie'), beginSelect[1]);
-                    var right = Math.max($(eventDom).attr('lie'), beginSelect[1]);
-                    var tableid = this.tableNum;
-                    for (let i = top; i <= bottom; i++) {
-                        for (let j = left; j <= right; j++) {
-                            if (i === top) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdtop');
-                            }
-                            if (i === bottom) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdbottom');
-                            }
-                            if (j === left) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdleft');
-                            }
-                            if (j === right) {
-                                this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTdright');
-                            }
-                            this.allTableDom[tableid].findChild(getCellTemp2(i, j)).dom.addClass('editTd');
-                        }
-                    }
-                    this.selectTd(undefined);
-                    selectTd2(window, this.tableNum);
-                }
-            },
-            mouseup_temp() {
-                isSelectDoms = false;
-            },
             changeTd(td) {
                 let {tableNum, pos, value, xfIndex} = td;
                 this.writeTd(tableNum, pos, value, xfIndex);
                 if (getCellTemp(pos)[0] > this.allTableDom[tableNum].hang) {
                     this.allTableDom[tableNum].addHang();
                 }
+            },
+            bodyClick() {
+                if (this.userValueWriteIsShow) {
+                    var this_ = this;
+                    var inputDom = $('.floatSingleValueWrite .input input');
+
+                    function afterUpdate () {
+                        this_.changeTd({
+                            tableNum: this_.tableNum,
+                            pos: this_.selectPos,
+                            value: inputDom.val(),
+                            xfIndex: this_.allTableDom[this_.tableNum].findChild(this_.selectPos).xfIndex
+                        });
+                        this_.userValueWriteIsShow = false;
+                        this_.userValueWriteValue = '';
+                        this_.selectPos = '';
+                    }
+
+                    if (this_.allTableDom[this_.tableNum].findChild(this_.selectPos).get().toString() !== inputDom.val()) {
+                        ajax({
+                            type: 'POST',
+                            data: {
+                                'function': 'updateTdValue',
+                                fileId: this_.fileId,
+                                tableNum: this_.tableNum,
+                                pos: this_.selectPos,
+                                value: inputDom.val()
+                            }
+                        }).then((data) => {
+                            if (data !== '-1') {
+                                if (getCellTemp(this_.selectPos)[0] > this_.allTableDom[this_.tableNum].hang) {
+                                    this_.allTableDom[this_.tableNum].addHang();
+                                }
+                                afterUpdate();
+                            } else {
+                                alert('样式服务器同步失败');
+                                this.selectPos = '';
+                            }
+                        });
+                    } else {
+                        afterUpdate();
+                    }
+                } else {
+                    this.selectPos = '';
+                }
+            },
+            userValueWrite(value) {
+                var key = value.key;
+                var this_ = this;
+                if (['Enter', 'ArrowRight'].indexOf(key) > -1) {
+                    let tableId = this.tableNum;
+                    let posId = this.selectPos;
+
+                    function turnNewTD () {
+                        this_.changeTd({
+                            tableNum: tableId,
+                            pos: posId,
+                            value: value.target.value,
+                            xfIndex: this_.allTableDom[this_.tableNum].findChild(this_.selectPos).xfIndex
+                        });
+                        this_.userValueWriteValue = '';
+                        this_.userValueWriteIsShow = false;
+                        let temp = getCellTemp(posId);
+                        if (key === 'Enter') {
+
+                        } else {
+                            // 键盘向右箭头
+                            if (key === 'ArrowRight') {
+                                temp[1]++;
+                            }
+                            let rightDom = this_.allTableDom[this_.tableNum].findChild(getCellTemp2(temp[0], temp[1])).dom;
+                            $(rightDom).trigger('dblclick');
+                        }
+                    }
+
+                    if (this.allTableDom[this.tableNum].findChild(this.selectPos).get().toString() !== value.target.value) {
+                        ajax({
+                            url: 'http://www.tablehub.cn/action/table.html',
+                            type: 'POST',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            data: {
+                                function: 'updateTdValue',
+                                fileId: this.fileId,
+                                tableNum: tableId,
+                                pos: posId,
+                                value: value.target.value
+                            }
+                        }).then((data) => {
+                            if (data === 1) {
+                                turnNewTD();
+                            } else {
+                                alert('样式服务器同步失败');
+                            }
+                        });
+                    } else {
+                        turnNewTD();
+                    }
+                }
+            }
+        },
+        watch: {
+            tableNum(val) {
+                for (let i = 0; i < this.allTableDom.length; i++) {
+                    if (i === val) {
+                        this.allTableDom[i].active(true);
+                    } else {
+                        this.allTableDom[i].active(false);
+                    }
+                }
             }
         },
         data: function () {
             return {
                 title: '',
+                readyObj: new tableReady(),
                 getEvalObj: getEvalObj,
                 isMyTable: true,
                 isOpenEdit: false,
-                tableNum: 0,//表序列
+                tableNum: 0, // 表序列
                 allTableTitle: [],
+                userValueWriteIsShow: false,
+                userValueWriteValue: '',
                 fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
                 allFileData: [],
+                selectPos: '',
+                selectMergeState: false,
                 cellXfInfo: {
                     font: {
                         bold: false,
-                        underline:
-                            false,
-                        italic:
-                            false,
-                    }
-                    ,
+                        underline: false,
+                        italic: false,
+                    },
                     alignment: {
                         horizontal: 'general'
                     }
@@ -786,7 +572,7 @@
             }
         },
         components: {
-            bottom, tools, dataFloat, wrapper, pageFloatPanel, tableVueObj
+            bottom, tools, dataFloat, wrapper, pageFloatPanel
         },
         created() {
             var this_ = this;
@@ -862,148 +648,7 @@
                 }
                 this.rewriteExcel(data.data);
                 //触发表格完成
-                readyObj.set(1);
-            });
-            $('body').click(function () {
-                if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
-                    $('.floatSingleValueWrite .input input[pos]').each(function () {
-                        var inputDom = this;
-
-                        function afterUpdate() {
-                            this_.writeTd($(inputDom).attr('tableid'),
-                                $(inputDom).attr('pos'),
-                                $(inputDom).val(),
-                                $(inputDom).attr('cell_xf'));
-                            $(inputDom).removeAttr('tableid');
-                            $(inputDom).removeAttr('pos');
-                            $(inputDom).removeAttr('cell_xf');
-                            $(inputDom).parent().hide();
-                            $(inputDom).val('');
-                        }
-
-                        if ($(this).attr('oldValue') !== $(this).val()) {
-                            ajax({
-                                type: 'POST',
-                                data: {
-                                    function: 'updateTdValue',
-                                    fileId: this_.fileId,
-                                    tableNum: $(this).attr('tableid'),
-                                    pos: $(this).attr('pos'),
-                                    value: $(this).val()
-                                }
-                            }).then((data) => {
-                                if (data !== '-1') {
-                                    if (getCellTemp($(inputDom).attr('pos'))[0] > this_.allTableDom[$(inputDom).attr('tableid')].hang) {
-                                        this_.allTableDom[$(inputDom).attr('tableid')].addHang();
-                                    }
-                                    afterUpdate();
-                                } else {
-                                    alert('样式服务器同步失败');
-                                }
-                            });
-                        } else {
-                            afterUpdate();
-                        }
-                    });
-                }
-            });
-
-            $('body').on('dblclick', '.edit #myTabContent td', function () {
-                setTdSelectState.call(this);
-                //看看当前单元格是否有合并
-                var activeId = this_.tableNum;
-                var selectPos = getCellTemp2(parseInt($(this).attr('hang')), parseInt($(this).attr('lie')));
-                var tempValue = this_.allTableDom[activeId].findChild(selectPos).value_;
-                if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
-                    //计算宽度
-                    function getTrueWidth(str, xf) {
-                        var span = $('<span></span>');
-                        span.attr('cell_xf', xf);
-                        span.html(str);
-                        $(this).parents('.tableBody').find('.floatSingleValueWrite .span').html('').append(span);
-                        return span.width() + 8;
-                    }
-
-                    $('.tableBody').eq(activeId).scrollTop();
-                    var position = $(this).position();
-                    var inputTd = $(this).parents('.tableBody').find('.floatSingleValueWrite .input');
-                    inputTd.show();
-                    inputTd.find('input').val(tempValue);
-                    inputTd.find('input').attr('cell_xf', $(this).attr('cell_xf'));
-                    inputTd.find('input').attr('tableId', activeId);
-                    inputTd.find('input').attr('pos', getCellTemp2($(this).attr('hang'), $(this).attr('lie')));
-                    inputTd.find('input').attr('oldValue', tempValue);
-                    inputTd.css('left', position.left - parseInt($(this).parents('.tableBody').css('marginLeft')) + $('.tableBody').eq(activeId).scrollLeft() - 1);
-                    inputTd.css('top', position.top - parseInt($(this).parents('.tableBody').css('marginTop')) + $('.tableBody').eq(activeId).scrollTop());
-                    inputTd.css('height', $(this).outerHeight() + 2);
-                    inputTd.css('min-width', $(this).outerWidth() + 3);
-                    inputTd.css('width', getTrueWidth.call(this, tempValue, $(this).attr('cell_xf')) + 1);
-                    var this2_ = this;
-                    inputTd.find('input').on('input', function () {
-                        inputTd.css('width', getTrueWidth.call(this2_, $(this).val(), $(this2_).attr('cell_xf')));
-                    });
-                    inputTd.find('input').click(function (event) {
-                        event.stopPropagation();
-                    });
-                    inputTd.find('input').focus();
-                } else {
-                    this_.$refs.float.initFloatDom(this, activeId, tempValue);
-                }
-            });
-            $('body').on('keydown', '#myTabContent .floatSingleValueWrite .input input', function (e) {
-                if (['Enter', 'ArrowRight'].indexOf(e.key) > -1) {    //'ArrowRight',
-                    let inputDom = this;
-                    let tableId = $(inputDom).attr('tableid');
-                    let posId = $(inputDom).attr('pos');
-
-                    function turnNewTD() {
-                        this_.changeTd({
-                            tableNum: tableId,
-                            pos: posId,
-                            value: $(inputDom).val(),
-                            xfIndex: $(inputDom).attr('cell_xf')
-                        });
-                        $(inputDom).removeAttr('tableid');
-                        $(inputDom).removeAttr('pos');
-                        $(inputDom).removeAttr('cell_xf');
-                        $(inputDom).val('');
-                        $(inputDom).parent().hide();
-                        let temp = getCellTemp(posId);
-                        if (e.key === 'Enter') {
-
-                        } else {
-                            //键盘向右箭头
-                            if (e.key === 'ArrowRight') {
-                                temp[1]++;
-                            }
-                            let rightDom = this_.allTableDom[getCellTemp2(temp[0], temp[1])].findChild(getCellTemp2(temp[0], temp[1])).dom;
-                            $(rightDom).trigger('dblclick');
-                        }
-                    }
-
-                    if ($(this).attr('oldValue') !== $(this).val()) {
-                        ajax({
-                            url: 'http://www.tablehub.cn/action/table.html',
-                            type: 'POST',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            data: {
-                                function: 'updateTdValue',
-                                fileId: this_.fileId,
-                                tableNum: $(this).attr('tableid'),
-                                pos: $(this).attr('pos'),
-                                value: $(this).val()
-                            }
-                        }).then((data) => {
-                            if (data === 1) {
-                                turnNewTD();
-                            } else {
-                                alert('样式服务器同步失败');
-                            }
-                        });
-                    } else {
-                        turnNewTD();
-                    }
-                }
+                this_.readyObj.set(1);
             });
         }
     }
@@ -1015,12 +660,12 @@
     .floatSingleValueWrite {
         height: 1px;
         width: 1px;
-        position: relative;
-        margin-top: -2px;
+        position: absolute;
+        top: 42px;
+        margin-top: -1px;
         .input {
             position: absolute;
             z-index: 2;
-            display: none;
             background-color: rgb(255, 255, 255);
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.63);
         }
@@ -1035,8 +680,7 @@
             opacity: 0;
         }
     }
-</style>
-<style lang="less">
+
     body {
         background-color: #e6e6e6;
     }
@@ -1053,6 +697,41 @@
         > tbody > tr > td {
             width: 100px;
             overflow: hidden;
+        }
+        th, td {
+            text-align: center;
+        }
+
+        > tbody > tr {
+            height: 37px;
+            > td {
+                min-width: 60px;
+                border: 1px solid #ddd;
+                white-space: nowrap;
+                vertical-align: middle;
+                padding: 0;
+                height: 37px;
+            }
+            > .mergeTd {
+                white-space: initial
+            }
+        }
+
+        > thead {
+            background-color: #c3c3c3;
+        }
+
+        td .tdInsertDiv {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            > div:nth-child(2) {
+                flex-grow: 1;
+                > span {
+                    display: inline-block;
+                }
+            }
         }
     }
 
@@ -1079,21 +758,12 @@
         }
     }
 
-    .edit .tableBody {
-        margin-left: 80px;
-        width: calc(~"100% - 80px");
-        height: calc(~"100% - 39px");
-        overflow: scroll;
-        margin-top: 39px;
-        cursor: cell;
-    }
-
     .tableRow {
         display: none;
         position: absolute;
         left: 0;
         width: 80px;
-        top: 37px;
+        top: 39px;
         height: calc(~"100% - 39px");
         overflow: hidden;
     }
@@ -1105,10 +775,49 @@
 
         .tableRow {
             display: block;
+            .table > tbody > tr > .idNum {
+                position: relative;
+                > div {
+                    cursor: ns-resize;
+                    position: absolute;
+                    left: 0;
+                    bottom: 0;
+                    height: 5px;
+                    width: 100%;
+                }
+            }
         }
 
         .tableThead {
             display: block;
+        }
+        .tableBody {
+            margin-left: 80px;
+            width: calc(~"100% - 80px");
+            height: calc(~"100% - 39px");
+            overflow: scroll;
+            margin-top: 39px;
+            cursor: cell;
+        }
+        .editTd {
+            background-color: #e5f2ff;
+            /*border:solid 2px #0000b8;*/
+        }
+
+        .editTdtop {
+            border-top: solid 2px #0000b8;
+        }
+
+        .editTdbottom {
+            border-bottom: solid 2px #0000b8;
+        }
+
+        .editTdleft {
+            border-left: solid 2px #0000b8;
+        }
+
+        .editTdright {
+            border-right: solid 2px #0000b8;
         }
     }
 
@@ -1160,51 +869,7 @@
         content: '+';
     }
 
-    .table th, .table td {
-        text-align: center;
-    }
-
-    .table > tbody > tr {
-        height: 37px;
-    }
-
-    .table > thead {
-        background-color: #c3c3c3;
-    }
-
-    .edit {
-        .editTd {
-            background-color: #e5f2ff;
-            /*border:solid 2px #0000b8;*/
-        }
-
-        .editTdtop {
-            border-top: solid 2px #0000b8;
-        }
-
-        .editTdbottom {
-            border-bottom: solid 2px #0000b8;
-        }
-
-        .editTdleft {
-            border-left: solid 2px #0000b8;
-        }
-
-        .editTdright {
-            border-right: solid 2px #0000b8;
-        }
-    }
-
     .tableThead thead > tr > th {
-        min-width: 60px;
-        border: 1px solid #ddd;
-        white-space: nowrap;
-        vertical-align: middle;
-        padding: 0;
-        height: 37px;
-    }
-
-    .table > tbody > tr > td {
         min-width: 60px;
         border: 1px solid #ddd;
         white-space: nowrap;
@@ -1233,10 +898,6 @@
                 width: 5px;
             }
         }
-    }
-
-    .table > tbody > tr > .mergeTd {
-        white-space: initial
     }
 
     .tableBody {
@@ -1300,32 +961,5 @@
         background-color: #e6e6e6;
         border: solid 1px #b5b5b5;
         border-radius: 2px;
-    }
-
-    .table td .tdInsertDiv {
-        display: table;
-        width: 100%;
-        > div {
-            display: table-cell;
-        }
-
-        > div:nth-child(2) {
-            white-space: normal;
-            display: block;
-            height: 1rem;
-        }
-
-        > div:nth-child(2) > span {
-            /*max-width: 100px;*/
-            display: inline-block;
-        }
-
-        > div:first-child {
-            text-align: left;
-        }
-
-        > div:last-child {
-            text-align: right;
-        }
     }
 </style>
