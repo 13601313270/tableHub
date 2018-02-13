@@ -50,7 +50,6 @@
     import pageFloatPanel from '@/components/pageFloatPanel.vue';
     import ajax from '@/tools/ajax.js';
     import echarts from 'echarts';
-    import setTdSelectState from '@/tools/setTdSelectState.js';
     import tableClass from '@/tools/table';
 
     function tableReady () {
@@ -305,9 +304,7 @@
                     });
                     this_.allTableDom[table_Num].addListener('dblclick', (pos) => {
                         if (this_.isOpenEdit) {
-                            var clickTd = this.allTableDom[this.tableNum].findChild(pos).dom.parentNode;
-
-                            setTdSelectState.call(this);
+                            var td = this.allTableDom[this.tableNum].findChild(pos);
 //                            // 看看当前单元格是否有合并
                             var activeId = this.tableNum;
                             var tempValue = this_.allTableDom[activeId].findChild(pos).value_;
@@ -322,19 +319,19 @@
                                 }
 
                                 $('.tableBody').eq(activeId).scrollTop();
-                                var position = $(clickTd).position();
                                 this_.userValueWriteIsShow = true;
                                 this_.userValueWriteValue = tempValue;
 
                                 var inputTd = $('.floatSingleValueWrite .input');
+                                var clickTd = td.dom.parentNode;
+                                var position = $(clickTd).position();
                                 inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
                                 inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
                                 inputTd.css('height', $(clickTd).outerHeight() + 2);
                                 inputTd.css('min-width', $(clickTd).outerWidth() + 3);
-                                inputTd.css('width', getTrueWidth.call(clickTd, tempValue, $(clickTd).attr('cell_xf')) + 1);
-                                var this2_ = clickTd;
+                                inputTd.css('width', getTrueWidth(tempValue, td.xfIndex) + 1);
                                 inputTd.find('input').on('input', function () {
-                                    inputTd.css('width', getTrueWidth.call(this2_, $(clickTd).val(), $(this2_).attr('cell_xf')));
+                                    inputTd.css('width', getTrueWidth($(clickTd).val(), td.xfIndex));
                                 });
                                 inputTd.find('input').click(function (event) {
                                     event.stopPropagation();

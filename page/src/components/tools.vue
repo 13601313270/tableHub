@@ -21,10 +21,12 @@
                                 @click.stop="cellXfInfo.font.bold = (!cellXfInfo.font.bold ? 1 : 0),setStyle()">&#xe63f;
                         </button>
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.italic}" data-name="italic"
-                                @click.stop="cellXfInfo.font.italic = (!cellXfInfo.font.italic ? 1 : 0),setStyle()">&#xe60d;
+                                @click.stop="cellXfInfo.font.italic = (!cellXfInfo.font.italic ? 1 : 0),setStyle()">
+                            &#xe60d;
                         </button>
                         <button class="btn btn-default" :class="{active:this.cellXfInfo.font.underline=='single'}"
-                                data-name="underline" @click.stop="cellXfInfo.font.underline==('single'?'none':'single'),setStyle()">&#xe614;
+                                data-name="underline"
+                                @click.stop="cellXfInfo.font.underline==('single'?'none':'single'),setStyle()">&#xe614;
                         </button>
                     </div>
                     <div class="btn-group">
@@ -83,7 +85,8 @@
                                 data-name="fx"
                                 @click.stop="fx"
                                 :class="{disabled:selectPos==''}"
-                        >&#xe646;</button>
+                        >&#xe646;
+                        </button>
                     </div>
                     <div class="btn-group" style="display: none">
                         <div class="input-group disabled" style="width: 150px;">
@@ -138,7 +141,7 @@
     import ajax from '@/tools/ajax.js';
     import userState from './userState.vue';
 
-    function createCss(i, item) {
+    function createCss (i, item) {
         var strItem = "[cell_xf=\"" + i + "\"]{\n";
         if (item.font) {
             if (item.font.color) {
@@ -178,7 +181,7 @@
     }
 
     export default {
-        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num', 'selectMergeState','selectPos'],
+        props: ['title', 'isMyTable', 'isOpenEdit', 'cellXfInfo', 'fileId', 'table-num', 'selectMergeState', 'selectPos'],
         methods: {
             stateChange() {
                 this.isOpenEdit_ = !this.isOpenEdit_;
@@ -268,14 +271,12 @@
                 }
             },
             size(value) {
-                console.log(value.target.value);
                 this.cellXfInfo.font.size = parseInt(value.target.value);
                 this.setStyle();
             },
             tdMerge() {
                 var self = this;
                 if (this.selectMergeState === 'down') {
-                    console.log(this.cellXfInfo);
                     let this_ = $('.editTd');
                     if (this_.length === 0) {
                         return;
@@ -366,7 +367,7 @@
                     var cell_xf = $(writeTd).attr('cell_xf');
                     var pos = getCellTemp2($(writeTd).attr('hang'), $(writeTd).attr('lie'));
 
-                    function run(callBack) {
+                    function run (callBack) {
                         var isExist = false;//是否已经存在一个这样样式的id
                         var isExistId = -1;
                         for (var i = 0; i < getCellXfCollection.length; i++) {

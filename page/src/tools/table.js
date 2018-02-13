@@ -212,11 +212,11 @@ var tableVueObj = Vue.extend({
             return cellXfInfo;
         },
 
-        ddd: false,
+        isDoubleClick: false,
         selectTd_temp(hang, lie) {
-            this.ddd = true;
+            this.isDoubleClick = true;
             setTimeout(() => {
-                if (this.ddd === true) {
+                if (this.isDoubleClick === true) {
                     this.poiCenter = {
                         top: hang,
                         bottom: hang,
@@ -250,7 +250,7 @@ var tableVueObj = Vue.extend({
             }, 1);
         },
         dbselectTd_temp(hang, lie) {
-            this.ddd = false;
+            this.isDoubleClick = false;
             this.tableObj.events_.emit('dblclick', getCellTemp2(hang, lie));
         }
     },
