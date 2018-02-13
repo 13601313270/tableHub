@@ -1,5 +1,5 @@
 <template>
-    <div @click="selectPos=''">
+    <div @click="bodyClick">
         <div id="tablePanel" :class="{edit:isOpenEdit}">
             <tools @stateChange="isOpenEditSet"
                    @fx="fx"
@@ -25,7 +25,7 @@
                 <div id="myTabContent" ref="allPage" class="tab-content"></div>
                 <div class="floatSingleValueWrite" v-show="userValueWriteIsShow">
                     <div class="input">
-                        <input @keydown="userValueWrite"/>
+                        <input @keydown="userValueWrite" v-model="userValueWriteValue"/>
                     </div>
                     <div class="span"></div>
                 </div>
@@ -381,11 +381,56 @@
                     this.allTableDom[tableNum].addHang();
                 }
             },
+            bodyClick() {
+                if (this.userValueWriteIsShow) {
+                    var this_ = this;
+                    var inputDom = $('.floatSingleValueWrite .input input');
+
+                    function afterUpdate () {
+                        this_.changeTd({
+                            tableNum: this_.tableNum,
+                            pos: this_.selectPos,
+                            value: inputDom.val(),
+                            xfIndex: this_.allTableDom[this_.tableNum].findChild(this_.selectPos).xfIndex
+                        });
+                        this_.userValueWriteIsShow = false;
+                        this_.userValueWriteValue = '';
+                        this_.selectPos = '';
+                    }
+
+                    if (this_.allTableDom[this_.tableNum].findChild(this_.selectPos).get().toString() !== inputDom.val()) {
+                        ajax({
+                            type: 'POST',
+                            data: {
+                                'function': 'updateTdValue',
+                                fileId: this_.fileId,
+                                tableNum: this_.tableNum,
+                                pos: this_.selectPos,
+                                value: inputDom.val()
+                            }
+                        }).then((data) => {
+                            if (data !== '-1') {
+                                if (getCellTemp(this_.selectPos)[0] > this_.allTableDom[this_.tableNum].hang) {
+                                    this_.allTableDom[this_.tableNum].addHang();
+                                }
+                                afterUpdate();
+                            } else {
+                                alert('样式服务器同步失败');
+                                this.selectPos = '';
+                            }
+                        });
+                    } else {
+                        console.log('no');
+                        afterUpdate();
+                    }
+                } else {
+                    this.selectPos = '';
+                }
+            },
             userValueWrite(value) {
                 var key = value.key;
                 var this_ = this;
                 if (['Enter', 'ArrowRight'].indexOf(key) > -1) {
-                    let inputDom = this;
                     let tableId = this.tableNum;
                     let posId = this.selectPos;
 
@@ -396,23 +441,19 @@
                             value: value.target.value,
                             xfIndex: this_.allTableDom[this_.tableNum].findChild(this_.selectPos).xfIndex
                         });
-//                        $(inputDom).removeAttr('tableid');
-//                        $(inputDom).removeAttr('pos');
-//                        $(inputDom).removeAttr('cell_xf');
-//                        $(inputDom).val('');
+                        this_.userValueWriteValue = '';
                         this_.userValueWriteIsShow = false;
-//                        $(inputDom).parent().hide();
-//                        let temp = getCellTemp(posId);
-//                        if (key === 'Enter') {
-//
-//                        } else {
-//                            //键盘向右箭头
-//                            if (key === 'ArrowRight') {
-//                                temp[1]++;
-//                            }
-//                            let rightDom = this_.allTableDom[getCellTemp2(temp[0], temp[1])].findChild(getCellTemp2(temp[0], temp[1])).dom;
-//                            $(rightDom).trigger('dblclick');
-//                        }
+                        let temp = getCellTemp(posId);
+                        if (key === 'Enter') {
+
+                        } else {
+                            // 键盘向右箭头
+                            if (key === 'ArrowRight') {
+                                temp[1]++;
+                            }
+                            let rightDom = this_.allTableDom[this_.tableNum].findChild(getCellTemp2(temp[0], temp[1])).dom;
+                            $(rightDom).trigger('dblclick');
+                        }
                     }
 
                     if (this.allTableDom[this.tableNum].findChild(this.selectPos).get().toString() !== value.target.value) {
@@ -458,9 +499,10 @@
                 getEvalObj: getEvalObj,
                 isMyTable: true,
                 isOpenEdit: false,
-                tableNum: 0,//表序列
+                tableNum: 0, // 表序列
                 allTableTitle: [],
                 userValueWriteIsShow: false,
+                userValueWriteValue: '',
                 fileId: parseInt(window.location.href.match(/\/table\/(\d+)\.html/)[1]),
                 allFileData: [],
                 selectPos: '',
@@ -557,52 +599,6 @@
                 //触发表格完成
                 this_.readyObj.set(1);
             });
-            $('body').click(function () {
-                if ($('.floatSingleValueWrite .input input[pos]').length > 0) {
-                    $('.floatSingleValueWrite .input input[pos]').each(function () {
-                        console.log(1);
-                        var inputDom = this;
-
-                        function afterUpdate () {
-                            this_.writeTd(
-                                $(inputDom).attr('tableid'),
-                                $(inputDom).attr('pos'),
-                                $(inputDom).val(),
-                                $(inputDom).attr('cell_xf')
-                            );
-                            $(inputDom).removeAttr('tableid');
-                            $(inputDom).removeAttr('pos');
-                            $(inputDom).removeAttr('cell_xf');
-                            this_.userValueWriteIsShow = false;
-                            $(inputDom).val('');
-                        }
-
-                        if ($(this).attr('oldValue') !== $(this).val()) {
-                            ajax({
-                                type: 'POST',
-                                data: {
-                                    function: 'updateTdValue',
-                                    fileId: this_.fileId,
-                                    tableNum: $(this).attr('tableid'),
-                                    pos: $(this).attr('pos'),
-                                    value: $(this).val()
-                                }
-                            }).then((data) => {
-                                if (data !== '-1') {
-                                    if (getCellTemp($(inputDom).attr('pos'))[0] > this_.allTableDom[$(inputDom).attr('tableid')].hang) {
-                                        this_.allTableDom[$(inputDom).attr('tableid')].addHang();
-                                    }
-                                    afterUpdate();
-                                } else {
-                                    alert('样式服务器同步失败');
-                                }
-                            });
-                        } else {
-                            afterUpdate();
-                        }
-                    });
-                }
-            });
 
             $('body').on('dblclick', '.edit #myTabContent td', function () {
                 setTdSelectState.call(this);
@@ -624,11 +620,7 @@
                     var position = $(this).position();
                     var inputTd = $('.floatSingleValueWrite .input');
                     this_.userValueWriteIsShow = true;
-                    inputTd.find('input').val(tempValue);
-                    inputTd.find('input').attr('cell_xf', $(this).attr('cell_xf'));
-                    inputTd.find('input').attr('tableId', activeId);
-                    inputTd.find('input').attr('pos', getCellTemp2($(this).attr('hang'), $(this).attr('lie')));
-                    inputTd.find('input').attr('oldValue', tempValue);
+                    this_.userValueWriteValue = tempValue;
                     inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
                     inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
                     inputTd.css('height', $(this).outerHeight() + 2);
@@ -680,8 +672,7 @@
             opacity: 0;
         }
     }
-</style>
-<style lang="less">
+
     body {
         background-color: #e6e6e6;
     }
