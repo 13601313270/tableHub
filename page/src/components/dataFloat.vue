@@ -489,7 +489,6 @@
                         }
                     });
                 }
-
             });
             $('#dataFloat').on('click', '.add', function () {
                 if ($(this).parents('.dataBaseItem').eq(0).is('.dataBaseItemChild')) {
@@ -519,34 +518,38 @@
         background-color: white;
         border: solid 1px black;
         width: 500px;
-    }
-
-    #dataFloat .content {
-        margin: 10px;
-        height: auto;
-        overflow-y: auto;
-        max-height: 400px;
-    }
-
-    #dataFloat .conallFunctent {
-        width: 100%;
-        padding-top: 10px;
-        max-height: 400px;
-        overflow-y: scroll
-    }
-
-    #dataFloat .head {
-        width: 100%;
-        height: 30px;
-        background-color: #82b8ff;
-    }
-
-    #dataFloat .action {
-        padding: 5px;
-    }
-
-    #dataFloat .col-sm-9 {
-        padding-right: 0;
+        .content {
+            margin: 10px;
+            height: auto;
+            overflow-y: auto;
+            max-height: 400px;
+            > .form-group:first-child > .add {
+                display: none;
+            }
+            > .form-group:first-child > .form-control {
+                width: 100%;
+            }
+            > .form-group > div > .add {
+                display: none;
+            }
+        }
+        .conallFunctent {
+            width: 100%;
+            padding-top: 10px;
+            max-height: 400px;
+            overflow-y: scroll
+        }
+        .head {
+            width: 100%;
+            height: 30px;
+            background-color: #82b8ff;
+        }
+        .action {
+            padding: 5px;
+        }
+        .col-sm-9 {
+            padding-right: 0;
+        }
     }
 
     .form-group {
@@ -583,10 +586,19 @@
         margin-bottom: 2px;
         border: solid 4px #2f2f2f;
         background-color: rgba(102, 184, 255, 0.41);
-    }
-
-    .dataBaseItem > .form-group > [name=dataType] {
-        width: 90%;
+        > .form-group > [name=dataType] {
+            width: 90%;
+        }
+        > .addMore {
+            width: 100%;
+            text-align: center;
+            border-top: solid 2px #505050;
+            background-color: #94ccfb;
+            font-size: 16px;
+        }
+        > .addMore:hover {
+            background-color: #87bae5;
+        }
     }
 
     .dataBaseItemSingle {
@@ -595,10 +607,9 @@
 
     .dataBaseItemNoParam {
         border: none !important;
-    }
-
-    .dataBaseItemNoParam > .form-group > .form-control {
-        width: 100%;
+        > .form-group > .form-control {
+            width: 100%;
+        }
     }
 
     .dataBaseItemChild {
@@ -607,39 +618,13 @@
         border: none;
     }
 
-    #dataFloat .content > .form-group:first-child > .add {
-        display: none;
-    }
-
-    #dataFloat .content > .form-group:first-child > .form-control {
-        width: 100%;
-    }
-
-    #dataFloat .content > .form-group > div > .add {
-        display: none;
-    }
-
-    .dataBaseItem > .addMore {
-        width: 100%;
-        text-align: center;
-        border-top: solid 2px #505050;
-        background-color: #94ccfb;
-        font-size: 16px;
-    }
-
-    .dataBaseItem > .addMore:hover {
-        background-color: #87bae5;
-    }
-
     #dataFloat.floatSingleValue {
         border: none;
-    }
-
-    #dataFloat.floatSingleValue .head {
-        display: none;
-    }
-
-    #dataFloat.floatSingleValue > .content {
-        display: none;
+        .head {
+            display: none;
+        }
+        > .content {
+            display: none;
+        }
     }
 </style>
