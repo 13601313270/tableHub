@@ -1,3 +1,4 @@
+/*
 function NOW(){
     this.bindEvent = [];
     this.listening = [];
@@ -71,3 +72,4 @@ functionInit(DATEINPUT,'时间输入框',{
         return [obj.value_,obj.addNum];
     }
 });
+*/

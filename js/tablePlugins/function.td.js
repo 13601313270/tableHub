@@ -9,23 +9,22 @@ function tdValueList(value) {
 tdValueList.prototype = new obj('tdValueList');
 
 function td(table, positionStr) {
-    var tableId = table.tableId;
-    this.tableId = tableId;
+    this.tableId = table.tableId;
     this.bindEvent = [];
     this.listening = [];
-    this.state = 0;//0正常,1锁定
+    this.state = 0;// 0正常,1锁定
     if (positionStr === '=') {
         positionStr = 'A1';
     }
     this.value_ = '';
-    this.tdName = positionStr;//字符串名称入(B1)
+    this.tdName = positionStr;// 字符串名称入(B1)
     var tdPos = getCellTemp(positionStr);
     this.table = table;
     this.hang = tdPos[0];
     this.lie = tdPos[1];
     this.xfIndex = 0;
-    this.dom = document.createElement("div");
-    this.dom.className = "tdInsertDiv";
+    this.dom = document.createElement('div');
+    this.dom.className = 'tdInsertDiv';
     this.getNearFenshu = function (num, wei) {
         var numList = num.toString().split('.');
         num = '0.' + numList[1];
@@ -396,7 +395,7 @@ function td(table, positionStr) {
                                 '<div>' + valueArr[2] + '</div>';
                             this.dom.innerHtml = insertHtml;
                         } else {
-                            var tdPos = getCellTemp2(this.hang + i, this.lie + j);
+                            var tdPos = this.getCellTemp2(this.hang + i, this.lie + j);
                             if (this.table.child(tdPos) === undefined) {
                                 var tdTemp = new td(this.table, tdPos);
                             } else {
@@ -423,7 +422,7 @@ function td(table, positionStr) {
             this.dom.removeAttribute('cell_xf');
         }
         td.prototype.render.call(this);
-    }
+    };
     this.css = function (callFunc, style) {
         this.cssCallFunction = callFunc;
         this.cssStyle = style;
