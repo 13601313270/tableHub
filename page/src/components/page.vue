@@ -556,8 +556,8 @@
                         horizontal: 'general'
                     }
                 },
-                allTableDom: [],
-            }
+                allTableDom: []
+            };
         },
         components: {
             bottom, tools, dataFloat, wrapper, pageFloatPanel
@@ -618,7 +618,7 @@
                 this.title = data.title;
                 this.isMyTable = data.isMyTable;
                 window.getCellXfCollection = data.style;
-                //单元格样式
+                // 单元格样式
                 {
                     let nod = document.createElement("style");
                     nod.type = "text/css";

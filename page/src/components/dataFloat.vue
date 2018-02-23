@@ -436,12 +436,6 @@
         },
         mounted() {
             var self = this;
-            // $('#myTabContent').on('click', '.active', function () {
-            //     console.log('hide');
-            //     self.show_ = false;
-            //     // $('#dataFloat').hide();
-            // });
-
             $('#dataFloat').on('change', '[name=dataType]', function () {
                 var func = $(this).val();
                 if (['', '='].indexOf(func) > -1) {
