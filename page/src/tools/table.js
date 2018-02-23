@@ -40,6 +40,10 @@ var tableVueObj = Vue.extend({
         scroll(event) {
             this.theadLeft = event.target.scrollLeft;
             this.rowTop = event.target.scrollTop;
+            this.tableObj.events_.emit('scroll', {
+                x: this.theadLeft,
+                y: this.rowTop,
+            });
         },
         Xmousemove(e) {
             let thNum = e.dom.parentNode.getAttribute('lienum');

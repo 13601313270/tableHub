@@ -23,7 +23,8 @@
                     <li v-if="isMyTable&&isOpenEdit" @click="addTable" class="addTable">&#xe641;</li>
                 </ul>
                 <div id="myTabContent" ref="allPage" class="tab-content"></div>
-                <div class="floatSingleValueWrite" v-show="userValueWriteIsShow">
+                <div class="floatSingleValueWrite" v-show="userValueWriteIsShow"
+                     :style="{left:floatSingleValueWritePosition.x*-1+'px',top:floatSingleValueWritePosition.y*-1+'px'}">
                     <div class="input">
                         <input @keydown="userValueWrite" v-model="userValueWriteValue"/>
                     </div>
@@ -236,7 +237,6 @@
                             beginDom = beginDom[0];
                         }
                         beginDom = beginDom.parentNode;
-                        console.log(beginDom);
                         beginDom.setAttribute('rowspan', end[0] - begin[0] + 1);
                         var domTemp = this_.allTableDom[table_Num].findChild(getCellTemp2(begin[0], begin[1])).dom;
                         if (domTemp instanceof jQuery) {
@@ -290,17 +290,19 @@
                         hang = Math.max(hang, tdPos[0]);
                         lie = Math.max(lie, tdPos[1]);
                     }
-                    console.groupEnd();
                     lie = Math.max(lie, 6);// 至少补充到6列
                     this_.allTableDom[table_Num] = new tableClass(table_Num, tableObj, hang, lie);
                     this_.allTableDom[table_Num].addListener('tdSelect', function (data) {
                         if (this_.isOpenEdit) {
-                            console.log('select');
                             this_.cellXfInfo = data.xf;
                             this_.selectMergeState = data.selectMergeState;
                             this_.selectPos = data.pos;
 //                        this_.userValueWriteIsShow = false;
                         }
+                    });
+                    this_.allTableDom[table_Num].addListener('scroll', (data) => {
+                        this_.floatSingleValueWritePosition.x = data.x;
+                        this_.floatSingleValueWritePosition.y = data.y;
                     });
                     this_.allTableDom[table_Num].addListener('dblclick', (pos) => {
                         if (this_.isOpenEdit) {
@@ -543,6 +545,7 @@
                 allFileData: [],
                 selectPos: '',
                 selectMergeState: false,
+                floatSingleValueWritePosition: {x: 0, y: 0},
                 cellXfInfo: {
                     font: {
                         bold: false,
@@ -646,8 +649,7 @@
         height: 1px;
         width: 1px;
         position: absolute;
-        top: 42px;
-        margin-top: -1px;
+        margin-top: 41px;
         .input {
             position: absolute;
             z-index: 2;
