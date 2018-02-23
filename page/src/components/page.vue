@@ -52,7 +52,7 @@
     import echarts from 'echarts';
     import tableClass from '@/tools/table';
 
-    function tableReady () {
+    function tableReady() {
     }
 
     tableReady.prototype = new obj();
@@ -67,7 +67,7 @@
     //    b.value = 111;// = 100;
     //    console.log("====3======");
 
-    function createCss (i, item) {
+    function createCss(i, item) {
         var strItem = "[cell_xf=\"" + i + "\"]{\n";
         if (item.font) {
             if (item.font.color) {
@@ -225,7 +225,7 @@
                 // 单元格数据
                 this.allFileData = dataList;
 
-                function initMerge (table_Num, mergeData) {
+                function initMerge(table_Num, mergeData) {
                     for (let i in mergeData) {
                         let beginAndEnd = i.split(':');
                         let begin = getCellTemp(beginAndEnd[0]);
@@ -310,7 +310,7 @@
                             var tempValue = this_.allTableDom[activeId].findChild(pos).value_;
                             if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
                                 // 计算宽度
-                                function getTrueWidth (str, xf) {
+                                function getTrueWidth(str, xf) {
                                     var span = $('<span></span>');
                                     span.attr('cell_xf', xf);
                                     span.html(str);
@@ -347,7 +347,6 @@
                                 this_.$refs.float.initFloatDom(tempTd, activeId, tempValue);
                                 this_.$refs.float.show();
                             }
-
                         }
                     });
 
@@ -360,22 +359,6 @@
 
                     for (let i in tdData[table_Num].tableData) {
                         this_.writeTd(table_Num, i, tdData[table_Num].tableData[i].value, tdData[table_Num].tableData[i].xfIndex);
-                    }
-
-                    function tempAddDbClickToFloat (dom, chartsIndex) {
-                        dom.addEventListener('dblclick', function (event) {
-                            $('#dataFloat .head').html('图表');
-                            let allChartsName = [];
-                            for (let i = 0; i < allChartFunction.length; i++) {
-                                allChartsName.push(allChartFunction[i].funcName);
-                            }
-                            $('#dataFloat .head').attr('action_type', 'CHARTS');
-                            $('#dataFloat .head').attr('tableId', table_Num);
-                            $('#dataFloat .head').attr('chartsIndex', chartsIndex);
-                            this_.$refs.float.initFloatType2(table_Num, this_.allTableDom[table_Num].alltableObj[chartsIndex]);
-                            this_.$refs.float.show();
-                            console.log(event);
-                        });
                     }
 
                     // 绘制图表，一定要排在td之后
@@ -393,7 +376,9 @@
                                 chartsItem.dom.attr('index', chartsId);
                                 chartsItem.index = chartsId;
                                 this_.readyObj.bind(chartsItem);
-                                tempAddDbClickToFloat(chartsItem.dom[0], chartsId);
+                                chartsItem.dom[0].addEventListener('dblclick', function (event) {
+                                    this_.$refs.float.initCharts(table_Num, chartsId, this_.allTableDom[table_Num].alltableObj[chartsId]);
+                                });
                                 this_.allTableDom[table_Num].alltableObj.push(chartsItem);
 
                             }
@@ -438,7 +423,7 @@
                     var this_ = this;
                     var inputDom = $('.floatSingleValueWrite .input input');
 
-                    function afterUpdate () {
+                    function afterUpdate() {
                         this_.changeTd({
                             tableNum: this_.tableNum,
                             pos: this_.selectPos,
@@ -485,7 +470,7 @@
                     let tableId = this.tableNum;
                     let posId = this.selectPos;
 
-                    function turnNewTD () {
+                    function turnNewTD() {
                         this_.changeTd({
                             tableNum: tableId,
                             pos: posId,

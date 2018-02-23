@@ -1,13 +1,13 @@
 <template>
     <absolute-move move="both" hander="head">
         <div id="dataFloat" v-show="show_">
-            <div class="head" ref="head"></div>
+            <div class="head" ref="head" v-html="selectPos"></div>
             <div class="content"></div>
             <div class="contentText" style="border-top:solid 1px grey">
-                <textarea style="width: 100%;" @keyup="contentTextChange"></textarea>
+                <textarea style="width: 100%;" @keyup="contentTextChange" v-model="textareaVallue"></textarea>
             </div>
             <div class="action">
-                <input type="button" class="btn save" value="确定"/>
+                <input type="button" @click="save" class="btn save" value="确定"/>
             </div>
         </div>
     </absolute-move>
@@ -17,7 +17,7 @@
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import absoluteMove from '@/components/widthMove.vue';
 
-    function getStrByEvalObj (tableNum, beRunObj) {
+    function getStrByEvalObj(tableNum, beRunObj) {
         var returnStr = '';
         if (beRunObj instanceof td) {
             if (beRunObj.tableId === tableNum) {
@@ -115,7 +115,7 @@
         }
     }
 
-    function _initFloatType (tableid, evalObj, insertDom, select) {
+    function _initFloatType(tableid, evalObj, insertDom, select) {
         if (evalObj instanceof __runObj__) {
             var type = evalObj.funcName;
             if (type === '') {
@@ -245,7 +245,7 @@
         })();
     }
 
-    function getSaveObj (dom) {
+    function getSaveObj(dom) {
         if ($(dom).is('.dataBaseItemSingle')) {
             let temp = $(dom).find('[name=value]').val();
             if (temp === null) {
@@ -312,9 +312,9 @@
                 let evalObj = getSaveObj($('#dataFloat').find('>.content')[0]);
                 if (typeof evalObj === 'object') {
                     let saveStr = getStrByEvalObj(tdData[tableId].tableTitle, evalObj);
-                    $('#dataFloat .contentText textarea').val('=' + saveStr);
+                    this.textareaVallue = '=' + saveStr;
                 } else {
-                    $('#dataFloat .contentText textarea').val(evalObj);
+                    this.textareaVallue = evalObj;
                 }
             },
             initFloatType2(tableNum, tempValue) {
@@ -338,8 +338,8 @@
                 $('.table thead .lieNum').removeClass('lieNumOn');
                 $('.table thead .lieNum').eq(parseInt(td.lie) - 1).addClass('lieNumOn');
                 var selectPos = getCellTemp2(parseInt(td.hang), parseInt(td.lie));
-                $('#dataFloat .head').html(selectPos);
-                $('#dataFloat .head').attr('action_type', 'td');
+                this.selectPos = selectPos;
+                this.action_type = 'td';
                 var thisTdData = tdData[activeId].tableData[selectPos];
                 this.show_ = true;
                 if (thisTdData === undefined) {
@@ -349,8 +349,72 @@
                     };
                 }
                 this.initFloatType2(activeId, tempValue);
-                $('#dataFloat').attr('xfIndex', thisTdData.xfIndex);
+                this.xfIndex = thisTdData.xfIndex;
                 $('#dataFloat').removeClass('floatSingleValue');
+            },
+            initCharts(table_Num, chartsIndex, tempValue) {
+                this.selectPos = chartsIndex;
+                this.action_type = 'CHARTS';
+                this.initFloatType2(table_Num, tempValue);
+                this.show_ = true;
+            },
+            save() {
+                if (this.action_type === 'CHARTS') {
+                    ajax({
+                        url: 'http://www.tablehub.cn/action/table.html',
+                        type: 'POST',
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        data: {
+                            'function': 'updateChartsValue',
+                            fileId: this.fileId,
+                            tableNum: this.tableNum,
+                            chartsIndex: this.selectPos,
+                            value: this.textareaVallue.replace(/^=/, '')
+                        }
+                    }).then((data) => {
+                        if (data === 1) {
+                            var content = this.textareaVallue.replace(/^=/, '');
+                            this.$emit('changeChart', {
+                                tableNum: this.tableNum,
+                                chartsIndex: this.selectPos,
+                                content: content
+                            });
+                            this.show_ = false;
+                        } else {
+                            alert('样式服务器同步失败');
+                        }
+                    });
+                } else {
+                    let pos = this.selectPos;
+                    ajax({
+                        type: 'POST',
+                        data: {
+                            'function': 'updateTdValue',
+                            fileId: this.fileId,
+                            tableNum: this.tableNum,
+                            pos: pos,
+                            xfIndex: this.xfIndex,
+                            value: this.textareaVallue
+                        }
+                    }).then((data) => {
+                        if (data === 1) {
+                            let tableNum = this.tableNum;
+                            tdData[tableNum].tableData[pos] = {
+                                value: this.textareaVallue,
+                                xfIndex: this.xfIndex
+                            };
+                            this.show_ = false;
+                            this.$emit('change', {
+                                tableNum: tableNum,
+                                pos: pos,
+                                value: tdData[tableNum].tableData[pos].value,
+                                xfIndex: tdData[tableNum].tableData[pos].xfIndex
+                            });
+                        } else {
+                            alert('样式服务器同步失败');
+                        }
+                    });
+                }
             },
             show() {
                 this.show_ = true;
@@ -364,6 +428,10 @@
         data() {
             return {
                 show_: false,
+                selectPos: '',
+                textareaVallue: '',
+                action_type: 'td',
+                xfIndex: 0,
             };
         },
         mounted() {
@@ -419,77 +487,6 @@
                 var select = $(this).parents('.dataBaseItem').eq(0).data('select');
                 _initFloatType(self.tableNum, evalObj, dom, select);
                 self.updateTextareaText(self.tableNum);
-            });
-            $('#dataFloat .action .save').click(function () {
-                var contentDivs = $(this).parents('#dataFloat').find('>.content');
-                var xfIndex = $(this).parents('#dataFloat').attr('xfindex');
-                for (let i = 0; i < contentDivs.length; i++) {
-                    let input = $(contentDivs[i]).find('>div>[name]');
-                    if (input.attr('name') === 'xfIndex') {
-                        xfIndex = input.val();
-                    }
-                }
-                var activeType = $('#dataFloat .head').attr('action_type');
-                if (activeType === 'CHARTS') {
-                    var promise = ajax({
-                        url: 'http://www.tablehub.cn/action/table.html',
-                        type: 'POST',
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        data: {
-                            'function': 'updateChartsValue',
-                            fileId: self.fileId,
-                            tableNum: self.tableNum,
-                            chartsIndex: $('#dataFloat .head').attr('chartsIndex'),
-                            value: $('#dataFloat .contentText textarea').val().replace(/^=/, '')
-                        }
-                    });
-                    promise.then((data) => {
-                        if (data === 1) {
-                            var chartsIndex = $('#dataFloat .head').attr('chartsIndex');
-                            var content = $('#dataFloat .contentText textarea').val().replace(/^=/, '');
-                            self.$emit('changeChart', {
-                                tableNum: self.tableNum,
-                                chartsIndex: chartsIndex,
-                                content: content
-                            });
-                            $('#dataFloat').hide();
-                        } else {
-                            alert('样式服务器同步失败');
-                        }
-                    });
-                }
-                else {
-                    ajax({
-                        type: 'POST',
-                        data: {
-                            'function': 'updateTdValue',
-                            fileId: self.fileId,
-                            tableNum: self.tableNum,
-                            pos: $('#dataFloat .head').html(),
-                            xfIndex: xfIndex,
-                            value: $('#dataFloat .contentText textarea').val()
-                        }
-                    }).then((data) => {
-                        if (data === 1) {
-                            let tableNum = self.tableNum;
-                            let pos = $('#dataFloat .head').html();
-                            tdData[tableNum].tableData[pos] = {
-                                value: $('#dataFloat .contentText textarea').val(),
-                                xfIndex: xfIndex
-                            };
-                            $('#dataFloat').hide();
-                            self.$emit('change', {
-                                tableNum: tableNum,
-                                pos: pos,
-                                value: tdData[tableNum].tableData[pos].value,
-                                xfIndex: tdData[tableNum].tableData[pos].xfIndex
-                            });
-                        } else {
-                            alert('样式服务器同步失败');
-                        }
-                    });
-                }
-
             });
             $('#dataFloat').on('click', '.add', function () {
                 if ($(this).parents('.dataBaseItem').eq(0).is('.dataBaseItemChild')) {
