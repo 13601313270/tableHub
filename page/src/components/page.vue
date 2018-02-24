@@ -603,11 +603,40 @@
             __allMatch__.push({
                 match: /^[A-Z]+\d+$/,
                 value: function (tableNum, word, baseWord) {
-                    if (baseWord === null) {
+                    if (baseWord instanceof tdList) {
+                        baseWord.end = this_.allTableDom[tableNum].findChild(word);
+                        for (let i = baseWord.begin.hang; i <= baseWord.end.hang; i++) {
+                            for (let j = baseWord.begin.lie; j <= baseWord.end.lie; j++) {
+                                var tdStr = getCellTemp2(i, j);
+                                var bindTemp = baseWord.begin.table.findChild(tdStr);
+                                bindTemp.bind(baseWord);
+                            }
+                        }
+                        return baseWord;
+                    } else if (baseWord === null) {
                         return this_.allTableDom[tableNum].findChild(word);
                     } else {
                         return this_.allTableDom[baseWord.tableId].findChild(word);
                     }
+                }
+            });
+
+            __allMatch__.push({
+                match: /^\:$/,
+                value: function (tableNum, word, baseWord) {
+                    return new tdList(baseWord, baseWord);
+                }
+            });
+            __allMatch__.push({
+                match: /^\!$/,
+                value: function (tableNum, word, baseWord) {
+                    let searchTableNum = tableNum;
+                    for (let i = 0; i < tdData.length; i++) {
+                        if (tdData[i].tableTitle === baseWord) {
+                            searchTableNum = i;
+                        }
+                    }
+                    return this_.allTableDom[searchTableNum];
                 }
             });
             __allMatch__.push({

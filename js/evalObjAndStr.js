@@ -204,8 +204,8 @@ function getEvalObj(tableNum, str, isBind) {
                 }
             }
             else if (word === '"' || word === "'") {
-                var strTemp = "";
-                for (var i = forwordStrNum; i < str.length; i++) {
+                var strTemp = '';
+                for (let i = forwordStrNum; i < str.length; i++) {
                     if (str[i] === word) {
                         if (strTemp.substr(strTemp.length - 1) === '\\') {
                         } else {
@@ -235,29 +235,29 @@ function getEvalObj(tableNum, str, isBind) {
                 }
                 baseWord = params;
             }
-            else if (word === ':') {
-                if (endstrArr === undefined) {
-                    var end = a(['+', '-', '*', '/', '>', '<', ')']);
-                } else {
-                    var end = a(endstrArr.concat(['+', '-', '*', '/', '>', '<', ')']));
-                }
-                if (baseWord.tableId === end.tableId) {
-                    var resultList = new tdList(baseWord, end);
-                    var tableId = baseWord.tableId;
-                    for (let i = baseWord.hang; i <= end.hang; i++) {
-                        for (let j = baseWord.lie; j <= end.lie; j++) {
-                            var tdStr = getCellTemp2(i, j);
-                            var bindTemp = baseWord.table.findChild(tdStr);
-                            if (isBind) {
-                                bindTemp.bind(resultList);
-                            }
-                        }
-                    }
-                    baseWord = resultList;
-                } else {
-                    throw new DOMException('tdList必须在一张表上');
-                }
-            }
+            // else if (word === ':') {
+            //     if (endstrArr === undefined) {
+            //         var end = a(['+', '-', '*', '/', '>', '<', ')']);
+            //     } else {
+            //         var end = a(endstrArr.concat(['+', '-', '*', '/', '>', '<', ')']));
+            //     }
+            //     if (baseWord.tableId === end.tableId) {
+            //         var resultList = new tdList(baseWord, end);
+            //         var tableId = baseWord.tableId;
+            //         for (let i = baseWord.hang; i <= end.hang; i++) {
+            //             for (let j = baseWord.lie; j <= end.lie; j++) {
+            //                 var tdStr = getCellTemp2(i, j);
+            //                 var bindTemp = baseWord.table.findChild(tdStr);
+            //                 if (isBind) {
+            //                     bindTemp.bind(resultList);
+            //                 }
+            //             }
+            //         }
+            //         baseWord = resultList;
+            //     } else {
+            //         throw new DOMException('tdList必须在一张表上');
+            //     }
+            // }
             else if (word === '.' || typeof window[word] === 'function') {
                 if (word === '.') {
                     var funcName = forword();

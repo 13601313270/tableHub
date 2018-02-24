@@ -79,18 +79,18 @@ function td(table, positionStr) {
     };
     this.formatCode_ = function (value, code) {
         var returnHtml = '';
-        //console.log(value);
+        // console.log(value);
         if (code.match(/[^*|\\|_]%/) !== null && value.toString().match(/^-?\d+(\.\d+)?$/)) {
             value = (value * 100).toString();
         }
         value = value.toString();
         var oldValue = value;
 
-        //自定义格式中整数部分数字占位符个数
+        // 自定义格式中整数部分数字占位符个数
         var codeZhengshuNumCount = 0;
-        //自定义格式中小数部分占位符个数
+        // 自定义格式中小数部分占位符个数
         var codeXiaoshuNumCount = 0;
-        //.match(/\.(([#|0](\\\.|[^#|0|\.])*)+)/)[1]
+        // .match(/\.(([#|0](\\\.|[^#|0|\.])*)+)/)[1]
         var runCodeZhengshuNumCount = 0;//
         if (code.match(/(([#|0|\?](\\\.|[^#|0|\.])*)+)\.?/) !== null) {
             codeZhengshuNumCount = code.replace(/[*|\\|_]{2}/g, '').replace(/[*|\\|_]([#|0|\?])/g, '').match(/(([#|0](\\\.|[^#|0|\.])*)+)\.?/)[1].match(/([#|0][^#|0]*)/g).length;
@@ -102,8 +102,8 @@ function td(table, positionStr) {
         if (code.match(/[^*|\\|_],/) !== null) {
             isQianfenwei = true;
         }
-        //是否是分数表达式
-        var isFenShuwei = false;//是否是分数
+        // 是否是分数表达式
+        var isFenShuwei = false;// 是否是分数
         if (code.replace(/[*|\\|_]{2}/g, '').replace(/[*|\\|_]([#|0|\?])/g, '').match(/(.*[^*|\\|_])\/[^\d|#|0|\?]*?([\d|#|0|\?]+)/) !== null) {   //如果是分数表达式
             var tempFenshuMatch = code.replace(/[*|\\|_]{2}/g, '').replace(/[*|\\|_]([#|0|\?])/g, '').match(/(.*[^*|\\|_])\/[^\d|#|0|\?]*?([\d|#|0|\?]+)/);
             var isHasZhengshu = tempFenshuMatch[1].match(/([#|0\?]+[^#|0\?]*)/g);
@@ -145,10 +145,10 @@ function td(table, positionStr) {
             temp = code[0];
             if (temp == '_') {
                 returnHtml += '<span style="opacity: 0">' + code[1] + '</span>';
-                //returnHtml+='<span>'+code[1]+'</span>';
+                // returnHtml+='<span>'+code[1]+'</span>';
                 code = code.slice(2);
             } else if (temp == '*') {
-                //returnHtml+='<span>'+code[1]+'</span>';
+                // returnHtml+='<span>'+code[1]+'</span>';
                 returnValue[0] = returnHtml;
                 if (code[1] !== '=') {
                     for (var i = 0; i < 30; i++) {
@@ -172,10 +172,10 @@ function td(table, positionStr) {
                     var match2Length = match[2].length;
                     var match3Length = match[3].length;
 
-                    var firstWeishu = value[0].length;//整数位数
+                    var firstWeishu = value[0].length;// 整数位数
                     var chengshu = 0;
-                    if (value.length > 1) { //有小数部分
-                        if (value[0] == 0) {    //数字是小于1的
+                    if (value.length > 1) { // 有小数部分
+                        if (value[0] == 0) {    // 数字是小于1的
                             value[0] = '';
                             var ppp = 0;
                             while (ppp++ < 100) {
@@ -191,7 +191,7 @@ function td(table, positionStr) {
                                     break;
                                 }
                             }
-                            //小于1的,表达式整数无论多少位,只进步到一位有效数字,在excel尝试得到,不知道原因
+                            // 小于1的,表达式整数无论多少位,只进步到一位有效数字,在excel尝试得到,不知道原因
                             if (match1Length > 1) {
                                 for (var i = 0; i < match1Length - 1; i++) {
                                     returnHtml += '0';
@@ -205,7 +205,7 @@ function td(table, positionStr) {
 
                     }
                     returnHtml += value[0].toString().slice(0, match1Length) + '.';//整数位
-                    //小数部分
+                    // 小数部分
                     var xiaoshuValue = '';
                     for (var i = match2Length + match1Length; i >= match1Length + 1; i--) {
                         if (code[i] == '#' && xiaoshuValue == '' && value[0][i - 1] == '0') {
@@ -217,7 +217,7 @@ function td(table, positionStr) {
                     }
                     returnHtml += xiaoshuValue + 'E';
                     returnHtml += firstWeishu > match1Length - chengshu ? '+' : '-';
-                    //指数部分
+                    // 指数部分
                     var valueTemp = Math.abs(firstWeishu - match1Length + chengshu);
                     if (valueTemp.toString().length < match3Length) {
                         for (var i = 0; i < match3Length - valueTemp.toString().length; i++) {
@@ -229,7 +229,7 @@ function td(table, positionStr) {
                 }
                 else {
                     if (runCodeZhengshuNumCount == 0 && codeZhengshuNumCount < value[0].length) {
-                        //虽然code的位数不够,则都显示
+                        // 虽然code的位数不够,则都显示
                         for (var i = 0; i < value[0].length - codeZhengshuNumCount + 1; i++) {
                             returnHtml += value[0][i];
                             if (isQianfenwei && (value[0].length - i) % 3 == 1) {
@@ -257,7 +257,7 @@ function td(table, positionStr) {
                                 }
                             }
                         } else {
-                            //真实数字精度大于格式小数精度,则进行四舍五入
+                            // 真实数字精度大于格式小数精度,则进行四舍五入
                             if (runCodeZhengshuNumCount == codeZhengshuNumCount && value.length == 2 && value[1].length > codeXiaoshuNumCount) {
                                 value[1] = parseFloat('0.' + value[1]).toFixed(codeXiaoshuNumCount).split('.')[1];
                             }
@@ -385,36 +385,38 @@ function td(table, positionStr) {
             if (getValue_ instanceof tdValueList) {
                 getValue = getValue_.get();
             }
-            if (getValue instanceof Array) {
-                for (let i = 0; i < getValue.length; i++) {
-                    for (let j = 0; j < getValue[i].length; j++) {
-                        if (i === 0 && j === 0) {
-                            var valueArr = this.formatCode(getValue[i][j]);
-                            var insertHtml = '<div>' + valueArr[0] + '</div>' +
-                                '<div>' + valueArr[1] + '</div>' +
-                                '<div>' + valueArr[2] + '</div>';
-                            this.dom.innerHtml = insertHtml;
-                        } else {
-                            var tdPos = this.getCellTemp2(this.hang + i, this.lie + j);
-                            if (this.table.child(tdPos) === undefined) {
-                                var tdTemp = new td(this.table, tdPos);
-                            } else {
-                                var tdTemp = this.table.child(tdPos);
-                            }
-                            if (getValue_ instanceof tdValueList) {
-                                this.bind(tdTemp);
-                            }
-                            tdTemp.set(getValue[i][j]);
-                        }
-                    }
-                }
-            } else {
-                var valueArr = this.formatCode(getValue);
-                var insertHtml = '<div>' + valueArr[0] + '</div>' +
-                    '<div>' + valueArr[1] + '</div>' +
-                    '<div>' + valueArr[2] + '</div>';
-                this.dom.innerHTML = insertHtml;
-            }
+            // if (getValue instanceof Array) {
+            //     for (let i = 0; i < getValue.length; i++) {
+            //         for (let j = 0; j < getValue[i].length; j++) {
+            //             if (i === 0 && j === 0) {
+            //                 var valueArr = this.formatCode(getValue[i][j]);
+            //                 var insertHtml = '<div>' + valueArr[0] + '</div>' +
+            //                     '<div>' + valueArr[1] + '</div>' +
+            //                     '<div>' + valueArr[2] + '</div>';
+            //                 this.dom.innerHtml = insertHtml;
+            //             } else {
+            //                 var tdPos = this.getCellTemp2(this.hang + i, this.lie + j);
+            //                 if (this.table.child(tdPos) === undefined) {
+            //                     var tdTemp = new td(this.table, tdPos);
+            //                 } else {
+            //                     var tdTemp = this.table.child(tdPos);
+            //                 }
+            //                 if (getValue_ instanceof tdValueList) {
+            //                     this.bind(tdTemp);
+            //                 }
+            //                 tdTemp.set(getValue[i][j]);
+            //             }
+            //         }
+            //     }
+            // } else {
+
+            var valueArr = this.formatCode(getValue);
+            var insertHtml = '<div>' + valueArr[0] + '</div>' +
+                '<div>' + valueArr[1] + '</div>' +
+                '<div>' + valueArr[2] + '</div>';
+            this.dom.innerHTML = insertHtml;
+
+            // }
         }
         if (this.xfIndex) {
             this.dom.setAttribute('cell_xf', this.xfIndex);
@@ -461,14 +463,14 @@ function td(table, positionStr) {
 
 td.prototype = new obj('td');
 
-//一组td
+// 一组td
 function tdList(begin, end) {
     this.begin = begin;
     this.end = end;
     this.bindEvent = [];
     this.listening = [];
     this.state = 0;//0正常,1锁定
-    //以行为一级的二维数组
+    // 以行为一级的二维数组
     this.getHangList = function () {
         let returnList = [];
         for (let i = this.begin.hang; i <= this.end.hang; i++) {
@@ -481,7 +483,7 @@ function tdList(begin, end) {
         }
         return returnList;
     };
-    //以列为一级的二维数组
+    // 以列为一级的二维数组
     this.getLieList = function () {
         let returnList = [];
         for (let j = this.begin.lie; j <= this.end.lie; j++) {
