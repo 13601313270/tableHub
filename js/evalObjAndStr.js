@@ -77,7 +77,7 @@ function getCellTemp(str) {
         let trNum = parseInt(str[2]);
         let tdNum = 0;
         for (let i = 0; i < tdStr.length; i++) {
-            tdNum += (tdStr[i].charCodeAt() - 64) * Math.pow(26, tdStr.length - i - 1)
+            tdNum += (tdStr[i].charCodeAt() - 64) * Math.pow(26, tdStr.length - i - 1);
         }
         return [trNum, tdNum];
     } catch (e) {
@@ -108,7 +108,7 @@ function getEvalObj(tableNum, str, isBind) {
     function forword(putBack) {
         var oldPutBakc = forwordStrNum;
         var strSplit = '';
-        var allUseWord = ['(', ')', ',', ';', '"', "'", ':', '+', '-', '*', '/', '.', '!', '>', '<', '[', ']'];
+        var allUseWord = ['(', ')', ',', ';', '"', '\'', ':', '+', '-', '*', '/', '.', '!', '>', '<', '[', ']'];
         if (allUseWord.indexOf(str[forwordStrNum]) > -1) {
             forwordStrNum++;
             var returnStr = str[forwordStrNum - 1];
@@ -203,7 +203,7 @@ function getEvalObj(tableNum, str, isBind) {
                     }
                 }
             }
-            else if (word === '"' || word === "'") {
+            else if (word === '"' || word === '\'') {
                 var strTemp = '';
                 for (let i = forwordStrNum; i < str.length; i++) {
                     if (str[i] === word) {
@@ -319,7 +319,9 @@ function getEvalObj(tableNum, str, isBind) {
                 var matchObj = null;
                 for (let i = 0; i < __allMatch__.length; i++) {
                     if (word.match(__allMatch__[i].match)) {
-                        matchObj = __allMatch__[i].value(tableNum, word, baseWord);
+                        matchObj = __allMatch__[i].value(tableNum, word, baseWord, function (endStrArr) {
+                            return a(endStrArr);
+                        });
                         break;
                     }
                 }
@@ -339,7 +341,7 @@ function getEvalObj(tableNum, str, isBind) {
                         console.log(word + 'wrong');
                     }
                 } else {
-                    baseWord = matchObj
+                    baseWord = matchObj;
                 }
             }
         }
