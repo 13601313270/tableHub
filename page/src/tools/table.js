@@ -219,43 +219,53 @@ var tableVueObj = Vue.extend({
         isDoubleClick: false,
         selectTd_temp(hang, lie) {
             this.isDoubleClick = true;
-            setTimeout(() => {
-                if (this.isDoubleClick === true) {
-                    this.poiCenter = {
-                        top: hang,
-                        bottom: hang,
-                        left: lie,
-                        right: lie
-                    };
-                    var td = this.tableObj.tdList[hang - 1][lie - 1];
-                    if (td !== undefined) {
-                        let isHasMerge = false;// 选择的td是不是merge的td
-                        for (let cell in this.tableObj.mergeCells) {
-                            if (cell.split(':')[0] === getCellTemp2(hang, lie)) {
-                                isHasMerge = true;
-                                break;
-                            }
-                        }
-                        if (isHasMerge) {
-                            this.tableObj.events_.emit('tdSelect', {
-                                pos: getCellTemp2(hang, lie),
-                                xf: this.selectTd(td.xfIndex),
-                                selectMergeState: 'down',
-                            });
-                        } else {
-                            this.tableObj.events_.emit('tdSelect', {
-                                pos: getCellTemp2(hang, lie),
-                                xf: this.selectTd(td.xfIndex),
-                                selectMergeState: 'disable',
-                            });
+            if (this.isDoubleClick === true) {
+                this.poiCenter = {
+                    top: hang,
+                    bottom: hang,
+                    left: lie,
+                    right: lie
+                };
+                var td = this.tableObj.tdList[hang - 1][lie - 1];
+                if (td !== undefined) {
+                    let isHasMerge = false;// 选择的td是不是merge的td
+                    for (let cell in this.tableObj.mergeCells) {
+                        if (cell.split(':')[0] === getCellTemp2(hang, lie)) {
+                            isHasMerge = true;
+                            break;
                         }
                     }
+                    if (isHasMerge) {
+                        this.tableObj.events_.emit('tdSelect', {
+                            pos: getCellTemp2(hang, lie),
+                            xf: this.selectTd(td.xfIndex),
+                            selectMergeState: 'down'
+                        });
+                    } else {
+                        this.tableObj.events_.emit('tdSelect', {
+                            pos: getCellTemp2(hang, lie),
+                            xf: this.selectTd(td.xfIndex),
+                            selectMergeState: 'disable'
+                        });
+                    }
+                } else {
+                    this.tableObj.events_.emit('tdSelect', {
+                        pos: getCellTemp2(hang, lie),
+                        xf: this.selectTd(),
+                        selectMergeState: 'disable'
+                    });
                 }
-            }, 1);
+            }
         },
         dbselectTd_temp(hang, lie) {
             this.isDoubleClick = false;
             this.tableObj.events_.emit('dblclick', getCellTemp2(hang, lie));
+            this.poiCenter = {
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0
+            };
         }
     },
     template: `<div>

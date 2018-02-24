@@ -24,9 +24,9 @@
                 </ul>
                 <div id="myTabContent" ref="allPage" class="tab-content"></div>
                 <div class="floatSingleValueWrite" v-show="userValueWriteIsShow"
-                     :style="{left:floatSingleValueWritePosition.x*-1+'px',top:floatSingleValueWritePosition.y*-1+'px'}">
-                    <div class="input">
-                        <input @keydown="userValueWrite" v-model="userValueWriteValue"/>
+                     :style="{left:floatSingleValueWritePosition.x*-1+79+'px',top:floatSingleValueWritePosition.y*-1+39+'px'}">
+                    <div class="input" :style="floatInputStyle">
+                        <input @keydown="userValueWrite" ref="floatInput" v-model="userValueWriteValue" @click.stop=""/>
                     </div>
                     <div class="span"></div>
                 </div>
@@ -52,6 +52,9 @@
     import ajax from '@/tools/ajax.js';
     import echarts from 'echarts';
     import tableClass from '@/tools/table';
+    import $ from 'jquery';
+    //    import 'bootstrap/dist/css/bootstrap.min.css';
+    //    import 'bootstrap/dist/js/bootstrap.min';
 
     function tableReady() {
     }
@@ -297,7 +300,7 @@
                             this_.cellXfInfo = data.xf;
                             this_.selectMergeState = data.selectMergeState;
                             this_.selectPos = data.pos;
-//                        this_.userValueWriteIsShow = false;
+                            this_.userValueWriteIsShow = false;
                         }
                     });
                     this_.allTableDom[table_Num].addListener('scroll', (data) => {
@@ -306,42 +309,55 @@
                     });
                     this_.allTableDom[table_Num].addListener('dblclick', (pos) => {
                         if (this_.isOpenEdit) {
-                            var td = this.allTableDom[this.tableNum].findChild(pos);
-//                            // 看看当前单元格是否有合并
+                            this_.selectPos = pos;
+                            // 看看当前单元格是否有合并
                             var activeId = this.tableNum;
                             var tempValue = this_.allTableDom[activeId].findChild(pos).value_;
                             if (typeof tempValue === 'string' || typeof tempValue === 'number' || tempValue === undefined) {
-                                // 计算宽度
-                                function getTrueWidth(str, xf) {
-                                    var span = $('<span></span>');
-                                    span.attr('cell_xf', xf);
-                                    span.html(str);
-                                    $('.floatSingleValueWrite .span').html('').append(span);
-                                    return span.width() + 8;
+                                // 计算坐标
+                                var position = {x: 0, y: 0};
+                                var allColumnInfo = this_.allFileData[this.tableNum].column;
+                                for (let i = getCellTemp(pos)[1] - 1; i >= 1; i--) {
+                                    var lieNum = getCellTemp2(0, i).match(/([A-Z]*)\$?(\d+)/)[1];
+                                    if (allColumnInfo[lieNum] === undefined) {
+                                        position.x += 10;
+                                    } else {
+                                        position.x += parseFloat(allColumnInfo[lieNum].width);
+                                    }
+                                }
+                                allColumnInfo = this_.allFileData[this.tableNum].row;
+                                for (let i = getCellTemp(pos)[0] - 1; i >= 1; i--) {
+                                    if (allColumnInfo[i] === undefined) {
+                                        position.y += 37;
+                                    } else {
+                                        position.y += parseFloat(allColumnInfo[i].height);
+                                    }
                                 }
 
-                                $('.tableBody').eq(activeId).scrollTop();
                                 this_.userValueWriteIsShow = true;
                                 this_.userValueWriteValue = tempValue;
 
-                                var inputTd = $('.floatSingleValueWrite .input');
-                                var clickTd = td.dom.parentNode;
-                                var position = $(clickTd).position();
-                                inputTd.css('left', position.left + $('.tableBody').eq(activeId).scrollLeft() - 1);
-                                inputTd.css('top', position.top + $('.tableBody').eq(activeId).scrollTop());
-                                inputTd.css('height', $(clickTd).outerHeight() + 2);
-                                inputTd.css('min-width', $(clickTd).outerWidth() + 3);
-                                inputTd.css('width', getTrueWidth(tempValue, td.xfIndex) + 1);
-                                inputTd.find('input').on('input', function () {
-                                    inputTd.css('width', getTrueWidth($(clickTd).val(), td.xfIndex));
-                                });
-                                inputTd.find('input').click(function (event) {
-                                    event.stopPropagation();
-                                });
-                                setTimeout(function () {
-                                    inputTd.find('input').focus();
+                                this_.floatInputStyle.left = position.x * 10 + 'px';
+                                this_.floatInputStyle.top = position.y + 'px';
+
+//
+                                var row = this_.allFileData[this.tableNum].row[getCellTemp(pos)[0]];
+                                if (row) {
+                                    this_.floatInputStyle.height = parseFloat(row.height) + 2 + 'px';
+                                } else {
+                                    this_.floatInputStyle.height = 37 + 2 + 'px';
+                                }
+//
+                                var lie = this_.allFileData[this.tableNum].column[pos.match(/([A-Z]*)\$?(\d+)/)[1]];
+                                if (lie) {
+                                    // 这块有个bug,merge的td只显示左侧的宽度
+                                    this_.floatInputStyle.minWidth = lie.width * 10 + 3 + 'px';
+                                } else {
+                                    this_.floatInputStyle.minWidth = 100 + 3 + 'px';
+                                }
+                                setTimeout(() => {
+                                    this_.$refs.floatInput.focus();
                                 }, 100);
-                                inputTd.find('input').focus();
                                 this_.$refs.float.hide();
                             } else {
                                 this_.userValueWriteIsShow = false;
@@ -423,13 +439,12 @@
             bodyClick() {
                 if (this.userValueWriteIsShow) {
                     var this_ = this;
-                    var inputDom = $('.floatSingleValueWrite .input input');
 
                     function afterUpdate() {
                         this_.changeTd({
                             tableNum: this_.tableNum,
                             pos: this_.selectPos,
-                            value: inputDom.val(),
+                            value: this_.userValueWriteValue,
                             xfIndex: this_.allTableDom[this_.tableNum].findChild(this_.selectPos).xfIndex
                         });
                         this_.userValueWriteIsShow = false;
@@ -437,7 +452,7 @@
                         this_.selectPos = '';
                     }
 
-                    if (this_.allTableDom[this_.tableNum].findChild(this_.selectPos).get().toString() !== inputDom.val()) {
+                    if (this_.allTableDom[this_.tableNum].findChild(this_.selectPos).get().toString() !== this_.userValueWriteValue) {
                         ajax({
                             type: 'POST',
                             data: {
@@ -445,7 +460,7 @@
                                 fileId: this_.fileId,
                                 tableNum: this_.tableNum,
                                 pos: this_.selectPos,
-                                value: inputDom.val()
+                                value: this_.userValueWriteValue
                             }
                         }).then((data) => {
                             if (data !== '-1') {
@@ -489,8 +504,7 @@
                             if (key === 'ArrowRight') {
                                 temp[1]++;
                             }
-                            let rightDom = this_.allTableDom[this_.tableNum].findChild(getCellTemp2(temp[0], temp[1])).dom;
-                            $(rightDom).trigger('dblclick');
+                            this_.allTableDom[tableId].events_.emit('dblclick', getCellTemp2(temp[0], temp[1]));
                         }
                     }
 
@@ -546,6 +560,7 @@
                 selectPos: '',
                 selectMergeState: false,
                 floatSingleValueWritePosition: {x: 0, y: 0},
+                floatInputStyle: {},
                 cellXfInfo: {
                     font: {
                         bold: false,

@@ -16,6 +16,7 @@
     import ajax from '@/tools/ajax.js';
     import setTdSelectState from '@/tools/setTdSelectState.js';
     import absoluteMove from '@/components/widthMove.vue';
+    import $ from 'jquery';
 
     function getStrByEvalObj(tableNum, beRunObj) {
         var returnStr = '';
