@@ -13,7 +13,7 @@ export default function (config) {
         function buildParams(prefix, obj, add) {
             var name;
             if (Array.isArray(obj)) {
-                jQuery.each(obj, function (i, v) {
+                obj.forEach((i, v)=>{
                     var rbracket = /\[\]$/;
                     if (rbracket.test(prefix)) {
 
@@ -24,18 +24,19 @@ export default function (config) {
 
                         // Item is non-scalar (array or object), encode its numeric index.
                         buildParams(
-                            prefix + "[" + (typeof v === "object" && v != null ? i : "") + "]",
+                            prefix + '[' + (typeof v === 'object' && v != null ? i : '') + ']',
                             v,
                             add
                         );
                     }
                 });
 
-            } else if (jQuery.type(obj) === "object") {
+
+            } else if (jQuery.type(obj) === 'object') {
 
                 // Serialize object item.
                 for (name in obj) {
-                    buildParams(prefix + "[" + name + "]", obj[name], add);
+                    buildParams(prefix + '[' + name + ']', obj[name], add);
                 }
 
             } else {
@@ -46,11 +47,11 @@ export default function (config) {
         }
 
         function jsonToQuery(obj) {
-            var prefix,
+            let prefix,
                 s = [],
                 add = function (key, value) {
-                    s[s.length] = encodeURIComponent(key) + "=" +
-                        encodeURIComponent(value == null ? "" : value);
+                    s[s.length] = encodeURIComponent(key) + '=' +
+                        encodeURIComponent(value == null ? '' : value);
                 };
 
             // If an array was passed in, assume that it is an array of form elements.
@@ -68,7 +69,7 @@ export default function (config) {
             }
 
             // Return the resulting serialization
-            return s.join("&");
+            return s.join('&');
         }
 
         if (config.dataType === 'jsonp') {
@@ -87,21 +88,19 @@ export default function (config) {
             script.charset = config.charset;
             script.async = false;
             config.data.callback = callbackName;
-            script.src = config.url + (config.url.indexOf('?') === -1 ? '?' :
-                '&') + jsonToQuery(config.data);
+            script.src = config.url + (config.url.indexOf('?') === -1 ? '?' : '&') + jsonToQuery(config.data);
             head.insertBefore(script, head.firstChild);
         } else {
             var xhr = new XMLHttpRequest();
             if (config.type !== 'POST') {
-                config.url += ((config.url.indexOf('?') === -1 ? '?' :
-                    '&') + jsonToQuery(config.data));
+                config.url += ((config.url.indexOf('?') === -1 ? '?' : '&') + jsonToQuery(config.data));
             }
             if (config['Content-Type'] === undefined) {
-                config['Content-Type'] = "application/json;charset=UTF-8";
+                config['Content-Type'] = 'application/json;charset=UTF-8';
             }
             xhr.open(config.type, config.url, true);
             // 必须设置这个头部，不然接受不到数据
-            xhr.setRequestHeader("Content-Type", config['Content-Type']);
+            xhr.setRequestHeader('Content-Type', config['Content-Type']);
             xhr.withCredentials = true;
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
@@ -115,7 +114,7 @@ export default function (config) {
             };
             xhr.onerror = function (e) {
                 wrong(e);
-            }
+            };
             if (config.type === 'POST') {
                 // xhr.send(JSON.stringify(config.data));
                 xhr.send(jsonToQuery(config.data));

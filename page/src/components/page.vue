@@ -424,7 +424,7 @@
                         if (data === -2) {
                             alert('工作表名称已存在');
                         } else if (data === 1) {
-                            location.href = location.href;//很多情况下无法刷新
+                            location.href = location.href;// 很多情况下无法刷新
                         }
                     });
                 }
@@ -614,9 +614,7 @@
             __allMatch__.push({
                 match: /^\:$/,
                 value(tableNum, word, baseWord, getAfterObjFunc) {
-                    console.log(baseWord);
                     var end = getAfterObjFunc(['+', '-', '*', '/', '>', '<', ')']);
-                    console.log(end);
                     return new tdList(baseWord, end);
                 }
             });

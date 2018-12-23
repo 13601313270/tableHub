@@ -7,8 +7,13 @@
  */
 include_once('../include.php');
 include_once('../phpExcel/Classes/PHPExcel.php');
-header('Access-Control-Allow-Origin:http://dev.tablehub.cn:8080');
-//header('Access-Control-Allow-Origin: *');
+// header('Access-Control-Allow-Origin:http://dev.tablehub.cn:8080');
+// header('Access-Control-Allow-Origin: *');
+if (in_array($_SERVER['HTTP_ORIGIN'], array(
+    'http://dev.tablehub.cn:8080', 'http://dev.tablehub.cn:8081'
+))) {
+    header('Access-Control-Allow-Origin:' . $_SERVER['HTTP_ORIGIN']);
+}
 
 header('Access-Control-Allow-Credentials:true');
 //header('Access-Control-Allow-Methods:OPTIONS, GET, POST'); // 允许option，get，post请求

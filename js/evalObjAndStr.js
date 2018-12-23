@@ -1,11 +1,11 @@
-//函数调用对象
-//runObj执行这个方法的对象
+// 函数调用对象
+// runObj执行这个方法的对象
 function __runObj__(runObj, funcName, params) {
     this.runObj = runObj;
     this.bindEvent = [];
     this.listening = [];
     this.state = 0;//0正常,1锁定
-    //如果是函数调用,则有函数名
+    // 如果是函数调用,则有函数名
     this.funcName = funcName;
     this.params = params;
     this.get = function () {
