@@ -17,7 +17,6 @@ if (in_array($_SERVER['HTTP_ORIGIN'], array(
 header("Access-Control-Allow-Credentials: true");
 header("access-control-expose-headers: Authorization");
 
-
 $userInfo = user::create()->getBySessionToken($_COOKIE['sessionToken']);
 $allConnection = connection::create()->getList(array(
     'uid' => intval($userInfo['id'])
@@ -58,12 +57,15 @@ function randStr($len)
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     $content = file_get_contents('php://input');
     $_PUT = getObjByFormData($content);
+
+    // $class =
     foreach ($datasourceTypeList as $k => $v) {
         if (intval($v['id']) === intval($_PUT['type'])) {
             $insertInfo = array();
             $fileKey = randStr(16);
             $dataTypeInfo = json_decode($_PUT['dataTypeInfo']);
-            foreach ($v['column'] as $column) {
+            $class = 'datasource_' . $v['name'];
+            foreach ($class::$column as $column) {
                 if ($column['type'] === 'File') {
                     $step = $_PUT[$column['name']];
                     $step = explode("\n", $step);
@@ -107,18 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 'uid' => intval($userInfo['id']),
                 'info' => $insertInfo
             );
-            // 不同数据源类型判断逻辑
-            if (intval($_PUT['type']) == 2) {
-                try {
-                    // 检查是否可以连接
-                    $pdo = new PDO("mysql:host=" . $insert['info']['host'] . ";port=" . $insert['info']['info']['port'] . ";dbname=" . $insert['info']['db'], $insert['info']['username'], $insert['info']['password'], array());
-                } catch (Exception $e) {
-                    echo '密码不对';
-                    exit;
-                }
-            } else if (intval($_PUT['type']) == 3) {
-                $insert['info']['file']['dataTypeInfo'] = $_PUT['dataTypeInfo'];
-            }
+            $sourceObj = new $class();
+            $insert['info'] = $sourceObj->beforeSave($insert['info'], $_PUT);
             $insert['info'] = json_encode($insert['info']);
             $result = connection::create()->insert($insert);
             echo json_encode($result);
@@ -128,6 +120,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     exit;
 } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     parse_str(file_get_contents('php://input'), $_DELETE);
+    $result = connection::create()->getByKey($_DELETE['id']);
+    $connecctionInfo = json_decode($result['info'], true);
+
+    $type = intval($result['type']);
+    foreach ($datasourceTypeList as $k => $v) {
+        if ($v['id'] === $type) {
+            $class = 'datasource_' . $v['name'];
+        }
+    }
+    $sourceObj = new $class($connecctionInfo);
+    $sourceObj->beforeDelete();
     $result = connection::create()->deleteById($_DELETE['id']);
     echo json_encode($result);
     exit;
@@ -140,113 +143,33 @@ foreach ($allConnection as $k => $v) {
         break;
     }
 }
-if ($isFindConnection && $allConnection['type'] === '2') {
-    $allConnection = json_decode($allConnection['info']);
-    // 端口
-    try {
-        $con = new PDO("mysql:host=" . $allConnection->host . ";dbname=" . $allConnection->db, $allConnection->username, $allConnection->password, array(
-            PDO::MYSQL_ATTR_INIT_COMMAND => "set names " . KOD_COMMENT_MYSQLDB_CHARSET
-        ));
-    } catch (Exception $e) {
-        exit;
+$type = intval($allConnection['type']);
+foreach ($datasourceTypeList as $k => $v) {
+    if ($v['id'] === $type) {
+        $class = 'datasource_' . $v['name'];
     }
+}
+$allConnection = json_decode($allConnection['info'], true);
+$sourceObj = new $class($allConnection);
 
-    $mysqlDBApi = new kod_db_mysqlDB($allConnection->db);
 
-    class showCreateTable extends kod_db_mysqlSingle
-    {
-        function __construct()
-        {
-            $this->tableName = $_POST['table'];
-            parent::__construct();
-        }
-    }
-
+if ($sourceObj->check($allConnection)) {
     $returnData = '';
     if ($_POST['type'] === 'showTables') {
-        $dbHandle = new kod_db_mysqlDB();
-        $returnData = $dbHandle->runsql('show tables', 'default', $con);
-        $result = array();
-        foreach ($returnData as $k => $v) {
-            $result[] = array(
-                'name' => current($v)
-            );
-        }
-        echo json_encode($result);
-        exit;
+        $returnData = $sourceObj->showTables();
     } else if ($_POST['type'] === 'showCreateTable') {
-        $returnData = showCreateTable::create()->showCreateTable();
+        $returnData = $sourceObj->showCreateTable();
+//            [dataType] => int
+//            [maxLength] => 11
+//            [notNull] => 1
+//            [title] => id
+//            [AUTO_INCREMENT] => 1
+//            [primarykey] => 1
     } else if ($_POST['type'] === 'run') {
-        $returnData = showCreateTable::create()->sql()->getList($_POST['sql']);
-        $returnData = $mysqlDBApi->runsql($returnData, $con);
-        foreach ($returnData as $k => $dataItem) {
-            foreach ($dataItem as $key => $v) {
-                if (preg_match('/[count|sum]\(/', $key, $match)) {
-                    $returnData[$k][$key] = intval($returnData[$k][$key]);
-                }
-            }
-        }
+        $returnData = $sourceObj->run($_POST['sql']);
     }
     echo json_encode($returnData);
     exit;
-} elseif ($isFindConnection && $allConnection['type'] === '3') {
-    if ($_POST['type'] === 'showTables') {
-        echo json_encode(array(
-            array('name' => '文件')
-        ));
-        exit;
-    } else if ($_POST['type'] === 'showCreateTable') {
-        $allConnection = json_decode($allConnection['info']);
-        $result = array();
-        $dataTypeInfo = json_decode($allConnection->file->dataTypeInfo);
-        foreach ($allConnection->file->column as $k => $v) {
-            if ($dataTypeInfo->$v) {
-                $result[$v] = array(
-                    'dataType' => $dataTypeInfo->$v,
-                    'title' => $v
-                );
-            } else {
-                $result[$v] = array(
-                    'dataType' => 'varchar',
-                    'title' => $v
-                );
-            }
-        }
-        echo json_encode($result);
-        exit;
-    } else if ($_POST['type'] === 'run') {
-        $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
-        $info = json_decode($allConnection['info']);
-
-        $ss = array(
-            '_id' => array($_POST['sql']['groupBy'] => '$' . $_POST['sql']['groupBy'])
-        );
-        foreach ($_POST['sql']['select'] as $k => $v) {
-            if (preg_match('/(count|sum)\((\S+)\)/', $v, $match)) {
-                $funcName = array(
-                    'count' => 'sum'
-                )[$match[1]];
-                if ($funcName === null) {
-                    $funcName = $match[1];
-                }
-                $ss[$v] = ['$' . $funcName => '$' . $match[2]];
-            }
-        }
-        $cmd = new \MongoDB\Driver\Command([
-            'aggregate' => $info->file->fileKey,
-            'pipeline' => [
-                array(
-                    '$group' => $ss
-                )
-            ]
-        ]);
-        $rows = $manager->executeCommand('csv', $cmd);
-        foreach ($rows as $r) {
-            if ($r->ok) {
-                print_r($r->result);
-                exit;
-            }
-        }
-        exit;
-    }
+} else {
+    exit;
 }
