@@ -112,7 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             $sourceObj = new $class($insertInfo);
             $insert['info'] = $sourceObj->beforeSave($insert['info'], $_PUT);
             $insert['info'] = json_encode($insert['info']);
-            print_r($insert);exit;
+            print_r($insert);
+            exit;
             $result = connection::create()->insert($insert);
             echo json_encode($result);
             exit;
@@ -150,8 +151,9 @@ foreach ($datasourceTypeList as $k => $v) {
         $class = 'datasource_' . $v['name'];
     }
 }
+$id = $allConnection['id'];
 $allConnection = json_decode($allConnection['info'], true);
-$sourceObj = new $class($allConnection);
+$sourceObj = new $class($allConnection, $id);
 
 
 if ($sourceObj->check($allConnection)) {

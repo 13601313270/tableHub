@@ -12,7 +12,7 @@ header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Credentials: true");
 header("access-control-expose-headers: Authorization");
 
-$token = json_decode(file_get_contents('http://47.254.19.157/gdCallbackGetToken.html?' . $_SERVER['QUERY_STRING']), true);
+$token = json_decode(file_get_contents('http://47.254.19.157/gdCallbackGetToken.html?' . $_SERVER['QUERY_STRING'] . "&grant_type=authorization_code"), true);
 if ($token['access_token']) {
     $userInfo = user::create()->getBySessionToken($_COOKIE['sessionToken']);
     $insertInfo = array(

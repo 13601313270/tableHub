@@ -12,23 +12,23 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_HEADER, 0);
 $url = 'https://www.googleapis.com/oauth2/v4/token';
 
-$sentData = array(
-    'code' => $_GET['code'],
-    'client_id' => '590141428668-nibaa0dtep92f89umnepae9cv9b68goa.apps.googleusercontent.com',
-    'access_type' => 'offline',
-    'client_secret' => 'fiSVQWVLsqTPQM_xfo6xF-nQ',
-    'redirect_uri' => 'http://www.tablehub.cn/gdCallback.html',
-    'grant_type' => 'authorization_code'
-);
-/*
- * 更新token使用的data
-$updateToken = array(
-    'client_id' => '590141428668-nibaa0dtep92f89umnepae9cv9b68goa.apps.googleusercontent.com',
-    'client_secret' => 'fiSVQWVLsqTPQM_xfo6xF-nQ',
-    'refresh_token' => '',
-    'grant_type' => 'refresh_token'
-);
-*/
+if ($_GET['grant_type'] === 'authorization_code') {
+    $sentData = array(
+        'code' => $_GET['code'],
+        'client_id' => '590141428668-nibaa0dtep92f89umnepae9cv9b68goa.apps.googleusercontent.com',
+        'access_type' => 'offline',
+        'client_secret' => 'fiSVQWVLsqTPQM_xfo6xF-nQ',
+        'redirect_uri' => 'http://www.tablehub.cn/gdCallback.html',
+        'grant_type' => $_GET['grant_type']
+    );
+} else if ($_GET['grant_type'] === 'refresh_token') {
+    $sentData = array(
+        'client_id' => '590141428668-nibaa0dtep92f89umnepae9cv9b68goa.apps.googleusercontent.com',
+        'client_secret' => 'fiSVQWVLsqTPQM_xfo6xF-nQ',
+        'refresh_token' => $_GET['refresh_token'],
+        'grant_type' => $_GET['grant_type']
+    );
+}
 
 curl_setopt_array($ch, [
     CURLOPT_CUSTOMREQUEST => 'POST',

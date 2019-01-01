@@ -14,20 +14,22 @@ class datasource_gd implements datasourceInterface
             'name' => 'token',
             'type' => 'token',
             'tokenUrl' => 'https://accounts.google.com/o/oauth2/v2/auth?' .
-                'scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.metadata.readonly&' .
+                'scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.metadata.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive&' .
                 'access_type=offline&' .
                 'state=state_parameter_passthrough_value&' .
                 'redirect_uri=http%3A%2F%2Fwww.tablehub.cn%2FgdCallback.html&' .
                 'response_type=code&' .
-                'prompt=consent&'.
+                'prompt=consent&' .
                 'client_id=590141428668-nibaa0dtep92f89umnepae9cv9b68goa.apps.googleusercontent.com'
         )
     );
     private $config = array();
+    private $id = null;
 
-    function __construct($insertInfo)
+    function __construct($insertInfo, $id = 0)
     {
         $this->config = $insertInfo;
+        $this->id = $id;
     }
 
     public function beforeSave($insertData, $post)
@@ -40,15 +42,41 @@ class datasource_gd implements datasourceInterface
         return true;
     }
 
+    public function updateAccessTokenByRefreshToken()
+    {
+        $content = file_get_contents('http://47.254.19.157/gdCallbackGetToken.html?refresh_token=' . $this->config['refresh_token'] . "&grant_type=refresh_token");
+        $result = json_decode($content, true);
+        connection::create()->update(array(
+            'id' => intval($this->id)
+        ), array(
+            'info' => json_encode(array(
+                'access_token' => $result['access_token'],
+                'refresh_token' => $this->config['refresh_token'],
+            ))
+        ));
+        $this->config['access_token'] = $result['access_token'];
+    }
+
     public function showTables()
     {
-        $result = json_decode(file_get_contents('http://47.254.19.157/restForGD.html?type=list&token=' . $this->config['access_token']), true);
-        return $result['files'];
+        $content = file_get_contents('http://47.254.19.157/restForGD.html?type=list&token=' . $this->config['access_token']);
+        $result = json_decode($content, true);
+        if (isset($result['files'])) {
+            return $result['files'];
+        } else if (isset($result['error']) && $result['error']['code'] === 401) {
+            $this->updateAccessTokenByRefreshToken();
+            $content = file_get_contents('http://47.254.19.157/restForGD.html?type=list&token=' . $this->config['access_token']);
+            $result = json_decode($content, true);
+            return $result['files'];
+        }
+        print_r($result);
     }
 
     public function showCreateTable()
     {
-        $result = json_decode(file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $_POST['table'] . '&token=' . $this->config['access_token']), true);
+        $content = file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $_POST['table'] . '&token=' . $this->config['access_token']);
+        var_dump($content);
+        $result = json_decode($content, true);
         print_r($result);
         return $result;
         $result = array();
