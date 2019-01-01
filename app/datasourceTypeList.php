@@ -16,5 +16,10 @@ $datasourceTypeList = array(
         'name' => 'csv',
         'id' => 3,
         'column' => datasource_csv::$column
+    ),
+    array(
+        'name' => 'gd',
+        'id' => 4,
+        'column' => datasource_gd::$column
     )
 );

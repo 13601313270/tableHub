@@ -5,19 +5,33 @@
  * Date: 2018/12/27
  * Time: 1:43 PM
  */
-print_r($_GET);
+//国内;
+header('Access-Control-Allow-Methods:OPTIONS, GET, POST, PUT, DELETE');
+// 指定允许其他域名访问
+header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Credentials: true");
+header("access-control-expose-headers: Authorization");
 
-require_once '../include/google-api-php-client-2.2.2/vendor/autoload.php';
-//session_start();
-
-$client = new Google_Client();
-//$client->setAuthConfigFile('client_secrets.json');
-//$client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/oauth2callback.php');
-$client->addScope(Google_Service_Drive::DRIVE_METADATA_READONLY);
-
-
-$client->authenticate($_GET['code']);
-var_dump($client->getAccessToken());
-//    $_SESSION['access_token'] = $client->getAccessToken();
-//    $redirect_uri = 'http://' . $_SERVER['HTTP_HOST'] . '/';
-//    header('Location: ' . filter_var($redirect_uri, FILTER_SANITIZE_URL));
+$token = json_decode(file_get_contents('http://47.254.19.157/gdCallbackGetToken.html?' . $_SERVER['QUERY_STRING']), true);
+if ($token['access_token']) {
+    $userInfo = user::create()->getBySessionToken($_COOKIE['sessionToken']);
+    $insertInfo = array(
+        'access_token' => $token['access_token'],
+        'refresh_token' => $token['refresh_token'],
+    );
+    $sourceObj = new datasource_gd($insertInfo);
+    $insert = array(
+        'name' => 'gd的名称',
+        'type' => 4,
+        'uid' => intval($userInfo['id']),
+        'info' => $insertInfo
+    );
+    $insert['info'] = $sourceObj->beforeSave($insert['info'], array());
+    $insert['info'] = json_encode($insert['info']);
+    $result = connection::create()->insert($insert);
+    echo json_encode($result);
+} else {
+    // 随便定了格式
+    echo json_encode(array('err' => true));
+}
+exit;

@@ -61,6 +61,7 @@ class datasource_mysql implements datasourceInterface
             echo '密码不对';
             exit;
         }
+        return $insertData;
     }
 
     // 查询操作之前，检查是否有权限
@@ -86,6 +87,7 @@ class datasource_mysql implements datasourceInterface
         $result = array();
         foreach ($returnData as $k => $v) {
             $result[] = array(
+                'id' => current($v),
                 'name' => current($v)
             );
         }

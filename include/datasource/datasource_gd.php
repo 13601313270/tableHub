@@ -6,13 +6,21 @@
  * Date: 2018/12/25
  * Time: 10:34 AM
  */
-class datasource_csv implements datasourceInterface
+class datasource_gd implements datasourceInterface
 {
     static public $column = array(
         array(
-            'title' => '文件',
-            'name' => 'file',
-            'type' => 'File'
+            'title' => 'google授权',
+            'name' => 'token',
+            'type' => 'token',
+            'tokenUrl' => 'https://accounts.google.com/o/oauth2/v2/auth?' .
+                'scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.metadata.readonly&' .
+                'access_type=offline&' .
+                'state=state_parameter_passthrough_value&' .
+                'redirect_uri=http%3A%2F%2Fwww.tablehub.cn%2FgdCallback.html&' .
+                'response_type=code&' .
+                'prompt=consent&'.
+                'client_id=590141428668-nibaa0dtep92f89umnepae9cv9b68goa.apps.googleusercontent.com'
         )
     );
     private $config = array();
@@ -24,7 +32,6 @@ class datasource_csv implements datasourceInterface
 
     public function beforeSave($insertData, $post)
     {
-        $insertData['file']['dataTypeInfo'] = $post['dataTypeInfo'];
         return $insertData;
     }
 
@@ -35,16 +42,15 @@ class datasource_csv implements datasourceInterface
 
     public function showTables()
     {
-        return array(
-            array(
-                'id' => '文件',
-                'name' => '文件'
-            )
-        );
+        $result = json_decode(file_get_contents('http://47.254.19.157/restForGD.html?type=list&token=' . $this->config['access_token']), true);
+        return $result['files'];
     }
 
     public function showCreateTable()
     {
+        $result = json_decode(file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $_POST['table'] . '&token=' . $this->config['access_token']), true);
+        print_r($result);
+        return $result;
         $result = array();
         $dataTypeInfo = json_decode($this->config['file']['dataTypeInfo']);
         foreach ($this->config['file']['column'] as $k => $v) {

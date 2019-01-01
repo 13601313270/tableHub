@@ -109,9 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 'uid' => intval($userInfo['id']),
                 'info' => $insertInfo
             );
-            $sourceObj = new $class();
+            $sourceObj = new $class($insertInfo);
             $insert['info'] = $sourceObj->beforeSave($insert['info'], $_PUT);
             $insert['info'] = json_encode($insert['info']);
+            print_r($insert);exit;
             $result = connection::create()->insert($insert);
             echo json_encode($result);
             exit;
