@@ -46,15 +46,16 @@ class datasource_gd implements datasourceInterface
     {
         $content = file_get_contents('http://47.254.19.157/gdCallbackGetToken.html?refresh_token=' . $this->config['refresh_token'] . "&grant_type=refresh_token");
         $result = json_decode($content, true);
+        $this->config['access_token'] = $result['access_token'];
         connection::create()->update(array(
             'id' => intval($this->id)
         ), array(
             'info' => json_encode(array(
-                'access_token' => $result['access_token'],
+                'access_token' => $this->config['access_token'],
                 'refresh_token' => $this->config['refresh_token'],
             ))
         ));
-        $this->config['access_token'] = $result['access_token'];
+
     }
 
     public function showTables()
@@ -72,29 +73,86 @@ class datasource_gd implements datasourceInterface
         print_r($result);
     }
 
-    public function showCreateTable()
+    private function getMongoFileByGDFileId($id)
     {
-        $content = file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $_POST['table'] . '&token=' . $this->config['access_token']);
-        var_dump($content);
-        $result = json_decode($content, true);
-        print_r($result);
-        return $result;
-        $result = array();
-        $dataTypeInfo = json_decode($this->config['file']['dataTypeInfo']);
-        foreach ($this->config['file']['column'] as $k => $v) {
-            if ($dataTypeInfo->$v) {
-                $result[$v] = array(
-                    'dataType' => $dataTypeInfo->$v,
-                    'title' => $v
-                );
-            } else {
-                $result[$v] = array(
-                    'dataType' => 'varchar',
-                    'title' => $v
-                );
+        // 验证是否已经入库mongodb
+        $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
+        $cmd = new \MongoDB\Driver\Command([
+            'aggregate' => $id,
+            'pipeline' => [
+                array(
+                    '$limit' => 1,
+                )
+            ]
+        ]);
+        $rows = $manager->executeCommand('gd', $cmd);
+        foreach ($rows as $r) {
+            if ($r->ok) {
+                if (count($r->result) === 0) {
+                    // 没有入库mongodb，重新拉取并且入库
+                    $content = file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $id . '&token=' . $this->config['access_token']);
+                    $result = json_decode($content, true);
+                    if (isset($result['error']) && $result['error']['code'] === 401) {
+                        $this->updateAccessTokenByRefreshToken();
+                        $content = file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $id . '&token=' . $this->config['access_token']);
+                    }
+                    $content = str_replace("\r\n", "\n", $content);
+                    $step = explode("\n", $content);
+                    $split = ',';
+                    $fileColumn = explode($split, $step[0]);//字段
+                    for ($i = count($fileColumn) - 1; $i >= 0; $i--) {
+                        if ($fileColumn[$i] === '') {
+                            unset($fileColumn[$i]);
+                        }
+                    }
+                    array_shift($step);
+                    $bulk = new MongoDB\Driver\BulkWrite;
+                    foreach ($step as $kk => $vv) {
+                        $stepItem = explode(",", $vv);
+                        $insert = array();
+                        foreach ($fileColumn as $kkk => $vvv) {
+//                            if ($dataTypeInfo->$vvv === 'number') {
+//                                $insert[$vvv] = floatval($stepItem[$kkk]);
+//                            } else {
+//
+//                            }
+                            $insert[$vvv] = strval($stepItem[$kkk]);
+                        }
+                        $bulk->insert($insert);
+                    }
+                    $manager->executeBulkWrite('gd.' . $id, $bulk);
+                }
             }
         }
-        return $result;
+    }
+
+    public function showCreateTable()
+    {
+        $this->getMongoFileByGDFileId($_POST['table']);
+        $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
+        $cmd = new \MongoDB\Driver\Command([
+            'aggregate' => $_POST['table'],
+            'pipeline' => [
+                array(
+                    '$limit' => 1,
+                )
+            ]
+        ]);
+        $rows = $manager->executeCommand('gd', $cmd);
+        $return = array();
+        foreach ($rows as $r) {
+            if ($r->ok) {
+                foreach (get_object_vars($r->result[0]) as $k => $item) {
+                    if ($k !== '_id') {
+                        $return[$k] = array(
+                            'dataType' => 'string',
+                            'title' => $k
+                        );
+                    }
+                }
+            }
+        }
+        return $return;
     }
 
     // 执行查询
