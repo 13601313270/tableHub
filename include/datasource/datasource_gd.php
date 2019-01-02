@@ -89,6 +89,15 @@ class datasource_gd implements datasourceInterface
         foreach ($rows as $r) {
             if ($r->ok) {
                 if (count($r->result) === 0) {
+
+                    // begin 临时入职
+                    ini_set('display_errors', '0');
+                    echo '应该不会插入数据，通知王浩然';
+                    throw new Exception('111');
+                    header('HTTP/1.1 500 Internal Server Error');
+                    exit;
+                    // end 临时入职
+
                     // 没有入库mongodb，重新拉取并且入库
                     $content = file_get_contents('http://47.254.19.157/restForGD.html?type=file&file=' . $id . '&token=' . $this->config['access_token']);
                     $result = json_decode($content, true);
@@ -178,21 +187,21 @@ class datasource_gd implements datasourceInterface
             }
         }
         $cmd = new \MongoDB\Driver\Command([
-            'aggregate' => $this->config['file']['fileKey'],
+            'aggregate' => $_POST['table'],//$this->config['file']['fileKey'],
             'pipeline' => [
                 array(
                     '$group' => $group
                 )
             ]
         ]);
-        $rows = $manager->executeCommand('csv', $cmd);
+        $rows = $manager->executeCommand('gd', $cmd);
         foreach ($rows as $r) {
             if ($r->ok) {
                 $returnData = array();
                 foreach ($r->result as $dataItem) {
                     $item = array();
                     $group = $_POST['sql']['groupBy'];
-                    $item[$group] = $dataItem->_id->Name;
+                    $item[$group] = $dataItem->_id->$group;
                     foreach ($_POST['sql']['select'] as $select) {
                         if ($select !== $group) {
                             $item[$select] = $dataItem->$select;

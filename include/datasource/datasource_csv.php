@@ -100,7 +100,7 @@ class datasource_csv implements datasourceInterface
                 foreach ($r->result as $dataItem) {
                     $item = array();
                     $group = $_POST['sql']['groupBy'];
-                    $item[$group] = $dataItem->_id->Name;
+                    $item[$group] = $dataItem->_id->$group;
                     foreach ($_POST['sql']['select'] as $select) {
                         if ($select !== $group) {
                             $item[$select] = $dataItem->$select;
