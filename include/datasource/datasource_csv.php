@@ -6,7 +6,7 @@
  * Date: 2018/12/25
  * Time: 10:34 AM
  */
-class datasource_csv implements datasourceInterface
+class datasource_csv extends datasourceInterface
 {
     static public $column = array(
         array(

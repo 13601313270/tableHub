@@ -168,6 +168,8 @@ if ($sourceObj->check($allConnection)) {
 //            [title] => id
 //            [AUTO_INCREMENT] => 1
 //            [primarykey] => 1
+    } else if ($_POST['type'] === 'selectTable') {
+        $returnData = $sourceObj->selectTable();
     } else if ($_POST['type'] === 'run') {
         $returnData = $sourceObj->run($_POST['sql']);
     }

@@ -6,7 +6,7 @@
  * Date: 2018/12/25
  * Time: 10:34 AM
  */
-class datasource_gd implements datasourceInterface
+class datasource_gd extends datasourceInterface
 {
     static public $column = array(
         array(
@@ -91,11 +91,11 @@ class datasource_gd implements datasourceInterface
                 if (count($r->result) === 0) {
 
                     // begin 临时入职
-                    ini_set('display_errors', '0');
-                    echo '应该不会插入数据，通知王浩然';
-                    throw new Exception('111');
-                    header('HTTP/1.1 500 Internal Server Error');
-                    exit;
+//                    ini_set('display_errors', '0');
+//                    echo '应该不会插入数据，通知王浩然';
+//                    throw new Exception('111');
+//                    header('HTTP/1.1 500 Internal Server Error');
+//                    exit;
                     // end 临时入职
 
                     // 没有入库mongodb，重新拉取并且入库
@@ -137,7 +137,6 @@ class datasource_gd implements datasourceInterface
 
     public function showCreateTable()
     {
-        $this->getMongoFileByGDFileId($_POST['table']);
         $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
         $cmd = new \MongoDB\Driver\Command([
             'aggregate' => $_POST['table'],
@@ -162,6 +161,14 @@ class datasource_gd implements datasourceInterface
             }
         }
         return $return;
+    }
+
+    public function selectTable()
+    {
+        $this->getMongoFileByGDFileId($_POST['table']);
+        return array(
+            'result' => 1
+        );
     }
 
     // 执行查询

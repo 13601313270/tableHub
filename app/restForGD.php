@@ -10,7 +10,7 @@ if ($_GET['type'] === 'list') {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt_array($ch, [
-        CURLOPT_URL => 'https://www.googleapis.com/drive/v3/files?access_token=' . $_GET['token']
+        CURLOPT_URL => 'https://www.googleapis.com/drive/v3/files?q=mimeType+%3d+%27text/csv%27%20or%20mimeType+%3d+%27application/vnd.google-apps.spreadsheet%27&access_token=' . $_GET['token']
     ]);
     $str = curl_exec($ch);
     curl_close($ch);

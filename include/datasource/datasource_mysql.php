@@ -15,7 +15,7 @@ class showCreateTable2 extends kod_db_mysqlSingle
     }
 }
 
-class datasource_mysql implements datasourceInterface
+class datasource_mysql extends datasourceInterface
 {
     private $con;
     private $config = array();
