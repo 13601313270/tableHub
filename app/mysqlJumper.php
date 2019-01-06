@@ -57,66 +57,91 @@ function randStr($len)
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     $content = file_get_contents('php://input');
     $_PUT = getObjByFormData($content);
-
-    // $class =
     foreach ($datasourceTypeList as $k => $v) {
         if (intval($v['id']) === intval($_PUT['type'])) {
             $insertInfo = array();
             $fileKey = randStr(16);
             $dataTypeInfo = json_decode($_PUT['dataTypeInfo']);
             $class = 'datasource_' . $v['name'];
-            foreach ($class::$column as $column) {
-                if ($column['type'] === 'File') {
-                    $step = $_PUT[$column['name']];
-                    $step = explode("\n", $step);
-                    $split = ',';
-                    $fileColumn = explode($split, $step[0]);//字段
-                    for ($i = count($fileColumn) - 1; $i >= 0; $i--) {
-                        if ($fileColumn[$i] === '') {
-                            unset($fileColumn[$i]);
-                        }
+            if ($_PUT['action'] === 'insertData' && $_PUT['type'] === '5') {
+                var_dump($class);
+                $fileKey = $_PUT['id'];
+                // 表结构
+                $result = connection::create()->getByKey($fileKey);
+                $result = json_decode($result['info'], true);
+                $result = json_decode($result['column'], true);
+                print_r($result);
+
+                // 插入数据
+                $insertData = array();
+                $data = json_decode($_PUT['data'], true);
+                foreach ($result as $vv) {
+                    if ($vv['type'] === 'bool') {
+                        $insertData[$vv['name']] = boolval($data[$vv['name']]) ? 1 : 0;
+                    } else if ($vv['type'] === 'number') {
+                        $insertData[$vv['name']] = floatval($data[$vv['name']]);
+                    } else {
+                        $insertData[$vv['name']] = $data[$vv['name']];
                     }
-                    array_shift($step);
-                    $bulk = new MongoDB\Driver\BulkWrite;
-                    foreach ($step as $kk => $vv) {
-                        $stepItem = explode(",", $vv);
-                        $insert = array();
-                        foreach ($fileColumn as $kkk => $vvv) {
-                            if ($dataTypeInfo->$vvv === 'number') {
-                                $insert[$vvv] = floatval($stepItem[$kkk]);
-                            } else {
-                                $insert[$vvv] = strval($stepItem[$kkk]);
+                }
+                print_r($insertData);exit;
+                $bulk = new MongoDB\Driver\BulkWrite;
+                $bulk->insert($insertData);
+                $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
+                $manager->executeBulkWrite('write.' . $fileKey, $bulk);
+                exit;
+            } else {
+                foreach ($class::$column as $column) {
+                    if ($column['type'] === 'File') {
+                        $step = $_PUT[$column['name']];
+                        $step = explode("\n", $step);
+                        $split = ',';
+                        $fileColumn = explode($split, $step[0]);//字段
+                        for ($i = count($fileColumn) - 1; $i >= 0; $i--) {
+                            if ($fileColumn[$i] === '') {
+                                unset($fileColumn[$i]);
                             }
                         }
-                        $bulk->insert($insert);
+                        array_shift($step);
+                        $bulk = new MongoDB\Driver\BulkWrite;
+                        foreach ($step as $kk => $vv) {
+                            $stepItem = explode(",", $vv);
+                            $insert = array();
+                            foreach ($fileColumn as $kkk => $vvv) {
+                                if ($dataTypeInfo->$vvv === 'number') {
+                                    $insert[$vvv] = floatval($stepItem[$kkk]);
+                                } else {
+                                    $insert[$vvv] = strval($stepItem[$kkk]);
+                                }
+                            }
+                            $bulk->insert($insert);
+                        }
+                        $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
+                        $manager->executeBulkWrite('csv.' . $fileKey, $bulk);
+                        $step = array(
+                            'column' => $fileColumn,
+                            'fileKey' => $fileKey
+                        );
+                    } else if ($column['type'] === 'Number') {
+                        $step = intval($_PUT[$column['name']]);
+                    } else {
+                        $step = $_PUT[$column['name']];
                     }
-                    $manager = new MongoDB\Driver\Manager("mongodb://root:2h2o==2h2+o2@dds-m5e1e332182fc054-pub.mongodb.rds.aliyuncs.com:3717/admin");
-                    $manager->executeBulkWrite('csv.' . $fileKey, $bulk);
-                    $step = array(
-                        'column' => $fileColumn,
-                        'fileKey' => $fileKey
-                    );
-                } else if ($column['type'] === 'Number') {
-                    $step = intval($_PUT[$column['name']]);
-                } else {
-                    $step = $_PUT[$column['name']];
+                    $insertInfo[$column['name']] = $step;
                 }
-                $insertInfo[$column['name']] = $step;
+                $insert = array(
+                    'name' => $_PUT['name'],
+                    'type' => intval($_PUT['type']),
+                    'uid' => intval($userInfo['id']),
+                    'info' => $insertInfo
+                );
+                $sourceObj = new $class($insertInfo);
+                $insert['info'] = $sourceObj->beforeSave($insert['info'], $_PUT);
+                $insert['info'] = json_encode($insert['info']);
+                $result = connection::create()->insert($insert);
+                echo json_encode($result);
+                exit;
             }
-            $insert = array(
-                'name' => $_PUT['name'],
-                'type' => intval($_PUT['type']),
-                'uid' => intval($userInfo['id']),
-                'info' => $insertInfo
-            );
-            $sourceObj = new $class($insertInfo);
-            $insert['info'] = $sourceObj->beforeSave($insert['info'], $_PUT);
-            $insert['info'] = json_encode($insert['info']);
-            print_r($insert);
-            exit;
-            $result = connection::create()->insert($insert);
-            echo json_encode($result);
-            exit;
         }
     }
     exit;
@@ -131,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             $class = 'datasource_' . $v['name'];
         }
     }
-    $sourceObj = new $class($connecctionInfo);
+    $sourceObj = new $class($connecctionInfo, $_DELETE['id']);
     $sourceObj->beforeDelete();
     $result = connection::create()->deleteById($_DELETE['id']);
     echo json_encode($result);

@@ -6,15 +6,6 @@
  * Date: 2018/12/24
  * Time: 5:09 PM
  */
-class showCreateTable2 extends kod_db_mysqlSingle
-{
-    function __construct()
-    {
-        $this->tableName = $_POST['table'];
-        parent::__construct();
-    }
-}
-
 class datasource_mysql extends datasourceInterface
 {
     private $con;
@@ -118,5 +109,14 @@ class datasource_mysql extends datasourceInterface
     function beforeDelete()
     {
 
+    }
+}
+
+class showCreateTable2 extends kod_db_mysqlSingle
+{
+    function __construct()
+    {
+        $this->tableName = $_POST['table'];
+        parent::__construct();
     }
 }
