@@ -151,13 +151,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     echo json_encode($result);
     exit;
 }
+foreach ($allConnection as $k => $v) {
+    if (intval($v['id']) === intval($_POST['connection'])) {
+        $allConnection = $allConnection[$k];
+        break;
+    }
+}
 $type = intval($allConnection['type']);
+$allConnection = json_decode($allConnection['info'], true);
 foreach ($datasourceTypeList as $k => $v) {
     if ($v['id'] === $type) {
         $class = 'datasource_' . $v['name'];
     }
 }
-$sourceObj = new $class($allConnection);
+$sourceObj = new $class($allConnection, $_POST['connection']);
 if ($sourceObj->check($allConnection)) {
     $returnData = '';
     if ($_POST['type'] === 'showTables') {

@@ -41,9 +41,6 @@ class datasource_write extends datasourceInterface
             array(
                 'id' => 'write',
                 'name' => '手填数据'
-            ), array(
-                'id' => 'write2',
-                'name' => '手填数据2'
             )
         );
     }
